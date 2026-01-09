@@ -1,5 +1,5 @@
-import { prisma } from "@repo/prisma";
-import type { User } from "@repo/prisma/client";
+import { prisma } from "@repo/database";
+import type { User } from "@repo/database/client";
 
 export const getUserById = async (id: string): Promise<User | null> => {
   return prisma.user.findUnique({

@@ -1,3 +1,3 @@
 // Database operation helpers
 // Export prisma client for direct import
-export { prisma } from "@repo/prisma";
+export { prisma } from "@repo/database";

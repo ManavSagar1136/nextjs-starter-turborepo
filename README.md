@@ -16,7 +16,7 @@ A Turborepo monorepo for a CMS with 4 Next.js apps and shared packages.
 - **`@repo/ui`** - shadcn/ui components
 - **`@repo/magicui`** - Magic UI animated components
 - **`@repo/components`** - Custom business components
-- **`@repo/prisma`** - Shared Prisma schema and client
+- **`@repo/database`** - Shared Prisma schema and client
 - **`@repo/api-helpers`** - Database operation utilities
 - **`@repo/utils`** - Pure utility functions
 - **`@repo/helpers`** - React hooks and context providers

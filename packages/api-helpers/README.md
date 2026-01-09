@@ -1,14 +1,14 @@
 # @repo/api-helpers
 
-Database operation utilities and API helpers. This package provides typed helper functions for database operations using the Prisma client from `@repo/prisma`.
+Database operation utilities and API helpers. This package provides typed helper functions for database operations using the Prisma client from `@repo/database`.
 
 ## Usage
 
 ```ts
 import { getUserById, createUser } from "@repo/api-helpers/users";
 import { prisma } from "@repo/api-helpers/prisma";
-// Or directly from prisma package:
-import { prisma } from "@repo/prisma";
+// Or directly from database package:
+import { prisma } from "@repo/database";
 
 const user = await getUserById("user-id");
 const newUser = await createUser({
