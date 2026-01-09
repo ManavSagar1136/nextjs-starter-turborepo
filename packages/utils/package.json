@@ -1,0 +1,27 @@
+{
+  "name": "@repo/utils",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./format": "./dist/format.js",
+    "./validation": "./dist/validation.js"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
+

@@ -1,0 +1,39 @@
+{
+  "name": "@repo/hooks-manager",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./hooks/use-toggle": "./dist/hooks/use-toggle.js",
+    "./hooks/use-media-query": "./dist/hooks/use-media-query.js",
+    "./hooks/use-click-outside": "./dist/hooks/use-click-outside.js",
+    "./hooks/use-window-size": "./dist/hooks/use-window-size.js",
+    "./utils/hook-registry": "./dist/utils/hook-registry.js"
+  },
+  "dependencies": {
+    "@repo/utils": "*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
+

@@ -1,58 +1,108 @@
-# Turborepo Tailwind CSS starter
+# BuildBase NextJS Starter Turborepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+A Turborepo monorepo for a CMS with 4 Next.js apps and shared packages.
 
-## Using this example
+## Structure
 
-Run the following command:
+### Apps
 
-```sh
-npx create-turbo@latest -e with-tailwind
+- **`apps/public`** - Public showcase/landing pages (port 3100)
+- **`apps/user`** - User-facing application (port 3101)
+- **`apps/admin`** - Admin panel for data management (port 3102)
+- **`apps/docs`** - Documentation and tutorials (port 3103)
+
+### Packages
+
+- **`@repo/ui`** - shadcn/ui components
+- **`@repo/magicui`** - Magic UI animated components
+- **`@repo/components`** - Custom business components
+- **`@repo/prisma`** - Shared Prisma schema and client
+- **`@repo/api-helpers`** - Database operation utilities
+- **`@repo/utils`** - Pure utility functions
+- **`@repo/helpers`** - React hooks and context providers
+- **`@repo/hooks-manager`** - Centralized hooks management
+- **`@repo/tanstack-query`** - TanStack Query helpers
+- **`@repo/env`** - Centralized environment variable management
+- **`@repo/tailwind-config`** - Shared Tailwind configuration
+- **`@repo/eslint-config`** - ESLint configurations
+- **`@repo/typescript-config`** - TypeScript configurations
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 20.9.0
+- Yarn 1.22.22
+
+### Setup
+
+1. **Install dependencies:**
+
+   ```bash
+   yarn install
+   ```
+
+2. **Set up environment variables:**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your values
+   ```
+
+3. **Set up database:**
+
+   ```bash
+   cd packages/prisma
+   yarn db:generate
+   yarn db:push
+   ```
+
+4. **Start development servers:**
+   ```bash
+   yarn dev
+   ```
+
+## Environment Variables
+
+Environment variables are managed centrally in the root `.env` file and shared across all apps.
+
+### Setup
+
+1. Copy `.env.example` to `.env`
+2. Fill in your values
+3. All apps will automatically use these variables
+
+### Validation
+
+Validate your environment variables:
+
+```bash
+yarn workspace @repo/env validate
 ```
 
-## What's inside?
+### Adding New Variables
 
-This Turborepo includes the following packages/apps:
+1. Add to `packages/env/src/schema.ts`
+2. Update `.env.example`
+3. Add to your `.env` file
 
-### Apps and Packages
+See `packages/env/README.md` for more details.
 
-- `docs`: a [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `web`: another [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `ui`: a stub React component library with [Tailwind CSS](https://tailwindcss.com/) shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Scripts
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- `yarn dev` - Start all apps in development mode
+- `yarn build` - Build all packages and apps
+- `yarn lint` - Lint all packages and apps
+- `yarn check-types` - Type check all packages and apps
+- `yarn format` - Format code with Prettier
 
-### Building packages/ui
+## Tech Stack
 
-This example is set up to produce compiled styles for `ui` components into the `dist` directory. The component `.tsx` files are consumed by the Next.js apps directly using `transpilePackages` in `next.config.ts`. This was chosen for several reasons:
-
-- Make sharing one `tailwind.config.ts` to apps and packages as easy as possible.
-- Make package compilation simple by only depending on the Next.js Compiler and `tailwindcss`.
-- Ensure Tailwind classes do not overwrite each other. The `ui` package uses a `ui-` prefix for it's classes.
-- Maintain clear package export boundaries.
-
-Another option is to consume `packages/ui` directly from source without building. If using this option, you will need to update the `tailwind.config.ts` in your apps to be aware of your package locations, so it can find all usages of the `tailwindcss` class names for CSS compilation.
-
-For example, in [tailwind.config.ts](packages/tailwind-config/tailwind.config.ts):
-
-```js
-  content: [
-    // app content
-    `src/**/*.{js,ts,jsx,tsx}`,
-    // include packages if not transpiling
-    "../../packages/ui/*.{js,ts,jsx,tsx}",
-  ],
-```
-
-If you choose this strategy, you can remove the `tailwindcss` and `autoprefixer` dependencies from the `ui` package.
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [Tailwind CSS](https://tailwindcss.com/) for styles
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- **Framework:** Next.js 16
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **UI Components:** shadcn/ui, Magic UI
+- **Database:** Prisma
+- **Data Fetching:** TanStack Query
+- **Monorepo:** Turborepo
+- **Package Manager:** Yarn Workspaces

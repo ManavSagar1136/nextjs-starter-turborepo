@@ -1,0 +1,31 @@
+{
+  "name": "@repo/api-helpers",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./users": "./dist/users.js",
+    "./prisma": "./dist/prisma.js"
+  },
+  "dependencies": {
+    "@repo/prisma": "*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "^22.15.30",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
+

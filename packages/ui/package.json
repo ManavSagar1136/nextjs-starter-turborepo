@@ -9,6 +9,7 @@
   ],
   "exports": {
     "./styles.css": "./dist/index.css",
+    "./lib/utils": "./dist/lib/utils.js",
     "./*": "./dist/*.js"
   },
   "license": "MIT",
@@ -22,6 +23,11 @@
   },
   "peerDependencies": {
     "react": "^19"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
