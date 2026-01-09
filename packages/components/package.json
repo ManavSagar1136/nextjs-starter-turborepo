@@ -1,5 +1,5 @@
 {
-  "name": "@repo/components",
+  "name": "@buildbase/components",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -24,13 +24,13 @@
     "react-dom": "^19"
   },
   "dependencies": {
-    "@repo/ui": "*",
-    "@repo/magicui": "*"
+    "@buildbase/ui": "*",
+    "@buildbase/magicui": "*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/tailwind-config": "*",
-    "@repo/typescript-config": "*",
+    "@buildbase/eslint-config": "*",
+    "@buildbase/tailwind-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",

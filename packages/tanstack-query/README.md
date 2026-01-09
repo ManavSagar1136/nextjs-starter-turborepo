@@ -1,4 +1,4 @@
-# @repo/tanstack-query
+# @buildbase/tanstack-query
 
 TanStack Query (React Query) helper package. Provides QueryClient setup, custom hooks, and utilities for data fetching.
 
@@ -7,7 +7,7 @@ TanStack Query (React Query) helper package. Provides QueryClient setup, custom 
 Wrap your app with the provider:
 
 ```tsx
-import { TanStackQueryProvider } from "@repo/tanstack-query/provider";
+import { TanStackQueryProvider } from "@buildbase/tanstack-query/provider";
 
 export default function RootLayout({ children }) {
   return (
@@ -25,8 +25,8 @@ export default function RootLayout({ children }) {
 ### Query Hooks
 
 ```tsx
-import { useUsers, useUser } from "@repo/tanstack-query/hooks/use-users";
-import { TanStackQueryProvider } from "@repo/tanstack-query/provider";
+import { useUsers, useUser } from "@buildbase/tanstack-query/hooks/use-users";
+import { TanStackQueryProvider } from "@buildbase/tanstack-query/provider";
 
 function UsersList() {
   const { data: users, isLoading } = useUsers();
@@ -46,7 +46,7 @@ import {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
-} from "@repo/tanstack-query/hooks/use-users";
+} from "@buildbase/tanstack-query/hooks/use-users";
 
 function CreateUserForm() {
   const createUser = useCreateUser();
@@ -61,7 +61,7 @@ function CreateUserForm() {
 ### Query Keys
 
 ```tsx
-import { queryKeys } from "@repo/tanstack-query/hooks/query-keys";
+import { queryKeys } from "@buildbase/tanstack-query/hooks/query-keys";
 ```
 
 ## Features

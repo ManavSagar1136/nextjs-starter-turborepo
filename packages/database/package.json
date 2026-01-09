@@ -1,5 +1,5 @@
 {
-  "name": "@repo/database",
+  "name": "@buildbase/database",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -21,7 +21,7 @@
     "@prisma/client": "^6.1.0"
   },
   "devDependencies": {
-    "@repo/typescript-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/node": "^22.15.30",
     "prisma": "^6.1.0",
     "tsx": "^4.19.2",

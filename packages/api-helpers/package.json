@@ -1,5 +1,5 @@
 {
-  "name": "@repo/api-helpers",
+  "name": "@buildbase/api-helpers",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -18,11 +18,11 @@
     "./prisma": "./dist/prisma.js"
   },
   "dependencies": {
-    "@repo/database": "*"
+    "@buildbase/database": "*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/node": "^22.15.30",
     "eslint": "^9.39.1",
     "typescript": "5.9.2"

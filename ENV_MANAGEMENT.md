@@ -33,7 +33,7 @@ Edit `.env` with your actual values (database URLs, API keys, etc.)
 ### 3. Validate (optional)
 
 ```bash
-yarn workspace @repo/env validate
+yarn workspace @buildbase/env validate
 ```
 
 ## 📖 How It Works
@@ -46,7 +46,7 @@ Next.js **automatically** loads `.env` files from the project root. Since all ap
 
 ```ts
 // In API routes, server components, server actions
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 // Type-safe access to server-only variables
 const dbUrl = env.DATABASE_URL;
@@ -58,7 +58,7 @@ const apiSecret = env.API_SECRET;
 ```ts
 // In client components (must use NEXT_PUBLIC_* variables)
 "use client";
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 // Client-accessible variables
 const appUrl = env.NEXT_PUBLIC_APP_URL;
@@ -76,7 +76,7 @@ Packages can use the same `env` import:
 
 ```ts
 // In packages
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 // Use validated env
 const dbUrl = env.DATABASE_URL;
@@ -135,7 +135,7 @@ If the variable should be tracked by Turbo for cache invalidation, add it to `tu
 
 ## ✅ Validation
 
-The `@repo/env` package uses **`@t3-oss/env-nextjs`** with **Zod** for runtime validation. This means:
+The `@buildbase/env` package uses **`@t3-oss/env-nextjs`** with **Zod** for runtime validation. This means:
 
 - ✅ **Type safety** - TypeScript knows the shape of your env vars
 - ✅ **Runtime validation** - Errors if required vars are missing
@@ -146,7 +146,7 @@ The `@repo/env` package uses **`@t3-oss/env-nextjs`** with **Zod** for runtime v
 ### Validate Manually
 
 ```bash
-yarn workspace @repo/env validate
+yarn workspace @buildbase/env validate
 ```
 
 ### Validation Errors
@@ -163,7 +163,7 @@ Required: DATABASE_URL
 1. **Never commit `.env` files** - They're in `.gitignore`
 2. **Use `.env.example`** - Document all required variables
 3. **Use `.env.local`** - For machine-specific overrides
-4. **Validate in CI/CD** - Run `yarn workspace @repo/env validate` in your pipeline
+4. **Validate in CI/CD** - Run `yarn workspace @buildbase/env validate` in your pipeline
 
 ## 📝 Example Usage
 
@@ -171,7 +171,7 @@ Required: DATABASE_URL
 
 ```ts
 // apps/public/app/api/users/route.ts
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 export async function GET() {
   const dbUrl = env.DATABASE_URL;
@@ -183,8 +183,8 @@ export async function GET() {
 
 ```ts
 // packages/api-helpers/src/users.ts
-import { loadEnv } from "@repo/env/load-env";
-import { env } from "@repo/env";
+import { loadEnv } from "@buildbase/env/load-env";
+import { env } from "@buildbase/env";
 
 loadEnv(); // Load env vars
 
@@ -198,8 +198,8 @@ export const getAllUsers = async () => {
 
 ```ts
 // scripts/migrate.ts
-import { loadEnv } from "@repo/env/load-env";
-import { env } from "@repo/env";
+import { loadEnv } from "@buildbase/env/load-env";
+import { env } from "@buildbase/env";
 
 loadEnv();
 
@@ -221,7 +221,7 @@ console.log(`Connecting to: ${env.DATABASE_URL}`);
 Run validation to see which vars are missing:
 
 ```bash
-yarn workspace @repo/env validate
+yarn workspace @buildbase/env validate
 ```
 
 ### "Env vars not loading in package"
@@ -229,7 +229,7 @@ yarn workspace @repo/env validate
 Make sure you call `loadEnv()` before using `env`:
 
 ```ts
-import { loadEnv } from "@repo/env/load-env";
+import { loadEnv } from "@buildbase/env/load-env";
 loadEnv(); // Don't forget this!
 ```
 

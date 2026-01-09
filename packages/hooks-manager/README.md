@@ -1,14 +1,14 @@
-# @repo/hooks-manager
+# @buildbase/hooks-manager
 
 Centralized hooks management package. Provides common React hooks and utilities for managing hooks across the monorepo.
 
 ## Usage
 
 ```tsx
-import { useToggle } from "@repo/hooks-manager/hooks/use-toggle";
-import { useMediaQuery } from "@repo/hooks-manager/hooks/use-media-query";
-import { useClickOutside } from "@repo/hooks-manager/hooks/use-click-outside";
-import { useWindowSize } from "@repo/hooks-manager/hooks/use-window-size";
+import { useToggle } from "@buildbase/hooks-manager/hooks/use-toggle";
+import { useMediaQuery } from "@buildbase/hooks-manager/hooks/use-media-query";
+import { useClickOutside } from "@buildbase/hooks-manager/hooks/use-click-outside";
+import { useWindowSize } from "@buildbase/hooks-manager/hooks/use-window-size";
 
 function MyComponent() {
   const [isOpen, { toggle, setTrue, setFalse }] = useToggle();

@@ -1,5 +1,5 @@
 {
-  "name": "@repo/tanstack-query",
+  "name": "@buildbase/tanstack-query",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -26,12 +26,12 @@
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-query-devtools": "^5.62.0",
-    "@repo/api-helpers": "*",
-    "@repo/utils": "*"
+    "@buildbase/api-helpers": "*",
+    "@buildbase/utils": "*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",

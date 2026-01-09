@@ -13,19 +13,19 @@ A Turborepo monorepo for a CMS with 4 Next.js apps and shared packages.
 
 ### Packages
 
-- **`@repo/ui`** - shadcn/ui components
-- **`@repo/magicui`** - Magic UI animated components
-- **`@repo/components`** - Custom business components
-- **`@repo/database`** - Shared Prisma schema and client
-- **`@repo/api-helpers`** - Database operation utilities
-- **`@repo/utils`** - Pure utility functions
-- **`@repo/helpers`** - React hooks and context providers
-- **`@repo/hooks-manager`** - Centralized hooks management
-- **`@repo/tanstack-query`** - TanStack Query helpers
-- **`@repo/env`** - Centralized environment variable management
-- **`@repo/tailwind-config`** - Shared Tailwind configuration
-- **`@repo/eslint-config`** - ESLint configurations
-- **`@repo/typescript-config`** - TypeScript configurations
+- **`@buildbase/ui`** - shadcn/ui components
+- **`@buildbase/magicui`** - Magic UI animated components
+- **`@buildbase/components`** - Custom business components
+- **`@buildbase/database`** - Shared Prisma schema and client
+- **`@buildbase/api-helpers`** - Database operation utilities
+- **`@buildbase/utils`** - Pure utility functions
+- **`@buildbase/helpers`** - React hooks and context providers
+- **`@buildbase/hooks-manager`** - Centralized hooks management
+- **`@buildbase/tanstack-query`** - TanStack Query helpers
+- **`@buildbase/env`** - Centralized environment variable management
+- **`@buildbase/tailwind-config`** - Shared Tailwind configuration
+- **`@buildbase/eslint-config`** - ESLint configurations
+- **`@buildbase/typescript-config`** - TypeScript configurations
 
 ## Getting Started
 
@@ -52,7 +52,7 @@ A Turborepo monorepo for a CMS with 4 Next.js apps and shared packages.
 3. **Set up database:**
 
    ```bash
-   cd packages/prisma
+   cd packages/database
    yarn db:generate
    yarn db:push
    ```
@@ -77,7 +77,7 @@ Environment variables are managed centrally in the root `.env` file and shared a
 Validate your environment variables:
 
 ```bash
-yarn workspace @repo/env validate
+yarn workspace @buildbase/env validate
 ```
 
 ### Adding New Variables

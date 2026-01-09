@@ -20,7 +20,7 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "src/generated/**"]
     },
-    "@repo/eslint-config#build": {
+    "@buildbase/eslint-config#build": {
       "cache": false
     },
     "db:generate": {

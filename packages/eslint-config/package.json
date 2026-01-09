@@ -1,5 +1,5 @@
 {
-  "name": "@repo/eslint-config",
+  "name": "@buildbase/eslint-config",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -14,7 +14,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@next/eslint-plugin-next": "^15.4.6",
-    "@repo/typescript-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/node": "^22.15.30",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.1",

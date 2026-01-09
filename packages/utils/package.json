@@ -1,5 +1,5 @@
 {
-  "name": "@repo/utils",
+  "name": "@buildbase/utils",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -18,8 +18,8 @@
     "./validation": "./dist/validation.js"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
     "eslint": "^9.39.1",
     "typescript": "5.9.2"
   }

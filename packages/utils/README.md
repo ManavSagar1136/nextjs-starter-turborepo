@@ -1,12 +1,12 @@
-# @repo/utils
+# @buildbase/utils
 
 Pure utility functions package. Contains formatting, validation, and calculation functions with no React dependencies.
 
 ## Usage
 
 ```ts
-import { formatDate, formatCurrency } from "@repo/utils/format";
-import { isValidEmail } from "@repo/utils/validation";
+import { formatDate, formatCurrency } from "@buildbase/utils/format";
+import { isValidEmail } from "@buildbase/utils/validation";
 
 const formatted = formatDate(new Date());
 const isValid = isValidEmail("user@example.com");

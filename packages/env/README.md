@@ -1,4 +1,4 @@
-# @repo/env
+# @buildbase/env
 
 Centralized environment variable management for the monorepo using `@t3-oss/env-nextjs`. This package provides type-safe, validated environment variables with automatic Next.js integration.
 
@@ -27,7 +27,7 @@ cp .env.example .env
 
 ```ts
 // apps/public/app/api/users/route.ts
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 export async function GET() {
   // Server-only variables
@@ -44,7 +44,7 @@ export async function GET() {
 // apps/public/app/page.tsx
 "use client";
 
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 export default function Page() {
   // Client-accessible variables (NEXT_PUBLIC_*)
@@ -59,7 +59,7 @@ export default function Page() {
 
 ```ts
 // apps/public/app/layout.tsx
-import { env, isDevelopment } from "@repo/env";
+import { env, isDevelopment } from "@buildbase/env";
 
 export default function Layout() {
   const isDev = isDevelopment();
@@ -73,7 +73,7 @@ export default function Layout() {
 
 ```ts
 // packages/api-helpers/src/users.ts
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 export const getAllUsers = async () => {
   // Server variables work in packages (Node.js context)
@@ -175,7 +175,7 @@ SKIP_ENV_VALIDATION=true yarn dev
 All environment variables are fully typed:
 
 ```ts
-import { env } from "@repo/env";
+import { env } from "@buildbase/env";
 
 // TypeScript knows the exact type
 const dbUrl: string = env.DATABASE_URL;
@@ -185,7 +185,7 @@ const isDev: boolean = env.ENABLE_DEBUG;
 ## Helper Functions
 
 ```ts
-import { isDevelopment, isProduction, isTest } from "@repo/env";
+import { isDevelopment, isProduction, isTest } from "@buildbase/env";
 
 if (isDevelopment()) {
   // Development-only code

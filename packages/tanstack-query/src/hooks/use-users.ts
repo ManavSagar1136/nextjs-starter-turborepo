@@ -8,7 +8,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
-} from "@repo/api-helpers/users";
+} from "@buildbase/api-helpers/users";
 import { queryKeys } from "./query-keys";
 
 // Query hooks

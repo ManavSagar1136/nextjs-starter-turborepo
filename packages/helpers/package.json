@@ -1,5 +1,5 @@
 {
-  "name": "@repo/helpers",
+  "name": "@buildbase/helpers",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -22,11 +22,11 @@
     "./hooks/use-debounce": "./dist/hooks/use-debounce.js"
   },
   "dependencies": {
-    "@repo/utils": "*"
+    "@buildbase/utils": "*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",

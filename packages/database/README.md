@@ -1,4 +1,4 @@
-# @repo/database
+# @buildbase/database
 
 Shared Prisma schema and client for the monorepo.
 
@@ -33,7 +33,7 @@ To add a new model:
 ## Usage
 
 ```ts
-import { prisma } from "@repo/database";
+import { prisma } from "@buildbase/database";
 
 const users = await prisma.user.findMany();
 ```

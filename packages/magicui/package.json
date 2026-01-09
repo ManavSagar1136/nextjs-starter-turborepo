@@ -1,5 +1,5 @@
 {
-  "name": "@repo/magicui",
+  "name": "@buildbase/magicui",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -24,13 +24,13 @@
     "react-dom": "^19"
   },
   "dependencies": {
-    "@repo/ui": "*",
+    "@buildbase/ui": "*",
     "framer-motion": "^11.11.17"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/tailwind-config": "*",
-    "@repo/typescript-config": "*",
+    "@buildbase/eslint-config": "*",
+    "@buildbase/tailwind-config": "*",
+    "@buildbase/typescript-config": "*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",

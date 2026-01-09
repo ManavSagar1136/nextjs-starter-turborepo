@@ -1,4 +1,4 @@
-# @repo/magicui
+# @buildbase/magicui
 
 Magic UI animated components package. This package contains animated components from [magicui.design](https://magicui.design/).
 
@@ -7,7 +7,7 @@ Magic UI animated components package. This package contains animated components 
 Import components from this package:
 
 ```tsx
-import { ComponentName } from "@repo/magicui/components/component-name";
+import { ComponentName } from "@buildbase/magicui/components/component-name";
 ```
 
 ## Adding Components
