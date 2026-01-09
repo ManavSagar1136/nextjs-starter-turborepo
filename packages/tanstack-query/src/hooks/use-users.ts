@@ -1,14 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getUserById,
-  getUserByEmail,
-  getAllUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "@buildbase/api-helpers/users";
+import { getUserById, getUserByEmail, getAllUsers, createUser, updateUser, deleteUser } from "@buildbase/api-helpers/users";
 import { queryKeys } from "./query-keys";
 
 // Query hooks
@@ -51,13 +44,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: { email?: string; name?: string };
-    }) => updateUser(id, data),
+    mutationFn: ({ id, data }: { id: string; data: { email?: string; name?: string } }) => updateUser(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.users.detail(variables.id),

@@ -8,9 +8,7 @@ interface TanStackQueryProviderProps {
   children: ReactNode;
 }
 
-export const TanStackQueryProvider = ({
-  children,
-}: TanStackQueryProviderProps) => {
+export const TanStackQueryProvider = ({ children }: TanStackQueryProviderProps) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -21,15 +19,13 @@ export const TanStackQueryProvider = ({
             retry: 1,
           },
         },
-      }),
+      })
   );
 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {process.env.NODE_ENV === "development" && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      {process.env.NODE_ENV === "development" && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
 };

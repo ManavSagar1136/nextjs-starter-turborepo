@@ -51,7 +51,7 @@ import {
 function CreateUserForm() {
   const createUser = useCreateUser();
 
-  const handleSubmit = (data) => {
+  const handleSubmit = data => {
     createUser.mutate(data);
   };
   // ...

@@ -1,29 +1,33 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-node_modules
+# Dependencies
+node_modules/
 .pnp
 .pnp.js
+.yarn/
+.yarn-integrity
 
-# testing
-coverage
-
-# next.js
+# Build outputs
+dist/
+build/
 .next/
 out/
-build
 .swc/
+*.tsbuildinfo
 
-# misc
-.DS_Store
-*.pem
+# Testing
+coverage/
+*.lcov
+.nyc_output
 
-# debug
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# Environment variables
 .env
 .env.local
 .env.development.local
@@ -31,12 +35,60 @@ yarn-error.log*
 .env.production.local
 .env.*.local
 
-# turbo
+# Turbo
 .turbo
 
-# ui
-dist/
-yarn.lock
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
-# prisma generated client
-packages/prisma/src/generated/
+# Package files
+package-lock.json
+yarn.lock
+*.tgz
+
+# Prisma generated client
+packages/database/src/generated/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.pem
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary folders
+tmp/
+temp/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache/
+
+# Optional eslint cache
+.eslintcache
+
+# Storybook build outputs
+.storybook/
+storybook-static/

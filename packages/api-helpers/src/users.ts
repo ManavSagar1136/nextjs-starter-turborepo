@@ -13,10 +13,7 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
   });
 };
 
-export const createUser = async (data: {
-  email: string;
-  name?: string;
-}): Promise<User> => {
+export const createUser = async (data: { email: string; name?: string }): Promise<User> => {
   return prisma.user.create({
     data: {
       sdkUserId: crypto.randomUUID(),
@@ -26,10 +23,7 @@ export const createUser = async (data: {
   });
 };
 
-export const updateUser = async (
-  id: string,
-  data: { email?: string; name?: string },
-): Promise<User> => {
+export const updateUser = async (id: string, data: { email?: string; name?: string }): Promise<User> => {
   return prisma.user.update({
     where: { id },
     data,

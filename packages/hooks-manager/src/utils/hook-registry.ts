@@ -11,10 +11,7 @@ type HookMetadata = {
 
 const hookRegistry = new Map<string, HookMetadata>();
 
-export const registerHook = (
-  name: string,
-  metadata?: Omit<HookMetadata, "name">,
-) => {
+export const registerHook = (name: string, metadata?: Omit<HookMetadata, "name">) => {
   hookRegistry.set(name, {
     name,
     ...metadata,

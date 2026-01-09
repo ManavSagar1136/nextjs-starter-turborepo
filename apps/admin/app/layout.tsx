@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   description: "Admin panel for data management",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={geist.className}>{children}</body>

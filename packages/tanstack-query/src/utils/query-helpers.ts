@@ -6,7 +6,7 @@ import type { QueryClient } from "@tanstack/react-query";
 export const prefetchQuery = async <T>(
   queryClient: QueryClient,
   queryKey: readonly unknown[],
-  queryFn: () => Promise<T>,
+  queryFn: () => Promise<T>
 ) => {
   await queryClient.prefetchQuery({
     queryKey,
@@ -17,19 +17,13 @@ export const prefetchQuery = async <T>(
 /**
  * Invalidate and refetch queries
  */
-export const invalidateQueries = (
-  queryClient: QueryClient,
-  queryKey: readonly unknown[],
-) => {
+export const invalidateQueries = (queryClient: QueryClient, queryKey: readonly unknown[]) => {
   return queryClient.invalidateQueries({ queryKey });
 };
 
 /**
  * Reset queries to their initial state
  */
-export const resetQueries = (
-  queryClient: QueryClient,
-  queryKey: readonly unknown[],
-) => {
+export const resetQueries = (queryClient: QueryClient, queryKey: readonly unknown[]) => {
   return queryClient.resetQueries({ queryKey });
 };

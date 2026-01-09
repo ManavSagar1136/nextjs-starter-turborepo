@@ -19,9 +19,7 @@ export const env = createEnv({
    * In packages, these are available when running in Node.js context
    */
   server: {
-    NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
     // Database
     DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
@@ -49,12 +47,12 @@ export const env = createEnv({
     // Feature Flags
     ENABLE_ANALYTICS: z
       .string()
-      .transform((val) => val === "true")
+      .transform(val => val === "true")
       .optional()
       .default("false"),
     ENABLE_DEBUG: z
       .string()
-      .transform((val) => val === "true")
+      .transform(val => val === "true")
       .optional()
       .default("false"),
   },
@@ -69,7 +67,7 @@ export const env = createEnv({
     NEXT_PUBLIC_API_URL: z.string().url().optional(),
     NEXT_PUBLIC_ENABLE_ANALYTICS: z
       .string()
-      .transform((val) => val === "true")
+      .transform(val => val === "true")
       .optional()
       .default("false"),
   },
@@ -113,11 +111,8 @@ export const env = createEnv({
   /**
    * Custom error handling
    */
-  onValidationError: (error) => {
-    console.error(
-      "❌ Invalid environment variables:",
-      error.flatten().fieldErrors,
-    );
+  onValidationError: error => {
+    console.error("❌ Invalid environment variables:", error.flatten().fieldErrors);
     throw new Error("Invalid environment variables");
   },
 
@@ -125,8 +120,6 @@ export const env = createEnv({
    * Custom success message (only in development)
    */
   onInvalidAccess: (key: string) => {
-    throw new Error(
-      `❌ Attempted to access invalid environment variable: ${key}`,
-    );
+    throw new Error(`❌ Attempted to access invalid environment variable: ${key}`);
   },
 });

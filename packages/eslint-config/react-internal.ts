@@ -14,9 +14,7 @@ export const config: any[] = [
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
-  ...(pluginReact.configs.flat.recommended
-    ? [pluginReact.configs.flat.recommended]
-    : []),
+  ...(pluginReact.configs.flat.recommended ? [pluginReact.configs.flat.recommended] : []),
   {
     languageOptions: {
       ...(pluginReact.configs.flat.recommended?.languageOptions || {}),

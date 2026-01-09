@@ -5,9 +5,11 @@
     "build": "turbo run build",
     "dev": "turbo run dev --concurrency=20",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint --fix",
     "check-types": "turbo run check-types",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
+    "type-check": "turbo run check-types",
+    "format": "prettier --write \"**/*.{ts,tsx,md,css,json,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,css,json,yml,yaml}\"",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -24,14 +26,5 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
-  }
+  ]
 }
