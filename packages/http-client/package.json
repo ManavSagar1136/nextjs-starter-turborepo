@@ -1,0 +1,35 @@
+{
+  "name": "@buildbase/http-client",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./base": "./dist/base.js",
+    "./types": "./dist/types.js",
+    "./controller": "./dist/controller.js",
+    "./pagination": "./dist/pagination.js"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "axios": "^1.7.9",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^22.15.30",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
