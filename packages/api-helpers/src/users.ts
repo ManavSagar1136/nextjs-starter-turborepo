@@ -18,7 +18,11 @@ export const createUser = async (data: {
   name?: string;
 }): Promise<User> => {
   return prisma.user.create({
-    data,
+    data: {
+      sdkUserId: crypto.randomUUID(),
+      email: data.email,
+      name: data.name,
+    },
   });
 };
 
