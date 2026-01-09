@@ -19,6 +19,7 @@
     "@buildbase/helpers": "*",
     "@buildbase/hooks-manager": "*",
     "@buildbase/tanstack-query": "*",
+    "@buildbase/http-client": "*",
     "next": "16.0.10",
     "react": "^19.2.0",
     "react-dom": "^19.1.0"
