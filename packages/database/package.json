@@ -6,7 +6,8 @@
   "license": "MIT",
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/generated/client/index.js"
+    "./client": "./src/generated/client/index.js",
+    "./user": "./src/user/index.ts"
   },
   "scripts": {
     "build": "prisma generate",
