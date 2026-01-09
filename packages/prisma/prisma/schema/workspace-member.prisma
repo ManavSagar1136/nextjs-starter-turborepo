@@ -1,0 +1,24 @@
+// WorkspaceMember - Many-to-Many relationship between User and Workspace
+model WorkspaceMember {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String  @db.ObjectId
+  workspaceId String  @db.ObjectId
+  role        String  @default("member") // e.g., "admin", "editor", "viewer", "member"
+  isActive    Boolean @default(true) // Soft delete flag for membership
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  joinedAt  DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  removedAt DateTime? // When membership was removed (soft delete)
+
+  @@unique([userId, workspaceId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([isActive])
+  @@index([role])
+  @@map("workspace_members")
+}

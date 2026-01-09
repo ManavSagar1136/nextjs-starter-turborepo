@@ -1,0 +1,23 @@
+// User model - stores user information from SDK authentication
+model User {
+  id                 String  @id @default(auto()) @map("_id") @db.ObjectId
+  sdkUserId          String  @unique // User ID from Buildbase SDK
+  email              String  @unique
+  name               String?
+  image              String?
+  role               String? // e.g., "admin", "user"
+  currentWorkspaceId String? @db.ObjectId // Current active workspace
+
+  // Workspace relationships
+  workspaces       WorkspaceMember[]
+  currentWorkspace Workspace?        @relation("UserCurrentWorkspace", fields: [currentWorkspaceId], references: [id])
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  // Note: @unique on sdkUserId and email automatically creates indexes
+  @@index([currentWorkspaceId])
+  @@map("users")
+}

@@ -37,3 +37,6 @@ yarn-error.log*
 # ui
 dist/
 yarn.lock
+
+# prisma generated client
+packages/prisma/prisma/schema/src/generated/client/

@@ -1,0 +1,22 @@
+// Workspace model - stores workspace information
+model Workspace {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  sdkWorkspaceId String  @unique // Workspace ID from Buildbase SDK
+  name           String
+  image          String?
+  slug           String? @unique
+  description    String? // Workspace description
+  isActive       Boolean @default(true) // Soft delete flag
+
+  // Workspace members
+  members      WorkspaceMember[]
+  currentUsers User[]            @relation("UserCurrentWorkspace") // Users with this as current workspace
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Note: @unique on sdkWorkspaceId and slug automatically creates indexes
+  @@index([isActive])
+  @@map("workspaces")
+}

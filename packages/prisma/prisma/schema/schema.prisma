@@ -1,0 +1,12 @@
+// Base Prisma configuration
+// This file contains generator and datasource configuration
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./src/generated/client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
