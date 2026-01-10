@@ -4,12 +4,16 @@ import { SaaSProvider as BaseSaaSProvider } from "@buildbase/saas-sdk";
 import React from "react";
 import { API } from "@/services";
 import { env } from "@buildbase/env";
+import { useAppDispatch } from "@/store/hooks";
+import { setUser, clearUser } from "@/store";
 
 interface SaaSProviderProps {
   children: React.ReactNode;
 }
 
 export default function SaaSProvider({ children }: SaaSProviderProps) {
+  const dispatch = useAppDispatch();
+
   // Get base URL from environment variable
   // Use NEXT_PUBLIC_* variable for client components
   const baseUrl = env.NEXT_PUBLIC_USER_APP_URL;
@@ -19,6 +23,9 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
     <BaseSaaSProvider
       redirectUrl={redirectUrl}
       onSignOut={async () => {
+        // Clear user state from Redux slice
+        dispatch(clearUser());
+
         // Clear auth cookie by calling logout endpoint
         try {
           await API.auth.logout();
@@ -31,7 +38,21 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
         try {
           const data = await API.auth.verify(code);
           console.log("Authentication data:", data);
-          if (data.success && data.sessionId) {
+          if (data.success && data.sessionId && data.user) {
+            // Store complete user info in Redux slice
+            // All UserState fields must be set to ensure consistency
+            const userId = data.user.id || data.user._id || null;
+            dispatch(
+              setUser({
+                id: userId,
+                email: data.user.email || null,
+                name: data.user.name || null,
+                image: data.user.image || null,
+                role: data.user.role || null,
+                sdkUserId: userId, // SDK user ID stored for API calls and consistency
+              })
+            );
+
             // Token is stored in HTTP-only cookie automatically
             return { sessionId: data.sessionId };
           } else {

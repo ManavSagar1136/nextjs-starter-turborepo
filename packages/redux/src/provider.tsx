@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import { persistStore } from "redux-persist";
 import { persistor, makeStore, AppStore, createStore, PersistConfig } from "./store";
 import type { Store } from "@reduxjs/toolkit";
 
@@ -32,6 +33,7 @@ export function ReduxProvider({
   store: providedStore,
 }: ReduxProviderProps) {
   const storeRef = useRef<AppStore | Store | undefined>(undefined);
+  const persistorRef = useRef<any>(undefined);
 
   if (!storeRef.current) {
     // Use provided store or create a new one
@@ -40,14 +42,18 @@ export function ReduxProvider({
     } else if (additionalReducers || persistConfig) {
       // Create store with custom reducers/config
       storeRef.current = createStore(additionalReducers, persistConfig);
+      // Create persistor for the custom store
+      persistorRef.current = persistStore(storeRef.current as any);
     } else {
       // Use default store
       storeRef.current = makeStore();
+      persistorRef.current = persistor;
     }
   }
 
   const store = storeRef.current;
-  const finalPersistor = providedStore ? undefined : persistor;
+  // Use custom persistor if created, otherwise use default persistor (or undefined for provided store)
+  const finalPersistor = providedStore ? undefined : persistorRef.current || persistor;
 
   return (
     <Provider store={store as any}>

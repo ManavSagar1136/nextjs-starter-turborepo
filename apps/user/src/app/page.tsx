@@ -10,11 +10,7 @@ import { Building2, LogIn, LogOut, User, ChevronDown } from "lucide-react";
 import { useSDKAuth } from "@/hooks/useSDKAuth";
 
 export default function Home() {
-  const { user, isAuthenticated, isLoading, signIn, signOut } = useSDKAuth();
-
-  const handleWorkspaceChange = async (workspace: any) => {
-    console.log("Workspace changed to:", workspace);
-  };
+  const { isAuthenticated, isLoading, signIn, signOut, user } = useSDKAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -45,24 +41,26 @@ export default function Home() {
                   <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2"></div>
                   Loading...
                 </div>
-              ) : isAuthenticated && user ? (
+              ) : isAuthenticated && user?.id ? (
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarImage src={user?.image || undefined} alt={user?.name || undefined} />
                       <AvatarFallback>
-                        {user.name
+                        {user?.name
                           ?.split(" ")
                           .map(n => n[0])
                           .join("") || <User className="h-4 w-4" />}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-muted-foreground text-sm">{user.email}</p>
-                      <Badge variant="outline" className="mt-1 text-xs">
-                        {user.role}
-                      </Badge>
+                      <p className="font-medium">{user.name || "User"}</p>
+                      <p className="text-muted-foreground text-sm">{user.email || ""}</p>
+                      {user.role && (
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          {user.role}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <Button onClick={signOut} variant="outline" size="sm">
@@ -85,7 +83,9 @@ export default function Home() {
               <h4 className="text-sm font-medium">Workspace Switcher</h4>
 
               <WorkspaceSwitcher
-                onWorkspaceChange={handleWorkspaceChange}
+                onWorkspaceChange={_ => {
+                  return Promise.resolve();
+                }}
                 trigger={(isLoading, currentWorkspace) => {
                   if (isLoading || !currentWorkspace) {
                     return (
@@ -105,10 +105,10 @@ export default function Home() {
                   return (
                     <div className="hover:bg-muted flex min-w-40 cursor-pointer items-center gap-2 rounded-md border p-3 transition-colors">
                       <div className="bg-muted flex h-full max-h-8 w-full max-w-8 items-center justify-center rounded-lg">
-                        {currentWorkspace?.image ? (
+                        {currentWorkspace.image ? (
                           <img
                             src={currentWorkspace.image}
-                            alt={currentWorkspace.name}
+                            alt={currentWorkspace.name || ""}
                             className="h-8 w-8 rounded-lg object-cover"
                           />
                         ) : (
@@ -116,7 +116,7 @@ export default function Home() {
                         )}
                       </div>
                       <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="font-medium">{currentWorkspace.name}</span>
+                        <span className="font-medium">{currentWorkspace.name || "Workspace"}</span>
                         <span className="text-muted-foreground text-xs">
                           {currentWorkspace.users?.length || 0} members
                         </span>
@@ -129,7 +129,7 @@ export default function Home() {
             </div>
 
             {/* Status Information */}
-            <div className="border-t pt-4">
+            <div className="space-y-2 border-t pt-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Authentication Status:</span>
                 <Badge variant={isAuthenticated ? "default" : "secondary"}>
