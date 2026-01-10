@@ -1,0 +1,13 @@
+{
+  "extends": "@buildbase/typescript-config/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["dist", "build", "node_modules", "src/example-usage.tsx"]
+}

@@ -92,3 +92,8 @@ temp/
 # Storybook build outputs
 .storybook/
 storybook-static/
+
+# Yalc
+.yalc/
+yalc.lock
+packages/*/yalc.lock

@@ -1,0 +1,40 @@
+{
+  "name": "@buildbase/saas-sdk",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0",
+    "yalc:add": "yalc add @buildbase/sdk",
+    "yalc:update": "yalc update @buildbase/sdk",
+    "yalc:remove": "yalc remove @buildbase/sdk"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./provider": "./dist/provider/SaaSProvider.js",
+    "./types": "./dist/types.js",
+    "./token-verification": "./dist/token-verification.js"
+  },
+  "dependencies": {
+    "@buildbase/sdk": "file:.yalc/@buildbase/sdk"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}

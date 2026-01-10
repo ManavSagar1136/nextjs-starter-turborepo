@@ -10,26 +10,33 @@
     "dev": "tsc --watch",
     "lint": "eslint src --max-warnings 0"
   },
-  "peerDependencies": {
-    "react": "^19",
-    "react-dom": "^19"
-  },
   "files": [
     "dist"
   ],
   "exports": {
     "./hooks/use-local-storage": "./dist/hooks/use-local-storage.js",
-    "./hooks/use-debounce": "./dist/hooks/use-debounce.js"
+    "./hooks/use-debounce": "./dist/hooks/use-debounce.js",
+    "./auth": "./dist/auth/index.js"
   },
   "dependencies": {
-    "@buildbase/utils": "*"
+    "@buildbase/utils": "*",
+    "@buildbase/env": "*",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19",
+    "next": "^16.0.10"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",
     "@buildbase/typescript-config": "*",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.15.30",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",
+    "next": "^16.0.10",
     "typescript": "5.9.2"
   }
 }
