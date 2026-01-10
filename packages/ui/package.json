@@ -12,6 +12,7 @@
     "./lib/utils": "./dist/lib/utils.js",
     "./hooks/use-toast": "./dist/hooks/use-toast.js",
     "./hooks/use-mobile": "./dist/hooks/use-mobile.js",
+    "./components/providers/ThemeProvider": "./dist/components/providers/ThemeProvider.js",
     "./*": "./dist/*.js"
   },
   "license": "MIT",
