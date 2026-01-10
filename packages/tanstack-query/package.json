@@ -18,16 +18,13 @@
     "dist"
   ],
   "exports": {
+    ".": "./dist/index.js",
     "./provider": "./dist/provider.js",
-    "./hooks/use-users": "./dist/hooks/use-users.js",
-    "./hooks/query-keys": "./dist/hooks/query-keys.js",
     "./utils/query-helpers": "./dist/utils/query-helpers.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",
-    "@tanstack/react-query-devtools": "^5.62.0",
-    "@buildbase/api-helpers": "*",
-    "@buildbase/utils": "*"
+    "@tanstack/react-query-devtools": "^5.62.0"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",
