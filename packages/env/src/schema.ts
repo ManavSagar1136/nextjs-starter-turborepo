@@ -24,37 +24,12 @@ export const env = createEnv({
     // Database
     DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
 
-    // App URLs (for different environments)
-    PUBLIC_APP_URL: z.string().url().optional(),
-    USER_APP_URL: z.string().url().optional(),
-    ADMIN_APP_URL: z.string().url().optional(),
-    DOCS_APP_URL: z.string().url().optional(),
-
     // API Configuration
-    API_URL: z.string().url().optional(),
     API_SECRET: z.string().min(32).optional(),
+    APP_JWT_SECRET: z.string().min(2).optional(),
 
-    // Authentication
-    NEXTAUTH_URL: z.string().url().optional(),
-    NEXTAUTH_SECRET: z.string().min(32).optional(),
-
-    // Third-party Services
-    SMTP_HOST: z.string().optional(),
-    SMTP_PORT: z.string().optional(),
-    SMTP_USER: z.string().optional(),
-    SMTP_PASSWORD: z.string().optional(),
-
-    // Feature Flags
-    ENABLE_ANALYTICS: z
-      .string()
-      .transform(val => val === "true")
-      .optional()
-      .default("false"),
-    ENABLE_DEBUG: z
-      .string()
-      .transform(val => val === "true")
-      .optional()
-      .default("false"),
+    // SaaS SDK (Server-side only - secrets should never be exposed to client)
+    SAAS_CLIENT_SECRET: z.string().optional(),
   },
 
   /**
@@ -63,13 +38,16 @@ export const env = createEnv({
    * Only available in Next.js apps, not in packages
    */
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
-    NEXT_PUBLIC_API_URL: z.string().url().optional(),
-    NEXT_PUBLIC_ENABLE_ANALYTICS: z
-      .string()
-      .transform(val => val === "true")
-      .optional()
-      .default("false"),
+    // App-specific URLs (for client components)
+    NEXT_PUBLIC_PUBLIC_APP_URL: z.string().url().optional(),
+    NEXT_PUBLIC_USER_APP_URL: z.string().url().optional(),
+    NEXT_PUBLIC_ADMIN_APP_URL: z.string().url().optional(),
+    NEXT_PUBLIC_DOCS_APP_URL: z.string().url().optional(),
+
+    // SaaS SDK Configuration
+    NEXT_PUBLIC_SAAS_SERVER_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SAAS_ORG_ID: z.string().optional(),
+    NEXT_PUBLIC_SAAS_CLIENT_ID: z.string().optional(),
   },
 
   /**
@@ -81,25 +59,21 @@ export const env = createEnv({
     // Server
     NODE_ENV: process.env.NODE_ENV,
     DATABASE_URL: process.env.DATABASE_URL,
-    PUBLIC_APP_URL: process.env.PUBLIC_APP_URL,
-    USER_APP_URL: process.env.USER_APP_URL,
-    ADMIN_APP_URL: process.env.ADMIN_APP_URL,
-    DOCS_APP_URL: process.env.DOCS_APP_URL,
-    API_URL: process.env.API_URL,
-    API_SECRET: process.env.API_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_PORT: process.env.SMTP_PORT,
-    SMTP_USER: process.env.SMTP_USER,
-    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-    ENABLE_ANALYTICS: process.env.ENABLE_ANALYTICS,
-    ENABLE_DEBUG: process.env.ENABLE_DEBUG,
 
-    // Client
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS,
+    // Client-side  App URLs (for different apps)
+    NEXT_PUBLIC_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_PUBLIC_APP_URL,
+    NEXT_PUBLIC_USER_APP_URL: process.env.NEXT_PUBLIC_USER_APP_URL,
+    NEXT_PUBLIC_ADMIN_APP_URL: process.env.NEXT_PUBLIC_ADMIN_APP_URL,
+    NEXT_PUBLIC_DOCS_APP_URL: process.env.NEXT_PUBLIC_DOCS_APP_URL,
+
+    API_SECRET: process.env.API_SECRET,
+    APP_JWT_SECRET: process.env.APP_JWT_SECRET,
+
+    SAAS_CLIENT_SECRET: process.env.SAAS_CLIENT_SECRET,
+    // SaaS SDK
+    NEXT_PUBLIC_SAAS_SERVER_URL: process.env.NEXT_PUBLIC_SAAS_SERVER_URL,
+    NEXT_PUBLIC_SAAS_ORG_ID: process.env.NEXT_PUBLIC_SAAS_ORG_ID,
+    NEXT_PUBLIC_SAAS_CLIENT_ID: process.env.NEXT_PUBLIC_SAAS_CLIENT_ID,
   },
 
   /**

@@ -24,7 +24,7 @@ import { API } from "@/services";
 
 // Wrap your app with SaaSProvider
 export default function RootLayout({ children }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = "http://localhost:3000";
 
   return (
     <SaaSProvider

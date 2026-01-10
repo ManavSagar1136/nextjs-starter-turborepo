@@ -61,8 +61,8 @@ const apiSecret = env.API_SECRET;
 import { env } from "@buildbase/env";
 
 // Client-accessible variables
-const appUrl = env.NEXT_PUBLIC_APP_URL;
-const apiUrl = env.NEXT_PUBLIC_API_URL;
+const appUrl = env.NEXT_PUBLIC_PUBLIC_APP_URL;
+const apiUrl = `${appUrl}/api`;
 ```
 
 ### Server vs Client Variables

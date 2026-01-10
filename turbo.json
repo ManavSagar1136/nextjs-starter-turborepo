@@ -4,14 +4,19 @@
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
-    "PUBLIC_APP_URL",
-    "USER_APP_URL",
-    "ADMIN_APP_URL",
-    "DOCS_APP_URL",
-    "API_URL",
+
+    "NEXT_PUBLIC_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_USER_APP_URL",
+    "NEXT_PUBLIC_ADMIN_APP_URL",
+    "NEXT_PUBLIC_DOCS_APP_URL",
+
     "API_SECRET",
-    "NEXTAUTH_URL",
-    "NEXTAUTH_SECRET"
+    "APP_JWT_SECRET",
+
+    "SAAS_CLIENT_SECRET",
+    "NEXT_PUBLIC_SAAS_SERVER_URL",
+    "NEXT_PUBLIC_SAAS_ORG_ID",
+    "NEXT_PUBLIC_SAAS_CLIENT_ID"
   ],
   "globalDependencies": [],
   "tasks": {

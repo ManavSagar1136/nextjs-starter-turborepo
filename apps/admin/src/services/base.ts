@@ -1,3 +1,4 @@
+import { env } from "@buildbase/env";
 import { ApiController } from "@buildbase/http-client/controller";
 import { ApiPaginationController } from "@buildbase/http-client/pagination";
 import { HttpClientConfig } from "@buildbase/http-client/types";
@@ -6,14 +7,11 @@ import { HttpClientConfig } from "@buildbase/http-client/types";
  * Default HTTP client configuration for admin app
  */
 const getDefaultConfig = (): HttpClientConfig => {
-  const baseUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : env.NEXT_PUBLIC_ADMIN_APP_URL;
 
   return {
     serverUrl: `${baseUrl}/api`,
-    secretKey: process.env.NEXT_PUBLIC_SAAS_CLIENT_SECRET || "your-client-secret-here",
+    secretKey: env.API_SECRET,
     encryptData: false,
     storageKeys: {
       TOKEN: "token",

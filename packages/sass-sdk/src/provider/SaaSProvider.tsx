@@ -3,7 +3,7 @@
 import { SaaSOSProvider, ApiVersion } from "@buildbase/sdk";
 import React from "react";
 import type { SaaSProviderProps } from "../types";
-
+import { env } from "@buildbase/env";
 /**
  * SaaSProvider - A wrapper around SaaSOSProvider that reads config from environment variables
  *
@@ -19,10 +19,20 @@ export const SaaSProvider: React.FC<SaaSProviderProps> = ({
 }) => {
   // Read configuration from environment variables
   // In Next.js, NEXT_PUBLIC_* variables are replaced at build time
-  const serverUrl = process.env.NEXT_PUBLIC_SAAS_SERVER_URL || "http://localhost:3000";
+  // Note: In packages, NEXT_PUBLIC_* vars are not available via env, so we use process.env directly
+  const serverUrl = env.NEXT_PUBLIC_SAAS_SERVER_URL as string;
   const version = ApiVersion.V1;
-  const orgId = process.env.NEXT_PUBLIC_SAAS_ORG_ID || "dev-org-id";
-  const clientId = process.env.NEXT_PUBLIC_SAAS_CLIENT_ID || "dev-client-id";
+  const orgId = env.NEXT_PUBLIC_SAAS_ORG_ID as string;
+  const clientId = env.NEXT_PUBLIC_SAAS_CLIENT_ID as string;
+
+  // Ensure all required values are strings (not undefined)
+  if (!serverUrl || !orgId || !clientId) {
+    console.error("[SaaSProvider] Missing required environment variables:", {
+      serverUrl: !!serverUrl,
+      orgId: !!orgId,
+      clientId: !!clientId,
+    });
+  }
 
   return (
     <SaaSOSProvider

@@ -48,8 +48,8 @@ import { env } from "@buildbase/env";
 
 export default function Page() {
   // Client-accessible variables (NEXT_PUBLIC_*)
-  const appUrl = env.NEXT_PUBLIC_APP_URL;
-  const apiUrl = env.NEXT_PUBLIC_API_URL;
+  const appUrl = env.NEXT_PUBLIC_PUBLIC_APP_URL;
+  const apiUrl = `${appUrl}/api`;
 
   return <div>App URL: {appUrl}</div>;
 }
@@ -78,7 +78,7 @@ import { env } from "@buildbase/env";
 export const getAllUsers = async () => {
   // Server variables work in packages (Node.js context)
   const dbUrl = env.DATABASE_URL;
-  const apiUrl = env.API_URL;
+  const apiUrl = `${hostname}/api`;
 
   // Note: Client variables (NEXT_PUBLIC_*) are not available in packages
   // They're only available in Next.js apps
@@ -104,14 +104,14 @@ export const getAllUsers = async () => {
   - Server Actions
   - Middleware
 - **Never exposed to the browser**
-- Examples: `DATABASE_URL`, `API_SECRET`, `NEXTAUTH_SECRET`
+- Examples: `DATABASE_URL`, `API_SECRET`
 
 ### Client Variables
 
 - Available in both server and client
 - **Must be prefixed with `NEXT_PUBLIC_`**
 - Exposed to the browser (visible in client-side code)
-- Examples: `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_API_URL`
+- Examples: `NEXT_PUBLIC_PUBLIC_APP_URL`
 
 ## Adding New Environment Variables
 

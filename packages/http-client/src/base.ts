@@ -1,6 +1,7 @@
 import https from "https";
 import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
+import { env } from "@buildbase/env";
 
 import { IRequestHeader, HttpClientConfig } from "./types";
 
@@ -8,7 +9,7 @@ const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 
 let globalConfig: HttpClientConfig = {
   serverUrl: "",
-  secretKey: process.env.NEXT_PUBLIC_SAAS_CLIENT_SECRET || "your-client-secret-here",
+  secretKey: env.API_SECRET,
   encryptData: false,
   storageKeys: {
     TOKEN: "token",

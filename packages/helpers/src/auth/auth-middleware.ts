@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { clearAuthTokenCookie, AUTH_TOKEN_COOKIE_NAME } from "./auth-token";
+import { env } from "@buildbase/env";
 
 export interface AuthenticatedUser extends JwtPayload {
   userId?: string; // Database user ID
@@ -26,7 +27,7 @@ export interface AuthMiddlewareResult {
  * @returns boolean indicating if internal API key is valid
  */
 const checkInternalApiKey = (request: NextRequest): boolean => {
-  const internalApiKey = process.env.INTERNAL_API_KEY;
+  const internalApiKey = env.API_SECRET;
   if (!internalApiKey) {
     return false;
   }
@@ -67,7 +68,7 @@ export const authenticateRequest = (request: NextRequest): AuthMiddlewareResult 
     }
 
     // Verify the token
-    const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "dev-jwt-secret-change-in-production";
+    const jwtSecret = env.APP_JWT_SECRET as string;
     const decoded = jwt.verify(token, jwtSecret) as AuthenticatedUser;
 
     return {

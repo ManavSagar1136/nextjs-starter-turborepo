@@ -5,6 +5,7 @@ import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { isDevelopment } from "@buildbase/env";
 
 export interface ErrorBoundaryState {
   hasError: boolean;
@@ -50,7 +51,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     this.props.onError?.(error, errorInfo);
 
     // Log error to console in development
-    if (process.env.NODE_ENV === "development") {
+    if (isDevelopment()) {
       console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
   }

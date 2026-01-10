@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { isProduction } from "@buildbase/env";
 import type { AuthenticatedUser } from "./auth-middleware";
+import { env } from "@buildbase/env";
 
 /**
  * Cookie name for authentication token
@@ -32,8 +33,7 @@ export const createAuthToken = (userData: Partial<AuthenticatedUser>): string =>
     ...userData,
     exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS,
   } as AuthenticatedUser;
-
-  const jwtSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "dev-jwt-secret-change-in-production";
+  const jwtSecret = env.APP_JWT_SECRET as string;
   return jwt.sign(tokenPayload, jwtSecret);
 };
 

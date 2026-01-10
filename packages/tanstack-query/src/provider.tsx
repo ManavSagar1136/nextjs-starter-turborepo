@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState, type ReactNode } from "react";
+import { isDevelopment } from "@buildbase/env";
 
 interface TanStackQueryProviderProps {
   children: ReactNode;
@@ -25,7 +26,7 @@ export const TanStackQueryProvider = ({ children }: TanStackQueryProviderProps) 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {process.env.NODE_ENV === "development" && <ReactQueryDevtools initialIsOpen={false} />}
+      {isDevelopment() && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
 };

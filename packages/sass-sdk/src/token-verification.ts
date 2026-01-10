@@ -2,6 +2,7 @@
  * SDK Token Verification
  * Common utility for verifying authentication codes with the Buildbase SDK
  */
+import { env } from "@buildbase/env";
 
 export interface SDKTokenVerificationConfig {
   code: string;
@@ -38,12 +39,12 @@ export interface SDKTokenVerificationResponse {
 export const verifySDKToken = async (config: SDKTokenVerificationConfig): Promise<SDKTokenVerificationResponse> => {
   const {
     code,
-    baseUrl = process.env.NEXT_PUBLIC_SAAS_SERVER_URL || "http://localhost:3000",
-    clientId = process.env.NEXT_PUBLIC_SAAS_CLIENT_ID || "dev-client-id",
-    clientSecret = process.env.SAAS_CLIENT_SECRET ||
-      process.env.NEXT_PUBLIC_SAAS_CLIENT_SECRET ||
-      "your-client-secret-here",
-    orgId = process.env.NEXT_PUBLIC_SAAS_ORG_ID || "dev-org-id",
+    // Use process.env for NEXT_PUBLIC_* variables in packages (they're not available via env in packages)
+    // Use env for server-side variables (SAAS_CLIENT_SECRET)
+    baseUrl = env.NEXT_PUBLIC_SAAS_SERVER_URL as string,
+    clientId = env.NEXT_PUBLIC_SAAS_CLIENT_ID as string,
+    clientSecret = env.SAAS_CLIENT_SECRET as string,
+    orgId = env.NEXT_PUBLIC_SAAS_ORG_ID as string,
   } = config;
 
   if (!code) {
