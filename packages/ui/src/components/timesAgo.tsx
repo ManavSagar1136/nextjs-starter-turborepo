@@ -1,6 +1,6 @@
 import ReactTimeAgo from "react-time-ago";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 
 interface TimesAgoProps {
   onlyInTime?: boolean;

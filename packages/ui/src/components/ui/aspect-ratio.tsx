@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as AspectRatioPrimitive from "@radix-ui/react-aspect-ratio";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 const AspectRatio = React.forwardRef<
   React.ElementRef<typeof AspectRatioPrimitive.Root>,

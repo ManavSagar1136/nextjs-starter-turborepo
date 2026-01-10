@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 export interface FrameProps extends React.HTMLAttributes<HTMLDivElement> {
   aspectRatio?: "square" | "video" | "photo" | "wide" | "ultra-wide" | number;

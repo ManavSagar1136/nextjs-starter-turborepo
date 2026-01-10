@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 export interface MasonryProps extends React.HTMLAttributes<HTMLDivElement> {
   columns?: 1 | 2 | 3 | 4 | 5 | 6;

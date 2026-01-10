@@ -2,7 +2,7 @@ import * as React from "react";
 import { Plus, MoreHorizontal } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

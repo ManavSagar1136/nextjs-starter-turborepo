@@ -4,7 +4,7 @@ import { ArrowUpDown } from "lucide-react";
 import TimesAgo from "@/components/timesAgo";
 import { Button } from "@/components/ui/button";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 interface ColumnCreateAtProps {
   key?: string;
