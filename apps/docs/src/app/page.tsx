@@ -1,7 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import { Card } from "@buildbase/ui/card";
 import { Gradient } from "@buildbase/ui/gradient";
 import { TurborepoLogo } from "@buildbase/ui/turborepo-logo";
+import { ThemeToggle } from "@buildbase/ui/components/ui/theme-toggle";
 
 const LINKS = [
   {
@@ -34,6 +37,9 @@ export default function Page() {
           examples/with-tailwind -&nbsp;
           <code className="font-mono font-bold">docs</code>
         </p>
+        <div className="fixed top-4 right-4 lg:static lg:top-auto lg:right-auto">
+          <ThemeToggle />
+        </div>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center lg:static lg:h-auto lg:w-auto">
           <a
             className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"

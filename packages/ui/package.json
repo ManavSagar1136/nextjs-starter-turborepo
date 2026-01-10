@@ -13,6 +13,7 @@
     "./hooks/use-toast": "./dist/hooks/use-toast.js",
     "./hooks/use-mobile": "./dist/hooks/use-mobile.js",
     "./components/providers/ThemeProvider": "./dist/components/providers/ThemeProvider.js",
+    "./components/ui/theme-toggle": "./dist/components/ui/theme-toggle.js",
     "./*": "./dist/*.js"
   },
   "license": "MIT",

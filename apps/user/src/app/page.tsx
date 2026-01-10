@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@buil
 import { Button } from "@buildbase/ui/components/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@buildbase/ui/components/ui/avatar";
+import { ThemeToggle } from "@buildbase/ui/components/ui/theme-toggle";
 import { WorkspaceSwitcher } from "@buildbase/saas-sdk";
 import { Building2, LogIn, LogOut, User, ChevronDown } from "lucide-react";
 import { useSDKAuth } from "@/hooks/useSDKAuth";
@@ -15,12 +16,17 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="mb-4 flex items-center justify-center gap-3 text-3xl font-bold">
-            <Building2 className="h-8 w-8 text-blue-600" />
-            User App - Buildbase SDK Demo
-          </h1>
-          <p className="text-muted-foreground">Simple demonstration of workspace switching and authentication</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex-1 text-center">
+            <h1 className="mb-4 flex items-center justify-center gap-3 text-3xl font-bold">
+              <Building2 className="h-8 w-8 text-blue-600" />
+              User App - Buildbase SDK Demo
+            </h1>
+            <p className="text-muted-foreground">Simple demonstration of workspace switching and authentication</p>
+          </div>
+          <div className="flex-shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
 
         <Card>
