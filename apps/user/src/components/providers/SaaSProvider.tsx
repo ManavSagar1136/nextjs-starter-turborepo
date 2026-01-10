@@ -13,7 +13,7 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
   // Get base URL from environment variable
   // Use NEXT_PUBLIC_* variable for client components
   const baseUrl = env.NEXT_PUBLIC_USER_APP_URL;
-  const redirectUrl = `${baseUrl}/auth/callback`;
+  const redirectUrl = `${baseUrl}`;
 
   return (
     <BaseSaaSProvider
