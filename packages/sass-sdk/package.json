@@ -20,7 +20,8 @@
     ".": "./dist/index.js",
     "./provider": "./dist/provider/SaaSProvider.js",
     "./types": "./dist/types.js",
-    "./token-verification": "./dist/token-verification.js"
+    "./token-verification": "./dist/token-verification.js",
+    "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js"
   },
   "dependencies": {
     "@buildbase/sdk": "file:.yalc/@buildbase/sdk"

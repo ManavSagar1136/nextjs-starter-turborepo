@@ -40,3 +40,5 @@ export type {
 export * from "./provider/SaaSProvider";
 export * from "./types";
 export * from "./token-verification";
+export * from "./hooks/useSDKAuth";
+export type { UseSDKAuthReturn } from "./hooks/useSDKAuth";
