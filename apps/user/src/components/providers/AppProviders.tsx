@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from "@buildbase/ui/components/providers/ThemeProvider";
 import { ReduxProvider } from "@buildbase/redux/provider";
+import { TanStackQueryProvider } from "@buildbase/tanstack-query/provider";
 import { userReducer } from "@/store";
 import SaaSProvider from "./SaaSProvider";
 import type { ReactNode } from "react";
@@ -17,6 +18,7 @@ interface AppProvidersProps {
  * It includes:
  * - ThemeProvider: Theme management (light/dark mode)
  * - ReduxProvider: Redux state management with persistence
+ * - TanStackQueryProvider: React Query for server state management
  * - SaaSProvider: Buildbase SDK authentication and workspace management
  */
 export function AppProviders({ children }: AppProvidersProps) {
@@ -31,7 +33,9 @@ export function AppProviders({ children }: AppProvidersProps) {
           whitelist: ["user"],
         }}
       >
-        <SaaSProvider>{children}</SaaSProvider>
+        <TanStackQueryProvider>
+          <SaaSProvider>{children}</SaaSProvider>
+        </TanStackQueryProvider>
       </ReduxProvider>
     </ThemeProvider>
   );
