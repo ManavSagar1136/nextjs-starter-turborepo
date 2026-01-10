@@ -1,31 +1,13 @@
 import https from "https";
 import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
-import { env } from "@buildbase/env";
 
 import { IRequestHeader, HttpClientConfig } from "./types";
 
 const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 
-let globalConfig: HttpClientConfig = {
-  serverUrl: "",
-  secretKey: env.API_SECRET,
-  encryptData: false,
-  storageKeys: {
-    TOKEN: "token",
-  },
-};
-
-export const setHttpClientConfig = (config: HttpClientConfig) => {
-  globalConfig = {
-    ...globalConfig,
-    ...config,
-  };
-};
-
-export const getHttpClientConfig = (): HttpClientConfig => {
-  return globalConfig;
-};
+const DEFAULT_SERVER_URL = "http://localhost:3000";
+const DEFAULT_SECRET_KEY = "your-client-secret-here";
 
 const handleResponse = <T = any>(data: string, secretKey: string) => {
   const bytes = CryptoJS.AES.decrypt(data, secretKey).toString(CryptoJS.enc.Utf8);
@@ -50,11 +32,16 @@ const request = async (
   onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
   config?: HttpClientConfig
 ) => {
+  const serverUrl = config?.serverUrl || DEFAULT_SERVER_URL;
+  const secretKey = config?.secretKey || DEFAULT_SECRET_KEY;
+  const shouldEncrypt = config?.encryptData || false;
+
   try {
-    const requestConfig = config || getHttpClientConfig();
-    const secretKey =
-      requestConfig.secretKey || requestConfig.SECRET_KEY || "your-client-secret-here";
-    const shouldEncrypt = requestConfig.encryptData ?? requestConfig.ENCRYPT_DATA ?? false;
+    const requestConfig = config || {
+      serverUrl,
+      secretKey,
+      encryptData,
+    };
 
     let body = data;
     let query = _query;
@@ -149,7 +136,15 @@ const upload = async (
   data: FormData,
   config?: HttpClientConfig
 ) => {
-  const requestConfig = config || getHttpClientConfig();
+  const serverUrl = config?.serverUrl || DEFAULT_SERVER_URL;
+  const secretKey = config?.secretKey || DEFAULT_SECRET_KEY;
+  const shouldEncrypt = config?.encryptData || false;
+  const requestConfig = config || {
+    serverUrl,
+    secretKey,
+    shouldEncrypt,
+  };
+
   try {
     return await axios.request({
       method: "POST",

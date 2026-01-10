@@ -22,7 +22,8 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
     // Database
-    DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
+    // Make optional during build - will be required at runtime when database is actually used
+    DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL").optional(),
 
     // API Configuration
     API_SECRET: z.string().min(32).optional(),
@@ -48,6 +49,9 @@ export const env = createEnv({
     NEXT_PUBLIC_SAAS_SERVER_URL: z.string().url().optional(),
     NEXT_PUBLIC_SAAS_ORG_ID: z.string().optional(),
     NEXT_PUBLIC_SAAS_CLIENT_ID: z.string().optional(),
+
+    // API Secret
+    NEXT_PUBLIC_API_SECRET: z.string().optional(),
   },
 
   /**
@@ -67,6 +71,7 @@ export const env = createEnv({
     NEXT_PUBLIC_DOCS_APP_URL: process.env.NEXT_PUBLIC_DOCS_APP_URL,
 
     API_SECRET: process.env.API_SECRET,
+    NEXT_PUBLIC_API_SECRET: process.env.NEXT_PUBLIC_API_SECRET,
     APP_JWT_SECRET: process.env.APP_JWT_SECRET,
 
     SAAS_CLIENT_SECRET: process.env.SAAS_CLIENT_SECRET,

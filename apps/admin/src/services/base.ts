@@ -11,7 +11,7 @@ const getDefaultConfig = (): HttpClientConfig => {
 
   return {
     serverUrl: `${baseUrl}/api`,
-    secretKey: env.API_SECRET,
+    secretKey: env.NEXT_PUBLIC_API_SECRET,
     encryptData: false,
     storageKeys: {
       TOKEN: "token",
@@ -24,8 +24,8 @@ const getDefaultConfig = (): HttpClientConfig => {
  * Extend this class instead of ApiController to avoid passing config
  */
 export abstract class BaseApiController extends ApiController {
-  constructor(config?: HttpClientConfig) {
-    super(config || getDefaultConfig());
+  constructor() {
+    super(getDefaultConfig());
   }
 }
 
@@ -34,7 +34,7 @@ export abstract class BaseApiController extends ApiController {
  * Extend this class instead of ApiPaginationController to avoid passing config
  */
 export abstract class BaseApiPaginationController<T> extends ApiPaginationController<T> {
-  constructor(config?: HttpClientConfig) {
-    super(config || getDefaultConfig());
+  constructor() {
+    super(getDefaultConfig());
   }
 }

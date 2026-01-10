@@ -27,7 +27,7 @@ export interface AuthMiddlewareResult {
  * @returns boolean indicating if internal API key is valid
  */
 const checkInternalApiKey = (request: NextRequest): boolean => {
-  const internalApiKey = env.API_SECRET;
+  const internalApiKey = process.env.API_SECRET;
   if (!internalApiKey) {
     return false;
   }
