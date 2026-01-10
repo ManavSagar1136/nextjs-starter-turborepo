@@ -22,6 +22,7 @@
     "@buildbase/http-client": "*",
     "@buildbase/database": "*",
     "@buildbase/env": "*",
+    "@buildbase/saas-sdk": "*",
     "next": "16.0.10",
     "react": "^19.2.0",
     "react-dom": "^19.1.0"
