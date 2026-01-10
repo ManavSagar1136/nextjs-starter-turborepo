@@ -24,7 +24,8 @@
     "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js"
   },
   "dependencies": {
-    "@buildbase/sdk": "file:.yalc/@buildbase/sdk"
+    "@buildbase/sdk": "file:.yalc/@buildbase/sdk",
+    "@buildbase/env": "*"
   },
   "peerDependencies": {
     "react": "^19",
