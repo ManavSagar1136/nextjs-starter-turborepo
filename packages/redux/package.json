@@ -1,0 +1,41 @@
+{
+  "name": "@buildbase/redux",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./provider": "./dist/provider.js",
+    "./hooks": "./dist/hooks.js",
+    "./store": "./dist/store.js",
+    "./storage": "./dist/storage.js",
+    "./slices/counter": "./dist/slices/counter.js"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.9.0",
+    "react-redux": "^9.2.0",
+    "redux-persist": "^6.0.0"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
