@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
 @theme {
+  /* Custom brand colors */
   --color-blue-1000: #2a8af6;
   --color-purple-1000: #a853ba;
   --color-red-1000: #e92a67;
+
+  /* Note: Semantic colors (background, foreground, primary, etc.) are defined 
+     as CSS variables in the UI package's styles.css file using @layer base.
+     These are used with hsl() function and support light/dark mode theming.
+     Tailwind v4 will automatically generate utility classes from CSS variables
+     when they're used in components. */
 }

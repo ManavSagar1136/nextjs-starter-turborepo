@@ -37,10 +37,21 @@ const ChartStyle = ({ id, config }: { id: string; config: Record<string, any> })
 
     if (config?.theme) {
       for (const [key, value] of Object.entries(config.theme)) {
-        if (typeof value === "string" && value.startsWith("hsl")) {
-          const token = value.replace("hsl(var(", "").replace("))", "");
-          const color = style.getPropertyValue(token).trim();
-          colorMap[key] = color;
+        if (typeof value === "string") {
+          // Handle both hsl(var(...)) and oklch(var(...)) or direct var(...)
+          let token: string | null = null;
+          if (value.startsWith("hsl(var(")) {
+            token = value.replace("hsl(var(", "").replace("))", "");
+          } else if (value.startsWith("oklch(var(")) {
+            token = value.replace("oklch(var(", "").replace("))", "");
+          } else if (value.startsWith("var(")) {
+            token = value.replace("var(", "").replace(")", "");
+          }
+
+          if (token) {
+            const color = style.getPropertyValue(token).trim();
+            colorMap[key] = color;
+          }
         }
       }
     }
@@ -188,9 +199,9 @@ const ChartTooltipContent = React.forwardRef<
         )}
         style={
           {
-            "--color-bg": "hsl(var(--background))",
-            "--color-border": "hsl(var(--border))",
-            "--color-text": "hsl(var(--foreground))",
+            "--color-bg": "var(--background)",
+            "--color-border": "var(--border)",
+            "--color-text": "var(--foreground)",
           } as React.CSSProperties
         }
       >

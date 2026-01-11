@@ -1,26 +1,8 @@
 @import "tailwindcss";
 @import "@buildbase/tailwind-config";
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+/* Tailwind v4 auto-detects classes, but we can explicitly add sources if needed */
+@source "../**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../**/*.{js,ts,jsx,tsx,mdx}";
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
+/* App-specific styles - body will use Tailwind's background/foreground from UI package */
