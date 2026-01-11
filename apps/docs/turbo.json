@@ -1,0 +1,38 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "theme.config.tsx",
+        "version.config.ts",
+        "src/**/*.mdx",
+        "src/**/*.tsx",
+        "src/**/*.ts",
+        "src/**/_meta.js",
+        "src/**/_meta.ts",
+        "next.config.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.mdx",
+        "tsconfig.json"
+      ]
+    }
+  }
+}

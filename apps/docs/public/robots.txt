@@ -1,0 +1,15 @@
+# robots.txt for CMS Documentation
+
+User-agent: *
+Allow: /
+Disallow: /api/*
+Disallow: /_next/
+Disallow: /static/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /_next/
+Disallow: /static/
+
+Sitemap: https://docs.example.com/sitemap.xml
+
