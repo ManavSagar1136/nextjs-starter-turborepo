@@ -6,6 +6,10 @@ const withNextra = nextra({
   // Nextra 4.0 configuration
   // Content directory is at src/content
   // contentDirBasePath: "/content",
+  latex: true, // Enable LaTeX support
+  search: {
+    codeblocks: false,
+  },
 });
 
 const nextConfig: NextConfig = {
