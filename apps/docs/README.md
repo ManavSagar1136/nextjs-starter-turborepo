@@ -8,7 +8,30 @@ yarn dev
 
 Open [http://localhost:3103](http://localhost:3103) with your browser to see the result.
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+### Search Functionality
+
+**Note:** Search is not available in regular development mode because Nextra 4 uses Pagefind, which indexes built `.html` files instead of `.md`/`.mdx` files.
+
+To test search during development, use:
+
+```bash
+yarn dev:with-search
+```
+
+This will:
+
+1. Build the app
+2. Generate the search index with Pagefind
+3. Start the development server
+
+Alternatively, you can manually:
+
+```bash
+yarn build
+yarn dev
+```
+
+You can start editing the page by modifying files in `src/content/`. The page auto-updates as you edit the file.
 
 To create [API routes](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) add an `api/` directory to the `app/` directory with a `route.ts` file. For individual endpoints, create a subfolder in the `api` directory, like `api/hello/route.ts` would map to [http://localhost:3103/api/hello](http://localhost:3103/api/hello).
 

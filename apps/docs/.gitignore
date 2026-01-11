@@ -38,3 +38,7 @@ next-env.d.ts
 
 # turbo
 .turbo
+
+# pagefind search index
+public/_pagefind/
+_pagefind/
