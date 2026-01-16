@@ -21,7 +21,13 @@
     "./config": "./dist/config.js",
     "./factory": "./dist/factory.js",
     "./types": "./dist/types.js",
-    "./nextjs": "./dist/nextjs.js"
+    "./nextjs": "./dist/nextjs.js",
+    "./monitoring": "./dist/monitoring.js",
+    "./maintenance": "./dist/maintenance.js",
+    "./enhanced-controller": "./dist/enhanced-controller.js",
+    "./warming": "./dist/warming.js",
+    "./distributed-lock": "./dist/distributed-lock.js",
+    "./circuit-breaker": "./dist/circuit-breaker.js"
   },
   "dependencies": {
     "@upstash/redis": "^1.35.0",

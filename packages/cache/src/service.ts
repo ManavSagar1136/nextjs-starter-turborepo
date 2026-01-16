@@ -31,6 +31,7 @@ const decodeBase64 = (str: string): string => {
 
 export class CacheService {
   private redis: Redis;
+  private redisWithTimeout: Redis;
   private config: CacheConfig;
   private logger: Logger;
   private fallbackCache: FallbackCache;
@@ -44,10 +45,59 @@ export class CacheService {
     };
     this.fallbackCache = fallbackCache || new FallbackCache({ logger: this.logger });
 
+    const timeout = this.config.timeout?.default || 5000;
+
+    // Standard Redis client
     this.redis = new Redis({
       url: this.config.redis.url,
       token: this.config.redis.token,
     });
+
+    // Redis client with timeout for read operations
+    this.redisWithTimeout = new Redis({
+      url: this.config.redis.url,
+      token: this.config.redis.token,
+      signal: () => AbortSignal.timeout(timeout),
+    });
+  }
+
+  /**
+   * Retry helper with exponential backoff
+   */
+  private async retry<T>(operation: () => Promise<T>, operationName: string, useTimeout: boolean = false): Promise<T> {
+    const maxAttempts = this.config.retry?.maxAttempts || 3;
+    const baseDelay = this.config.retry?.baseDelay || 100;
+    const maxDelay = this.config.retry?.maxDelay || 2000;
+    const useBackoff = this.config.retry?.exponentialBackoff !== false;
+
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+
+        // Don't retry on timeout if using timeout client
+        if (useTimeout && error.name === "AbortError") {
+          throw error;
+        }
+
+        if (attempt < maxAttempts) {
+          const delay = useBackoff ? Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay) : baseDelay;
+
+          this.logger.warn({
+            tag: "CACHE",
+            msg: `${operationName} failed, retrying (attempt ${attempt}/${maxAttempts})`,
+            data: { delay, error: error.message },
+          });
+
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw lastError;
   }
 
   /**
@@ -92,11 +142,11 @@ export class CacheService {
   }
 
   /**
-   * Get a value from cache
+   * Get a value from cache with timeout and retry support
    */
   async get<T>(key: string): Promise<CacheResult<T>> {
     try {
-      const cached = await this.redis.get(key);
+      const cached = await this.retry(() => this.redisWithTimeout.get(key), `get(${key})`, true);
 
       if (!cached) {
         const fallbackData = await this.fallbackCache.get<T>(key);
@@ -192,6 +242,39 @@ export class CacheService {
   }
 
   /**
+   * Health check for Redis and fallback cache
+   */
+  async healthCheck(): Promise<{
+    redis: boolean;
+    fallback: boolean;
+    latency?: number;
+    error?: string;
+  }> {
+    const startTime = Date.now();
+    let redisHealth = false;
+    let error: string | undefined;
+
+    try {
+      // Try to ping Redis
+      await this.retry(() => this.redis.ping(), "healthCheck.ping()", false);
+      redisHealth = true;
+    } catch (err: any) {
+      redisHealth = false;
+      error = err.message || "Redis health check failed";
+    }
+
+    const latency = Date.now() - startTime;
+    const fallbackHealth = this.fallbackCache !== null;
+
+    return {
+      redis: redisHealth,
+      fallback: fallbackHealth,
+      latency: redisHealth ? latency : undefined,
+      error: redisHealth ? undefined : error,
+    };
+  }
+
+  /**
    * Delete a specific key from cache
    */
   async delete(key: string): Promise<void> {
@@ -271,11 +354,15 @@ export class CacheService {
   }
 
   /**
-   * Get multiple keys at once
+   * Get multiple keys at once using pipeline for performance
    */
   async mget<T>(keys: string[]): Promise<Array<T | null>> {
     try {
-      const results = await this.redis.mget(...keys);
+      if (keys.length === 0) {
+        return [];
+      }
+
+      const results = await this.retry(() => this.redisWithTimeout.mget(...keys), `mget(${keys.length} keys)`, true);
       const processedResults: Array<T | null> = [];
 
       for (let i = 0; i < results.length; i++) {
@@ -311,7 +398,7 @@ export class CacheService {
   }
 
   /**
-   * Set multiple key-value pairs at once
+   * Set multiple key-value pairs at once using pipeline for performance
    */
   async mset<T>(
     keyValuePairs: Array<{ key: string; value: T; ttl?: number }>,
@@ -320,8 +407,53 @@ export class CacheService {
     try {
       const { strategy = "dynamic", compress = false } = options;
 
+      if (keyValuePairs.length === 0) {
+        return;
+      }
+
+      // Use pipeline for bulk operations
+      const pipeline = this.redis.pipeline();
+
       for (const { key, value, ttl } of keyValuePairs) {
-        await this.set(key, value, { ttl, strategy, compress });
+        const finalTTL = ttl || this.config.strategies[strategy].ttl;
+
+        let dataToStore: any = value;
+        if (compress && typeof value === "string") {
+          dataToStore = encodeBase64(value);
+        }
+
+        const cacheEntry = {
+          data: dataToStore,
+          timestamp: Date.now(),
+          ttl: finalTTL,
+          strategy,
+          compressed: compress,
+        };
+
+        pipeline.setex(key, finalTTL, JSON.stringify(cacheEntry));
+      }
+
+      try {
+        await pipeline.exec();
+      } catch (redisError) {
+        this.logger.warn({
+          tag: "CACHE",
+          msg: "Redis pipeline mset failed, using fallback cache:",
+          error: redisError,
+        });
+
+        // Fallback to sequential set in fallback cache
+        for (const { key, value, ttl } of keyValuePairs) {
+          const finalTTL = ttl || this.config.strategies[strategy].ttl;
+          const cacheEntry = {
+            data: value,
+            timestamp: Date.now(),
+            ttl: finalTTL,
+            strategy,
+            compressed: compress,
+          };
+          await this.fallbackCache.set(key, cacheEntry, Math.min(finalTTL, 300));
+        }
       }
     } catch (error) {
       this.logger.error({
@@ -505,12 +637,25 @@ export class CacheService {
   }
 
   /**
-   * Delete multiple keys
+   * Delete multiple keys using pipeline for performance
    */
   async del(...keys: string[]): Promise<number> {
     try {
-      const result = await this.redis.del(...keys);
-      return result;
+      if (keys.length === 0) {
+        return 0;
+      }
+
+      // Use pipeline for bulk delete
+      const pipeline = this.redis.pipeline();
+      keys.forEach(key => pipeline.del(key));
+
+      const results = await pipeline.exec();
+      const deletedCount = results.filter((result: any) => result !== null && result !== 0).length;
+
+      // Also delete from fallback cache
+      await Promise.all(keys.map(key => this.fallbackCache.delete(key)));
+
+      return deletedCount;
     } catch (error) {
       this.logger.error({
         tag: "CACHE",
@@ -520,6 +665,13 @@ export class CacheService {
       const results = await Promise.all(keys.map(key => this.fallbackCache.delete(key)));
       return results.filter(Boolean).length;
     }
+  }
+
+  /**
+   * Delete many keys (alias for del with better naming)
+   */
+  async deleteMany(keys: string[]): Promise<number> {
+    return this.del(...keys);
   }
 
   /**

@@ -4,6 +4,8 @@ A comprehensive, framework-agnostic Redis cache package with Upstash Redis integ
 
 ## Features
 
+### Core Features
+
 - ✅ **Redis-based Caching**: Using Upstash Redis for distributed caching
 - ✅ **Rate Limiting**: Built-in rate limiting with Upstash Ratelimit
 - ✅ **Fallback Cache**: In-memory LRU cache when Redis is unavailable
@@ -13,6 +15,19 @@ A comprehensive, framework-agnostic Redis cache package with Upstash Redis integ
 - ✅ **Framework Agnostic**: Core functionality doesn't depend on any framework
 - ✅ **TypeScript Support**: Full TypeScript support with proper typing
 - ✅ **Dependency Injection**: Logger and config can be injected
+
+### Enterprise-Grade Features
+
+- ✅ **Pipeline Operations**: Efficient bulk operations using Redis pipelines
+- ✅ **Timeout Handling**: Configurable timeouts to prevent hanging operations
+- ✅ **Retry Logic**: Automatic retry with exponential backoff
+- ✅ **Health Checks**: Monitor Redis and fallback cache health
+- ✅ **Monitoring & Metrics**: Real-time performance monitoring and analytics
+- ✅ **Maintenance Tasks**: Automated cleanup, optimization, and version migration
+- ✅ **Enhanced Controller**: Unified interface with automatic fallback
+- ✅ **Cache Warming**: Proactive cache population for better performance
+- ✅ **Distributed Locks**: Coordinate concurrent operations across instances
+- ✅ **Circuit Breaker**: Protect against cascading failures
 
 ## Installation
 
@@ -32,6 +47,12 @@ yarn add @buildbase/cache
 - `@buildbase/cache/versioning` - Cache versioning utilities
 - `@buildbase/cache/types` - TypeScript types
 - `@buildbase/cache/nextjs` - Next.js specific helpers
+- `@buildbase/cache/monitoring` - Cache monitoring and metrics
+- `@buildbase/cache/maintenance` - Cache maintenance tasks
+- `@buildbase/cache/enhanced-controller` - Enhanced cache controller
+- `@buildbase/cache/warming` - Cache warming functionality
+- `@buildbase/cache/distributed-lock` - Distributed locking
+- `@buildbase/cache/circuit-breaker` - Circuit breaker pattern
 
 ## Environment Variables
 

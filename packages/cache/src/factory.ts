@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CacheConfig } from "./config";
 import { createCacheConfig, CACHE_CONFIG } from "./config";
+import { CircuitBreaker } from "./circuit-breaker";
+import { DistributedLock } from "./distributed-lock";
+import { EnhancedCacheController } from "./enhanced-controller";
 import { FallbackCache } from "./fallback";
+import { CacheMaintenance } from "./maintenance";
+import { CacheMonitor } from "./monitoring";
 import { UpstashRateLimiter, RATE_LIMIT_CONFIGS } from "./rate-limiter";
 import { CacheService } from "./service";
 import type { Logger } from "./types";
+import { CacheWarmer } from "./warming";
 
 export interface CacheFactoryOptions {
   config?: CacheConfig;
@@ -39,12 +45,30 @@ export const createCacheFactory = (options: CacheFactoryOptions = {}) => {
   // Create rate limiter
   const rateLimiter = new UpstashRateLimiter(config, logger);
 
+  // Create enhanced controller
+  const enhancedController = new EnhancedCacheController(cacheService, logger, rateLimiter);
+
+  // Create monitoring
+  const monitor = new CacheMonitor(cacheService, logger);
+
+  // Create circuit breaker
+  const circuitBreaker = new CircuitBreaker(logger);
+
+  // Create distributed lock
+  const distributedLock = new DistributedLock(cacheService, logger);
+
   return {
     config,
     logger,
     fallbackCache,
     cacheService,
     rateLimiter,
+    enhancedController,
+    monitor,
+    circuitBreaker,
+    distributedLock,
+    maintenance: CacheMaintenance,
+    warmer: CacheWarmer,
     RATE_LIMIT_CONFIGS,
   };
 };
@@ -60,4 +84,8 @@ export const {
   cacheService: defaultCacheService,
   rateLimiter: defaultRateLimiter,
   fallbackCache: defaultFallbackCache,
+  enhancedController: defaultEnhancedController,
+  monitor: defaultMonitor,
+  circuitBreaker: defaultCircuitBreaker,
+  distributedLock: defaultDistributedLock,
 } = defaultCacheFactory;

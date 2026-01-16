@@ -39,6 +39,21 @@ export interface CacheConfig {
     maxRequests: number;
     prefix: string;
   };
+
+  // Timeout configuration
+  timeout?: {
+    default?: number; // milliseconds
+    read?: number;
+    write?: number;
+  };
+
+  // Retry configuration
+  retry?: {
+    maxAttempts?: number;
+    baseDelay?: number; // milliseconds
+    maxDelay?: number; // milliseconds
+    exponentialBackoff?: boolean;
+  };
 }
 
 // Default cache configuration factory
@@ -79,6 +94,17 @@ export const createCacheConfig = (options?: {
       windowMs: 15 * 60 * 1000, // 15 minutes
       maxRequests: 100,
       prefix: "rate_limit:",
+    },
+    timeout: {
+      default: 5000, // 5 seconds
+      read: 3000, // 3 seconds
+      write: 5000, // 5 seconds
+    },
+    retry: {
+      maxAttempts: 3,
+      baseDelay: 100, // 100ms
+      maxDelay: 2000, // 2 seconds
+      exponentialBackoff: true,
     },
   };
 };
