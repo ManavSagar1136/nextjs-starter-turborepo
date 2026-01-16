@@ -1,0 +1,38 @@
+{
+  "name": "@buildbase/cache",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./service": "./dist/service.js",
+    "./fallback": "./dist/fallback.js",
+    "./rate-limiter": "./dist/rate-limiter.js",
+    "./versioning": "./dist/versioning.js",
+    "./config": "./dist/config.js",
+    "./factory": "./dist/factory.js",
+    "./types": "./dist/types.js",
+    "./nextjs": "./dist/nextjs.js"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.35.0",
+    "@upstash/ratelimit": "^2.0.5",
+    "lru-cache": "^11.0.1"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/node": "^22.15.30",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
