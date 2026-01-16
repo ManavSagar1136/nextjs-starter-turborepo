@@ -41,6 +41,13 @@ export const env = createEnv({
     // Optional: Cache Configuration
     ENABLE_CACHE_WARMING: z.enum(["true", "false"]).optional(),
     CACHE_WARMING_INTERVAL: z.string().regex(/^\d+$/).optional(),
+
+    // QStash (Upstash Message Queue)
+    // All are optional, but token and signing keys are required for full functionality
+    QSTASH_TOKEN: z.string().min(1).optional(),
+    QSTASH_URL: z.string().url("QSTASH_URL must be a valid URL").optional(),
+    QSTASH_CURRENT_SIGNING_KEY: z.string().min(1).optional(),
+    QSTASH_NEXT_SIGNING_KEY: z.string().min(1).optional(),
   },
 
   /**
@@ -95,6 +102,12 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     ENABLE_CACHE_WARMING: process.env.ENABLE_CACHE_WARMING,
     CACHE_WARMING_INTERVAL: process.env.CACHE_WARMING_INTERVAL,
+
+    // QStash (Upstash Message Queue)
+    QSTASH_TOKEN: process.env.QSTASH_TOKEN,
+    QSTASH_URL: process.env.QSTASH_URL,
+    QSTASH_CURRENT_SIGNING_KEY: process.env.QSTASH_CURRENT_SIGNING_KEY,
+    QSTASH_NEXT_SIGNING_KEY: process.env.QSTASH_NEXT_SIGNING_KEY,
   },
 
   /**
