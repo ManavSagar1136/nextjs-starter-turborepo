@@ -31,6 +31,16 @@ export const env = createEnv({
 
     // SaaS SDK (Server-side only - secrets should never be exposed to client)
     SAAS_CLIENT_SECRET: z.string().optional(),
+
+    // Cache (Redis/Upstash)
+    // Both are optional, but if URL is provided, token should also be provided
+    // This is validated in the cache package's validate-env script
+    UPSTASH_REDIS_REST_URL: z.string().url("UPSTASH_REDIS_REST_URL must be a valid URL").optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+
+    // Optional: Cache Configuration
+    ENABLE_CACHE_WARMING: z.enum(["true", "false"]).optional(),
+    CACHE_WARMING_INTERVAL: z.string().regex(/^\d+$/).optional(),
   },
 
   /**
@@ -79,6 +89,12 @@ export const env = createEnv({
     NEXT_PUBLIC_SAAS_SERVER_URL: process.env.NEXT_PUBLIC_SAAS_SERVER_URL,
     NEXT_PUBLIC_SAAS_ORG_ID: process.env.NEXT_PUBLIC_SAAS_ORG_ID,
     NEXT_PUBLIC_SAAS_CLIENT_ID: process.env.NEXT_PUBLIC_SAAS_CLIENT_ID,
+
+    // Cache (Redis/Upstash)
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    ENABLE_CACHE_WARMING: process.env.ENABLE_CACHE_WARMING,
+    CACHE_WARMING_INTERVAL: process.env.CACHE_WARMING_INTERVAL,
   },
 
   /**

@@ -35,11 +35,25 @@ yarn add @buildbase/cache
 
 ## Environment Variables
 
+### Required (for Redis caching)
+
 For Vercel, add these to your environment variables in the Vercel dashboard:
 
 ```bash
 UPSTASH_REDIS_REST_URL=your_redis_url_here
 UPSTASH_REDIS_REST_TOKEN=your_redis_token_here
+```
+
+**Note**: If these are not set, the cache will automatically use an in-memory fallback cache. For production, always configure Redis.
+
+### Optional
+
+```bash
+# Enable cache warming
+ENABLE_CACHE_WARMING=true
+
+# Cache warming interval (milliseconds)
+CACHE_WARMING_INTERVAL=300000
 ```
 
 ## Basic Usage
