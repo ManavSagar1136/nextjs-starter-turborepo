@@ -28,6 +28,20 @@ export const formatNumber = (num: number): string => {
 };
 
 /**
+ * Get formatted number based on locale (matches original template)
+ */
+export const getFormattedNumber = (value: number | string): string => {
+  try {
+    return Number(value).toLocaleString("en-US", {
+      maximumFractionDigits: 0,
+    });
+  } catch (error) {
+    console.error("Error formatting number:", error);
+    return String(value);
+  }
+};
+
+/**
  * Truncate a string to a maximum length
  */
 export const truncate = (str: string, maxLength: number): string => {

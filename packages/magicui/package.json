@@ -46,6 +46,10 @@
       "types": "./dist/components/rainbow-button.d.ts",
       "default": "./dist/components/rainbow-button.js"
     },
+    "./components/marquee": {
+      "types": "./dist/components/marquee.d.ts",
+      "default": "./dist/components/marquee.js"
+    },
     "./components/*": {
       "types": "./dist/components/*.d.ts",
       "default": "./dist/components/*.js"

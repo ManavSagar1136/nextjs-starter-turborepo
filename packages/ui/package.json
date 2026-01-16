@@ -53,6 +53,14 @@
       "types": "./dist/components/ui/card.d.ts",
       "default": "./dist/components/ui/card.js"
     },
+    "./avatar": {
+      "types": "./dist/components/ui/avatar.d.ts",
+      "default": "./dist/components/ui/avatar.js"
+    },
+    "./badge": {
+      "types": "./dist/components/ui/badge.d.ts",
+      "default": "./dist/components/ui/badge.js"
+    },
     "./input": {
       "types": "./dist/components/ui/input.d.ts",
       "default": "./dist/components/ui/input.js"
@@ -60,6 +68,10 @@
     "./textarea": {
       "types": "./dist/components/ui/textarea.d.ts",
       "default": "./dist/components/ui/textarea.js"
+    },
+    "./slider": {
+      "types": "./dist/components/ui/slider.d.ts",
+      "default": "./dist/components/ui/slider.js"
     },
     "./dialog": {
       "types": "./dist/components/ui/dialog.d.ts",

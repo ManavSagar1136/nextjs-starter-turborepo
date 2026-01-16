@@ -13,6 +13,51 @@
      when they're used in components. */
 }
 
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Code block styles for rehype-pretty-code */
+[data-rehype-pretty-code-fragment] {
+  @apply relative;
+}
+
+[data-rehype-pretty-code-fragment] pre {
+  @apply overflow-x-auto rounded-lg px-4 py-4 text-sm;
+  background-color: #f3f4f6 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-rehype-pretty-code-fragment] code {
+  @apply grid min-w-full break-words rounded-md border-0 bg-transparent p-0 text-sm;
+  counter-reset: line;
+  box-decoration-break: clone;
+  background-color: transparent !important;
+}
+
+[data-rehype-pretty-code-fragment] .line {
+  @apply px-4 py-0.5;
+}
+
+[data-rehype-pretty-code-fragment] [data-line-numbers] > .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: #6b7280;
+}
+
+[data-rehype-pretty-code-fragment] .line--highlighted {
+  @apply bg-gray-200/50;
+}
+
+[data-rehype-pretty-code-fragment] .word--highlighted {
+  @apply rounded-md bg-gray-200/50 p-1;
+}
+
 @layer utilities {
   /* Line clamp utilities */
   .line-clamp-1 {
@@ -155,7 +200,7 @@
 
   /* Focus styles */
   .focus-ring {
-    @apply focus:ring-primary focus:ring-offset-background focus:ring-2 focus:ring-offset-2 focus:outline-none;
+    @apply focus:ring-primary focus:ring-offset-background focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
 
   /* Text selection */
@@ -170,12 +215,12 @@
 
   /* Custom focus visible */
   .focus-visible-ring {
-    @apply focus-visible:ring-primary focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none;
+    @apply focus-visible:ring-primary focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
   }
 
   /* Reading progress bar */
   .reading-progress {
-    @apply bg-primary/20 fixed top-0 left-0 z-50 h-1 w-full;
+    @apply bg-primary/20 fixed left-0 top-0 z-50 h-1 w-full;
   }
 
   .reading-progress-bar {
