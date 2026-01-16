@@ -23,6 +23,7 @@
     "./utils/query-helpers": "./dist/utils/query-helpers.js"
   },
   "dependencies": {
+    "@buildbase/env": "*",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-query-devtools": "^5.62.0"
   },

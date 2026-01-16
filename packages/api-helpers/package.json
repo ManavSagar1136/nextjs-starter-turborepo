@@ -15,9 +15,12 @@
   ],
   "exports": {
     "./users": "./dist/users.js",
-    "./prisma": "./dist/prisma.js"
+    "./prisma": "./dist/prisma.js",
+    "./middleware/with-cron-check": "./dist/middleware/with-cron-check.js",
+    "./middleware/types": "./dist/middleware/types.js"
   },
   "dependencies": {
+    "@buildbase/cache": "*",
     "@buildbase/database": "*"
   },
   "devDependencies": {
