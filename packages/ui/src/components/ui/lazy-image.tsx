@@ -6,9 +6,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Skeleton } from "./skeleton";
 import { cn } from "../../lib/utils";
 
-// Default fallback image - can be overridden
-const DEFAULT_FALLBACK_IMAGE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-family='sans-serif' font-size='18'%3EImage not found%3C/text%3E%3C/svg%3E";
+// Default fallback image path - matches original structure
+const DEFAULT_FALLBACK_IMAGE = "/images/image-not-found.jpg";
 
 declare global {
   /**
@@ -61,7 +60,7 @@ const LazyImage: React.FC<ILazyImageProps> = ({
    * Determine the final source for the image.
    * If `src` is provided, use it; otherwise, use a fallback image.
    */
-  const finalSrc = useMemo(() => src || fallbackImage, [src, fallbackImage]);
+  const finalSrc = useMemo(() => src || DEFAULT_FALLBACK_IMAGE, [src]);
 
   /**
    * Handle image loading
