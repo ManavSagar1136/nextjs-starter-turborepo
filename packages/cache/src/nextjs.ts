@@ -6,11 +6,6 @@
  * Note: We don't re-export everything to maintain tree-shaking compatibility with Vercel
  */
 
-// Import only what's needed for Next.js integration
-import { defaultCacheService, defaultRateLimiter } from "./factory";
-import { RATE_LIMIT_CONFIGS } from "./rate-limiter";
-import type { RateLimitConfig } from "./types";
-
 // Next.js specific types (only import if Next.js is available)
 type NextRequest = any;
 type NextResponse = any;
@@ -24,7 +19,8 @@ type NextResponse = any;
  */
 export function withCacheAndRateLimit(
   handler: (req: NextRequest, ...args: any[]) => Promise<NextResponse>,
-  options: {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _options: {
     enableCache?: boolean;
     enableRateLimit?: boolean;
     cacheStrategy?: "static" | "dynamic" | "user" | "api";
@@ -46,7 +42,8 @@ export function withCacheAndRateLimit(
  */
 export function createCachedApiHandler<T>(
   handler: (req: NextRequest, ...args: any[]) => Promise<T>,
-  options: {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _options: {
     cacheStrategy?: "static" | "dynamic" | "user" | "api";
     cacheTTL?: number;
     rateLimitConfig?: {

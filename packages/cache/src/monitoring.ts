@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CacheService } from "./service";
 import type { Logger } from "./types";
 
@@ -118,11 +117,8 @@ export class CacheMonitor {
    */
   public async collectMetrics(): Promise<CacheMetrics | null> {
     try {
-      const startTime = Date.now();
-
       // Get cache statistics
       const stats = await this.cacheService.getStats();
-      const health = await this.cacheService.healthCheck();
 
       // Calculate performance metrics
       const totalRequests = this.operationCounts.totalRequests || 1;

@@ -132,7 +132,7 @@ export class CacheMaintenance {
               cleanedCount++;
             }
           }
-        } catch (error) {
+        } catch {
           // Key might be invalid, skip
           continue;
         }
@@ -181,7 +181,7 @@ export class CacheMaintenance {
               migratedCount++;
             }
           }
-        } catch (error) {
+        } catch {
           // Skip invalid keys
           continue;
         }

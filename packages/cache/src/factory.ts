@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CacheConfig } from "./config";
-import { createCacheConfig, CACHE_CONFIG } from "./config";
+import { createCacheConfig } from "./config";
 import { CircuitBreaker } from "./circuit-breaker";
 import { DistributedLock } from "./distributed-lock";
 import { EnhancedCacheController } from "./enhanced-controller";
