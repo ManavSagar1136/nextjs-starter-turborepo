@@ -30,6 +30,50 @@ yarn add @buildbase/qstash
 - `@buildbase/qstash/config` - Configuration helpers
 - `@buildbase/qstash/types` - TypeScript types
 
+## How It Works
+
+### No Cron Jobs Required
+
+**QStash is a fully managed service** - you don't need to set up cron jobs or background workers. QStash handles:
+
+- Message scheduling and delivery
+- Automatic retries on failures
+- Dead-letter queue management
+- Cron-based recurring tasks
+
+### Message Delivery Flow
+
+1. **Publish Message**: Your app publishes a message to QStash with a destination URL
+2. **QStash Stores**: QStash stores the message durably
+3. **QStash Delivers**: QStash sends an HTTP POST request to your endpoint
+4. **Your Endpoint Handles**: Your Next.js API route receives and processes the message
+5. **Automatic Retries**: If delivery fails, QStash automatically retries
+6. **Callbacks (Optional)**: QStash can notify you of delivery success/failure
+
+### Architecture Diagram
+
+```
+Your App                    QStash Service              Your Webhook Endpoint
+   │                              │                              │
+   │── Publish Message ──────────>│                              │
+   │                              │── Store Message              │
+   │                              │                              │
+   │                              │── HTTP POST ────────────────>│
+   │                              │                              │── Process
+   │                              │<── 200 OK ───────────────────│
+   │                              │                              │
+   │                              │── Delivery Complete          │
+```
+
+### What You Need to Do
+
+1. **Create Webhook Endpoints**: Set up Next.js API routes to receive messages
+2. **Verify Signatures**: Use `QStashReceiver` to verify incoming requests
+3. **Publish Messages**: Use `QStashClient` to send messages
+4. **Handle Messages**: Process messages in your webhook endpoints
+
+**That's it!** QStash handles all the scheduling, retries, and delivery automatically.
+
 ## Environment Variables
 
 ### Required (for full functionality)
@@ -262,7 +306,68 @@ if (!verification.valid) {
 
 ## Next.js Integration
 
-### API Route Handler
+### Complete Example: Publishing and Receiving Messages
+
+Here's a complete flow showing how to publish a message and handle it:
+
+#### 1. Publish a Message
+
+```typescript
+// app/api/users/route.ts
+import { defaultQStashClient } from "@buildbase/qstash/factory";
+
+export async function POST(request: Request) {
+  const { userId, email } = await request.json();
+
+  // Create user in database
+  const user = await createUser({ userId, email });
+
+  // Publish message to QStash for async processing
+  await defaultQStashClient.publishJSON({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/send-welcome-email`,
+    body: {
+      userId: user.id,
+      email: user.email,
+    },
+  });
+
+  return Response.json({ success: true, user });
+}
+```
+
+#### 2. Receive and Process the Message
+
+```typescript
+// app/api/webhook/send-welcome-email/route.ts
+import { defaultQStashReceiver } from "@buildbase/qstash/factory";
+
+export async function POST(request: Request) {
+  // Step 1: Verify the signature (IMPORTANT for security)
+  const verification = await defaultQStashReceiver.verifyNextRequest(request);
+
+  if (!verification.valid) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  // Step 2: Parse the message body
+  const { userId, email } = await request.json();
+
+  // Step 3: Process the message (send email, etc.)
+  try {
+    await sendWelcomeEmail({ userId, email });
+
+    // Return 200 to indicate success
+    // QStash will mark this message as successfully delivered
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    // Return non-2xx status to trigger retry
+    // QStash will automatically retry based on your retry settings
+    return new Response("Error", { status: 500 });
+  }
+}
+```
+
+### API Route Handler (Simple Example)
 
 ```typescript
 // app/api/webhook/qstash/route.ts
@@ -376,6 +481,8 @@ Then set `QSTASH_URL=http://localhost:8080` in your `.env` file.
 
 ## Error Handling
 
+### Publishing Errors
+
 ```typescript
 import { defaultQStashClient } from "@buildbase/qstash/factory";
 
@@ -389,6 +496,43 @@ try {
   // Handle error (retry, log, etc.)
 }
 ```
+
+### Webhook Processing Errors
+
+When your webhook endpoint returns a non-2xx status, QStash automatically retries:
+
+```typescript
+// app/api/webhook/process/route.ts
+import { defaultQStashReceiver } from "@buildbase/qstash/factory";
+
+export async function POST(request: Request) {
+  const verification = await defaultQStashReceiver.verifyNextRequest(request);
+  if (!verification.valid) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  try {
+    const data = await request.json();
+
+    // Process the message
+    await processMessage(data);
+
+    // Return 200 = success, QStash won't retry
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    // Return 500 = failure, QStash will retry automatically
+    console.error("Processing failed:", error);
+    return new Response("Error", { status: 500 });
+  }
+}
+```
+
+### Retry Behavior
+
+- QStash automatically retries failed deliveries
+- Retry intervals use exponential backoff
+- Maximum retries depend on your QStash plan
+- After all retries fail, message goes to Dead Letter Queue (DLQ)
 
 ## TypeScript Support
 
