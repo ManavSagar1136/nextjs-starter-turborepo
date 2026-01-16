@@ -9,12 +9,78 @@
   ],
   "exports": {
     "./styles.css": "./dist/index.css",
-    "./lib/utils": "./dist/lib/utils.js",
-    "./hooks/use-toast": "./dist/hooks/use-toast.js",
-    "./hooks/use-mobile": "./dist/hooks/use-mobile.js",
-    "./components/providers/ThemeProvider": "./dist/components/providers/ThemeProvider.js",
-    "./components/ui/theme-toggle": "./dist/components/ui/theme-toggle.js",
-    "./*": "./dist/*.js"
+    "./lib/utils": {
+      "types": "./dist/lib/utils.d.ts",
+      "default": "./dist/lib/utils.js"
+    },
+    "./hooks/use-toast": {
+      "types": "./dist/hooks/use-toast.d.ts",
+      "default": "./dist/hooks/use-toast.js"
+    },
+    "./hooks/use-mobile": {
+      "types": "./dist/hooks/use-mobile.d.ts",
+      "default": "./dist/hooks/use-mobile.js"
+    },
+    "./hooks/use-debounce": {
+      "types": "./dist/hooks/use-debounce.d.ts",
+      "default": "./dist/hooks/use-debounce.js"
+    },
+    "./components/providers/ThemeProvider": {
+      "types": "./dist/components/providers/ThemeProvider.d.ts",
+      "default": "./dist/components/providers/ThemeProvider.js"
+    },
+    "./components/ui/theme-toggle": {
+      "types": "./dist/components/ui/theme-toggle.d.ts",
+      "default": "./dist/components/ui/theme-toggle.js"
+    },
+    "./accordion": {
+      "types": "./dist/components/ui/accordion.d.ts",
+      "default": "./dist/components/ui/accordion.js"
+    },
+    "./alert": {
+      "types": "./dist/components/ui/alert.d.ts",
+      "default": "./dist/components/ui/alert.js"
+    },
+    "./button": {
+      "types": "./dist/components/ui/button.d.ts",
+      "default": "./dist/components/ui/button.js"
+    },
+    "./carousel": {
+      "types": "./dist/components/ui/carousel.d.ts",
+      "default": "./dist/components/ui/carousel.js"
+    },
+    "./card": {
+      "types": "./dist/components/ui/card.d.ts",
+      "default": "./dist/components/ui/card.js"
+    },
+    "./input": {
+      "types": "./dist/components/ui/input.d.ts",
+      "default": "./dist/components/ui/input.js"
+    },
+    "./textarea": {
+      "types": "./dist/components/ui/textarea.d.ts",
+      "default": "./dist/components/ui/textarea.js"
+    },
+    "./dialog": {
+      "types": "./dist/components/ui/dialog.d.ts",
+      "default": "./dist/components/ui/dialog.js"
+    },
+    "./lazy-image": {
+      "types": "./dist/components/ui/lazy-image.d.ts",
+      "default": "./dist/components/ui/lazy-image.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*.d.ts",
+        "./dist/components/ui/*.d.ts"
+      ]
+    }
   },
   "license": "MIT",
   "scripts": {
@@ -74,6 +140,7 @@
     "react-time-ago": "^7.3.5",
     "react-hook-form": "^7.48.2",
     "react-resizable-panels": "^2.0.16",
+    "react-svg": "^3.0.0",
     "recharts": "^2.8.0",
     "sonner": "^1.2.4",
     "tailwind-merge": "^2.5.4",
