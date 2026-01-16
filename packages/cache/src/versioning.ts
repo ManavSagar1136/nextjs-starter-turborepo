@@ -79,7 +79,10 @@ export class CacheVersioning {
    */
   static compareVersions(v1: string, v2: string): number {
     const parseVersion = (version: string): CacheVersion => {
-      const [major, minor, patch] = version.split(".").map(Number);
+      const parts = version.split(".").map(Number);
+      const major = parts[0] ?? 0;
+      const minor = parts[1] ?? 0;
+      const patch = parts[2] ?? 0;
       return { major, minor, patch };
     };
 

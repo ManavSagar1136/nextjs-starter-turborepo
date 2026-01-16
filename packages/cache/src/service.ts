@@ -280,9 +280,14 @@ export class CacheService {
 
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
+        const key = keys[i];
         if (!result) {
-          const fallbackResult = await this.fallbackCache.get<T>(keys[i]);
-          processedResults.push(fallbackResult);
+          if (key) {
+            const fallbackResult = await this.fallbackCache.get<T>(key);
+            processedResults.push(fallbackResult);
+          } else {
+            processedResults.push(null);
+          }
         } else {
           try {
             const cacheEntry = JSON.parse(result as string);
@@ -593,7 +598,9 @@ export class CacheService {
       const strategies: Record<string, number> = {};
       for (const key of keys) {
         const strategy = key.split(":")[0];
-        strategies[strategy] = (strategies[strategy] || 0) + 1;
+        if (strategy) {
+          strategies[strategy] = (strategies[strategy] || 0) + 1;
+        }
       }
 
       return {

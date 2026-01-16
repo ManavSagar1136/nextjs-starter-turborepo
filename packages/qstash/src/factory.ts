@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { QStashConfig } from "./config";
-import { createQStashConfig, QSTASH_CONFIG } from "./config";
+import { createQStashConfig } from "./config";
 import { QStashClient } from "./client";
 import { QStashReceiver } from "./receiver";
 import type { Logger } from "./types";

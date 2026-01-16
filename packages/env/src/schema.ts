@@ -48,6 +48,9 @@ export const env = createEnv({
     QSTASH_URL: z.string().url("QSTASH_URL must be a valid URL").optional(),
     QSTASH_CURRENT_SIGNING_KEY: z.string().min(1).optional(),
     QSTASH_NEXT_SIGNING_KEY: z.string().min(1).optional(),
+
+    // Cron Jobs (Vercel Cron)
+    CRON_SECRET: z.string().min(1).optional(),
   },
 
   /**
@@ -108,6 +111,9 @@ export const env = createEnv({
     QSTASH_URL: process.env.QSTASH_URL,
     QSTASH_CURRENT_SIGNING_KEY: process.env.QSTASH_CURRENT_SIGNING_KEY,
     QSTASH_NEXT_SIGNING_KEY: process.env.QSTASH_NEXT_SIGNING_KEY,
+
+    // Cron Jobs (Vercel Cron)
+    CRON_SECRET: process.env.CRON_SECRET,
   },
 
   /**

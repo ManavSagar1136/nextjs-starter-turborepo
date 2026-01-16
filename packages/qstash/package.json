@@ -18,9 +18,11 @@
     "./receiver": "./dist/receiver.js",
     "./factory": "./dist/factory.js",
     "./types": "./dist/types.js",
-    "./config": "./dist/config.js"
+    "./config": "./dist/config.js",
+    "./middleware": "./dist/middleware.js"
   },
   "dependencies": {
+    "@buildbase/cache": "*",
     "@upstash/qstash": "^2.7.0"
   },
   "devDependencies": {

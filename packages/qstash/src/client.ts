@@ -12,6 +12,39 @@ import type {
 } from "./types";
 
 /**
+ * Convert delay string/number to QStash Duration format
+ */
+const convertDelay = (
+  delay?: string | number
+): number | `${bigint}s` | `${bigint}m` | `${bigint}h` | `${bigint}d` | undefined => {
+  if (delay === undefined) return undefined;
+  if (typeof delay === "number") return delay;
+
+  // If it's already in Duration format (ends with s, m, h, d), return as-is
+  if (typeof delay === "string" && /^\d+[smhd]$/.test(delay)) {
+    return delay as `${bigint}s` | `${bigint}m` | `${bigint}h` | `${bigint}d`;
+  }
+
+  // Convert number string to number
+  const num = parseInt(delay, 10);
+  if (!isNaN(num)) return num;
+
+  // Return as-is if it's a valid Duration string
+  return delay as `${bigint}s` | `${bigint}m` | `${bigint}h` | `${bigint}d`;
+};
+
+/**
+ * Extract messageId from QStash response (handles union types)
+ */
+const getMessageId = (result: any): string | undefined => {
+  if (result && typeof result === "object") {
+    if ("messageId" in result) return result.messageId;
+    if ("scheduleId" in result) return result.scheduleId;
+  }
+  return undefined;
+};
+
+/**
  * QStashClient - Wrapper around @upstash/qstash Client
  * Provides type-safe methods for publishing messages, scheduling, and queue management
  */
@@ -43,24 +76,28 @@ export class QStashClient {
       const result = await this.client.publishJSON({
         url: options.url,
         body: options.body,
-        headers: options.headers,
-        delay: options.delay,
+        headers: {
+          ...options.headers,
+          ...(options.topic && { "Upstash-Topic": options.topic }),
+        },
+        delay: convertDelay(options.delay),
         retries: options.retries,
         deduplicationId: options.deduplicationId,
         contentBasedDeduplication: options.contentBasedDeduplication,
-        topic: options.topic,
         callback: options.callback,
         failureCallback: options.failureCallback,
       });
 
+      const messageId = getMessageId(result);
+
       this.logger.info({
         tag: "QStashClient",
         msg: "Message published successfully",
-        data: { messageId: result.messageId, url: options.url },
+        data: { messageId, url: options.url },
       });
 
       return {
-        messageId: result.messageId,
+        messageId: messageId || "",
         url: options.url,
       };
     } catch (error: any) {
@@ -82,24 +119,28 @@ export class QStashClient {
       const result = await this.client.publish({
         url: options.url,
         body: options.body ? JSON.stringify(options.body) : undefined,
-        headers: options.headers,
-        delay: options.delay,
+        headers: {
+          ...options.headers,
+          ...(options.topic && { "Upstash-Topic": options.topic }),
+        },
+        delay: convertDelay(options.delay),
         retries: options.retries,
         deduplicationId: options.deduplicationId,
         contentBasedDeduplication: options.contentBasedDeduplication,
-        topic: options.topic,
         callback: options.callback,
         failureCallback: options.failureCallback,
       });
 
+      const messageId = getMessageId(result);
+
       this.logger.info({
         tag: "QStashClient",
         msg: "Message published successfully",
-        data: { messageId: result.messageId, url: options.url },
+        data: { messageId, url: options.url },
       });
 
       return {
-        messageId: result.messageId,
+        messageId: messageId || "",
         url: options.url,
       };
     } catch (error: any) {
@@ -143,17 +184,19 @@ export class QStashClient {
           url: options.destination,
           body: options.body ? JSON.stringify(options.body) : undefined,
           headers: options.headers,
-          delay: options.delay,
+          delay: convertDelay(options.delay),
         });
+
+        const messageId = getMessageId(result);
 
         this.logger.info({
           tag: "QStashClient",
           msg: "Delayed message scheduled successfully",
-          data: { messageId: result.messageId, destination: options.destination, delay: options.delay },
+          data: { messageId, destination: options.destination, delay: options.delay },
         });
 
         return {
-          scheduleId: result.messageId,
+          scheduleId: messageId || "",
           destination: options.destination,
         };
       }
@@ -180,17 +223,19 @@ export class QStashClient {
           ...options.headers,
           "Upstash-Queue": options.queueName,
         },
-        delay: options.delay,
+        delay: convertDelay(options.delay),
       });
+
+      const messageId = getMessageId(result);
 
       this.logger.info({
         tag: "QStashClient",
         msg: "Message enqueued successfully",
-        data: { messageId: result.messageId, queueName: options.queueName, url: options.url },
+        data: { messageId, queueName: options.queueName, url: options.url },
       });
 
       return {
-        messageId: result.messageId,
+        messageId: messageId || "",
         url: options.url,
       };
     } catch (error: any) {
@@ -216,17 +261,19 @@ export class QStashClient {
           ...options.headers,
           "Upstash-Topic": options.topic,
         },
-        delay: options.delay,
+        delay: convertDelay(options.delay),
       });
+
+      const messageId = getMessageId(result);
 
       this.logger.info({
         tag: "QStashClient",
         msg: "Message published to topic successfully",
-        data: { messageId: result.messageId, topic: options.topic, url: options.url },
+        data: { messageId, topic: options.topic, url: options.url },
       });
 
       return {
-        messageId: result.messageId,
+        messageId: messageId || "",
         url: options.url,
       };
     } catch (error: any) {

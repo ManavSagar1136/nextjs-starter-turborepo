@@ -27,6 +27,7 @@ yarn add @buildbase/qstash
 - `@buildbase/qstash/factory` - Factory functions and default instances
 - `@buildbase/qstash/client` - QStashClient class for publishing/scheduling
 - `@buildbase/qstash/receiver` - QStashReceiver class for signature verification
+- `@buildbase/qstash/middleware` - Webhook middleware with idempotency
 - `@buildbase/qstash/config` - Configuration helpers
 - `@buildbase/qstash/types` - TypeScript types
 
@@ -264,9 +265,141 @@ await defaultQStashClient.publishToTopic({
 });
 ```
 
-## Webhook Verification
+## Webhook Middleware
 
-### Verify Incoming Webhooks
+### `withQStashWebhook` - Automatic Verification & Idempotency
+
+Middleware to validate QStash webhook signatures and prevent duplicate execution. Includes built-in idempotency using messageId/deduplicationId.
+
+#### Features
+
+- ✅ Validates QStash signature automatically
+- ✅ Prevents duplicate execution using cache-based idempotency
+- ✅ Uses messageId or deduplicationId from QStash headers
+- ✅ Configurable error messages
+- ✅ Development mode support
+- ✅ Custom idempotency key generation
+
+#### Basic Usage
+
+```typescript
+// app/api/webhook/process/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { withQStashWebhook } from "@buildbase/qstash/middleware";
+
+const handler = async (req: NextRequest) => {
+  const body = await req.json();
+
+  // Process webhook - signature already verified
+  await processWebhook(body);
+
+  return NextResponse.json({ success: true });
+};
+
+// Protect with QStash webhook middleware (includes idempotency)
+export const POST = withQStashWebhook(handler);
+```
+
+#### With Custom Options
+
+```typescript
+export const POST = withQStashWebhook(handler, {
+  errorMessage: "Invalid QStash signature",
+  idempotencyTTL: 7200, // 2 hours
+  allowWithoutAuth: process.env.NODE_ENV === "development",
+});
+```
+
+#### Custom Idempotency Key
+
+```typescript
+export const POST = withQStashWebhook(handler, {
+  // Custom key based on request body
+  idempotencyKey: async req => {
+    const body = await req.json();
+    return `qstash:${body.eventId}:${body.userId}`;
+  },
+});
+```
+
+#### Disable Idempotency
+
+```typescript
+export const POST = withQStashWebhook(handler, {
+  enableIdempotency: false, // Disable duplicate prevention
+});
+```
+
+#### How Idempotency Works
+
+1. **Key Generation**: Uses `messageId` or `deduplicationId` from QStash headers
+2. **Cache Check**: Checks if request was already processed
+3. **Cached Response**: Returns cached response if duplicate
+4. **Execute**: If not cached, executes handler
+5. **Cache Result**: Stores response in cache for idempotency window (default: 1 hour)
+
+This prevents the same webhook from being processed multiple times if:
+
+- QStash retries the webhook
+- Multiple instances receive the same message
+- Network issues cause duplicate deliveries
+
+#### Example: Processing User Events
+
+```typescript
+// app/api/webhook/user-events/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { withQStashWebhook } from "@buildbase/qstash/middleware";
+
+const handler = async (req: NextRequest) => {
+  const { event, userId, data } = await req.json();
+
+  switch (event) {
+    case "user.created":
+      await handleUserCreated(userId, data);
+      break;
+    case "user.updated":
+      await handleUserUpdated(userId, data);
+      break;
+  }
+
+  return NextResponse.json({ success: true, event });
+};
+
+// Automatically prevents duplicate processing using QStash messageId
+export const POST = withQStashWebhook(handler);
+```
+
+#### Example: Order Processing
+
+```typescript
+// app/api/webhook/process-order/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { withQStashWebhook } from "@buildbase/qstash/middleware";
+
+const handler = async (req: NextRequest) => {
+  const { orderId, action } = await req.json();
+
+  // Process order
+  await processOrder(orderId, action);
+
+  return NextResponse.json({ success: true, orderId });
+};
+
+// Use orderId for idempotency - same order won't be processed twice
+export const POST = withQStashWebhook(handler, {
+  idempotencyKey: async req => {
+    const body = await req.json();
+    return `process-order:${body.orderId}:${body.action}`;
+  },
+});
+```
+
+## Webhook Verification (Manual)
+
+### Verify Incoming Webhooks Manually
+
+If you need manual verification without the middleware:
 
 ```typescript
 import { defaultQStashReceiver } from "@buildbase/qstash/factory";

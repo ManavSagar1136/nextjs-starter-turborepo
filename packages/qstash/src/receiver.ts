@@ -22,16 +22,16 @@ export class QStashReceiver {
 
     this.receiver = new Receiver({
       currentSigningKey: config.currentSigningKey,
-      nextSigningKey: config.nextSigningKey,
+      nextSigningKey: config.nextSigningKey || "",
     });
   }
 
   /**
    * Verify incoming webhook signature
    */
-  verify(options: VerifyOptions): VerifyResult {
+  async verify(options: VerifyOptions): Promise<VerifyResult> {
     try {
-      const isValid = this.receiver.verify({
+      const isValid = await this.receiver.verify({
         signature: options.signature,
         body: options.body,
         url: options.url,
@@ -71,11 +71,11 @@ export class QStashReceiver {
    * Verify from HTTP request headers and body
    * Useful for Next.js API routes
    */
-  verifyRequest(request: {
+  async verifyRequest(request: {
     headers: Record<string, string | string[] | undefined>;
     body: string;
     url?: string;
-  }): VerifyResult {
+  }): Promise<VerifyResult> {
     try {
       // Extract signature from headers
       const signature =
@@ -93,7 +93,7 @@ export class QStashReceiver {
         };
       }
 
-      return this.verify({
+      return await this.verify({
         signature,
         body: request.body,
         url: request.url,
@@ -133,7 +133,7 @@ export class QStashReceiver {
 
       const body = await request.text();
 
-      return this.verify({
+      return await this.verify({
         signature,
         body,
         url: request.url,

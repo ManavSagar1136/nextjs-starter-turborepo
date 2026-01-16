@@ -89,3 +89,45 @@ export interface TopicPublishOptions {
   headers?: Record<string, string>;
   delay?: string | number;
 }
+
+// QStash webhook middleware options
+export interface QStashWebhookOptions {
+  /**
+   * QStash receiver instance (optional, uses default if not provided)
+   */
+  receiver?: import("./receiver").QStashReceiver;
+
+  /**
+   * Enable idempotency to prevent duplicate execution
+   * @default true
+   */
+  enableIdempotency?: boolean;
+
+  /**
+   * Custom function to generate idempotency key
+   * If not provided, uses messageId or deduplicationId from headers
+   */
+  idempotencyKey?: (req: import("next/server").NextRequest) => Promise<string> | string;
+
+  /**
+   * TTL for idempotency cache in seconds
+   * @default 3600 (1 hour)
+   */
+  idempotencyTTL?: number;
+
+  /**
+   * Cache service instance (optional, uses defaultCacheService if not provided)
+   */
+  cacheService?: import("@buildbase/cache/service").CacheService;
+
+  /**
+   * Custom error message when signature verification fails
+   */
+  errorMessage?: string;
+
+  /**
+   * Whether to allow requests without signature (for development)
+   * @default false
+   */
+  allowWithoutAuth?: boolean;
+}

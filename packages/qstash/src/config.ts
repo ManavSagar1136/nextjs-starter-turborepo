@@ -1,5 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { QStashConfig } from "./types";
+
+// Re-export QStashConfig for convenience
+export type { QStashConfig } from "./types";
 
 // Default QStash configuration factory
 export const createQStashConfig = (options?: {
