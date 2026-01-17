@@ -1,6 +1,6 @@
-import { SparklesText } from "@buildbase/magicui/components/sparkles-text";
 import { SiteConfig } from "@buildbase/utils/config";
 import { cn } from "@buildbase/ui/lib/utils";
+import { SparklesText } from "./sparkles-text";
 
 // Default theme color - can be overridden
 const THEME_COLOR = {

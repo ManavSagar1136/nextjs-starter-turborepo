@@ -65,9 +65,9 @@
   },
   "dependencies": {
     "@buildbase/ui": "*",
-    "@buildbase/magicui": "*",
     "@buildbase/utils": "*",
     "aos": "^2.3.4",
+    "framer-motion": "^11.11.17",
     "react-icons": "^5.0.0"
   },
   "devDependencies": {
