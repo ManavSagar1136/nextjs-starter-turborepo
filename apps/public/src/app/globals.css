@@ -1,4 +1,5 @@
 @import "../../../../packages/tailwind-config/themes.css";
+@import "../../../../packages/tailwind-config/shared-styles.css";
 
 @tailwind base;
 @tailwind components;

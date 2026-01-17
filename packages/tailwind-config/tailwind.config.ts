@@ -10,7 +10,7 @@ import customUtilities from "./tailwind-utilities";
  * This config can be extended by individual apps if needed
  */
 const config = {
-  darkMode: "class",
+  darkMode: ["class"],
   theme: {
     container: {
       center: true,

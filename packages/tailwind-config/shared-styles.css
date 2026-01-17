@@ -35,11 +35,11 @@
 }
 
 [data-rehype-pretty-code-fragment] .line--highlighted {
-  @apply bg-gray-200/50;
+  @apply bg-gray-200 bg-opacity-50;
 }
 
 [data-rehype-pretty-code-fragment] .word--highlighted {
-  @apply rounded-md bg-gray-200/50 p-1;
+  @apply rounded-md bg-gray-200 bg-opacity-50 p-1;
 }
 
 @layer utilities {
