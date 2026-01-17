@@ -9,7 +9,7 @@ export function VisuallyHidden({ className, children, ...props }: VisuallyHidden
   return (
     <span
       className={cn(
-        "absolute -m-px h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap",
+        "absolute -m-px h-px w-px overflow-hidden whitespace-nowrap border-0 p-0",
         "clip-path-[inset(50%)]",
         className
       )}

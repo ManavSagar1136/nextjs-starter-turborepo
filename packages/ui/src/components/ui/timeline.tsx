@@ -28,7 +28,7 @@ export function Timeline({ items, orientation = "vertical", className }: Timelin
               <div
                 className={cn(
                   "bg-border absolute",
-                  orientation === "vertical" ? "top-8 left-4 h-full w-0.5" : "top-4 left-8 h-0.5 w-full"
+                  orientation === "vertical" ? "left-4 top-8 h-full w-0.5" : "left-8 top-4 h-0.5 w-full"
                 )}
               />
             )}

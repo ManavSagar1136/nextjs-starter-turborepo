@@ -30,7 +30,7 @@ export function SidebarLayout({
           className={cn(
             "border-border bg-muted/50 flex-shrink-0 border-r",
             sidebarWidthClasses[sidebarWidth],
-            sidebarPosition === "right" && "border-r-0 border-l"
+            sidebarPosition === "right" && "border-l border-r-0"
           )}
         >
           {sidebar}

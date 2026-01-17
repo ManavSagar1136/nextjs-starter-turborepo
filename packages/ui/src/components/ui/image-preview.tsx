@@ -110,7 +110,7 @@ export const ImagePreview = ({
           <button
             onClick={handleClose}
             className={cn(
-              "absolute top-4 right-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70 hover:text-gray-300 focus:ring-2 focus:ring-white focus:outline-none",
+              "absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70 hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white",
               closeButtonClassName
             )}
             aria-label="Close image preview"

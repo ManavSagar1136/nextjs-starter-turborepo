@@ -112,7 +112,7 @@ const LazyImage: React.FC<ILazyImageProps> = ({
       renderError || (
         <img
           src={fallbackImage}
-          className={cn("size-full object-cover select-none", className)}
+          className={cn("size-full select-none object-cover", className)}
           {...sharedImageProps}
         />
       )
@@ -146,7 +146,7 @@ const LazyImage: React.FC<ILazyImageProps> = ({
         onLoad={handleOnLoad}
         onError={handleOnError}
         loading={props?.loading || "lazy"}
-        className={cn("h-full w-full object-cover select-none", !isLoaded && "opacity-0", className)}
+        className={cn("h-full w-full select-none object-cover", !isLoaded && "opacity-0", className)}
         {...sharedImageProps}
       />
     </>
