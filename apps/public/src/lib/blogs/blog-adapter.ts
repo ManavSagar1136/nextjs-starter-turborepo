@@ -58,8 +58,9 @@ export function adaptBlogPost(
   post: (BlogPostWithPartialRelations | IBlogPost) & {
     url?: string;
   },
-): IBlogPost {
-  const fullSlug =
+): IBlogPost & { url?: string } {
+  // Compute the full URL if not already provided
+  const computedUrl =
     post.url ||
     computePostUrl(post as IBlogPost & { folder?: IBlogFolder | null });
 
@@ -85,7 +86,7 @@ export function adaptBlogPost(
     // API fields
     id: post.id,
     title: post.title,
-    slug: fullSlug, // Full URL path (computed)
+    slug: post.slug, // Keep original slug (not the full URL)
     description: post.description,
     excerpt: post.excerpt || undefined,
     content: post.content,
@@ -104,6 +105,7 @@ export function adaptBlogPost(
     folder: post.folder || undefined, // Preserve folder object for groups extraction
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
+    url: computedUrl, // Store the full URL in the url property
   };
 }
 
@@ -112,15 +114,16 @@ export function adaptBlogPost(
  * Accepts a BlogTag and converts it to UI-compatible Tag format
  * Handles both raw slug (from API) and full path (already processed)
  */
-export function adaptTag(tag: IBlogTag): IBlogTag {
+export function adaptTag(tag: IBlogTag): IBlogTag & { url?: string } {
   // Extract slug part if it's already a full path, otherwise use as-is
   const slugPart = extractSlugPart(tag.slug);
-  const fullSlug = `${Routes.blogTags}/${slugPart}`;
+  const computedUrl = `${Routes.blogTags}/${slugPart}`;
 
   return {
     id: tag.id,
     title: tag.title,
-    slug: fullSlug, // Full URL path (computed)
+    slug: slugPart, // Keep original slug part (not the full URL)
+    url: computedUrl, // Store the full URL in the url property
     isPublic: tag.isPublic,
     createdAt: tag.createdAt,
     updatedAt: tag.updatedAt,

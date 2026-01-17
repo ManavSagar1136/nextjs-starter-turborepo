@@ -6,13 +6,20 @@ import { compareDesc } from "date-fns";
 
 import { IBlogPost } from "@/services/blogs";
 
+import { Suspense } from "react";
 import { SiteConfig } from "@/config";
 import {
   adaptBlogPost,
   adaptTag,
   extractSlugPart,
 } from "@/lib/blogs/blog-adapter";
+import { BlogFolderService } from "@/lib/blogs/blog-folder.service";
 import { API } from "@/services";
+
+import BlogRenderer from "@/components/blog/BlogRenderer";
+import { BlogContentServer } from "@/components/blog/BlogContentServer";
+import BlogMarkdownContent from "@/components/blog/BlogMarkdownContent";
+import BlogsGroup from "@/components/blog/BlogsGroup";
 
 // Force static generation
 export const dynamic = "force-static";
@@ -38,6 +45,19 @@ export async function generateStaticParams() {
       : postsResult?.data || postsResult?.docs || [];
     const folders = Array.isArray(foldersResult) ? foldersResult : [];
 
+    // Flatten folder tree structure
+    const flattenFolders = (folders: any[]): any[] => {
+      const result: any[] = [];
+      folders.forEach((folder) => {
+        result.push(folder);
+        if (folder.subFolders) {
+          result.push(...flattenFolders(folder.subFolders));
+        }
+      });
+      return result;
+    };
+    const allFolders = flattenFolders(folders);
+
     // Generate paths for all blog posts
     const blogParams = posts.map((post: any) => {
       // Extract slug from post - handle both full path and slug
@@ -52,7 +72,7 @@ export async function generateStaticParams() {
     });
 
     // Generate paths for all folders
-    const folderParams = folders.map((folder: any) => {
+    const folderParams = allFolders.map((folder: any) => {
       const path = folder.path || folder.slug || folder.id;
       const slugArray = typeof path === "string" ? path.split("/") : path;
       return {
@@ -94,11 +114,7 @@ export async function generateMetadata({
     }
 
     // Try to get as folder
-    const folders = await API.blogs.getFolders({ tree: true });
-    const allFolders = Array.isArray(folders) ? folders : [];
-    const folder = allFolders.find(
-      (f: any) => f.path === path || f.slug === path
-    );
+    const folder = await BlogFolderService.getFolderByPath(path, false);
 
     if (folder) {
       const folderName = folder.name;
@@ -135,7 +151,7 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
     // Try to get as blog post first
     const post = await API.blogs.getByPath(path);
 
-    if (post) {
+    if (post && post.published) {
       // Only show published posts
       if (!post.published) {
         return notFound();
@@ -211,58 +227,31 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
 
       const blogPost = adaptBlogPost(post);
 
-      // TODO: Replace with actual BlogRenderer component when available
       return (
-        <div className="container mx-auto py-8 max-w-4xl">
-          <article>
-            <h1 className="text-4xl font-bold mb-4">{blogPost.title}</h1>
-            {blogPost.description && (
-              <p className="text-xl text-muted-foreground mb-6">
-                {blogPost.description}
-              </p>
-            )}
-            {blogPost.image && (
-              <img
-                src={blogPost.image}
-                alt={blogPost.imageTitle || blogPost.title}
-                className="w-full rounded-lg mb-8"
-              />
-            )}
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              {/* TODO: Replace with MarkdownView component when available */}
-              <div dangerouslySetInnerHTML={{ __html: blogPost.content }} />
-            </div>
-          </article>
-
-          {relatedBlogs.length > 0 && (
-            <div className="mt-12 border-t pt-8">
-              <h2 className="text-2xl font-bold mb-4">Related Posts</h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                {relatedBlogs.map((relatedPost) => (
-                  <a
-                    key={relatedPost.id}
-                    href={relatedPost.slug}
-                    className="border rounded-lg p-4 hover:bg-accent transition-colors"
-                  >
-                    <h3 className="font-semibold mb-2">{relatedPost.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {relatedPost.description}
-                    </p>
-                  </a>
-                ))}
+        <BlogRenderer
+          post={blogPost}
+          similarBlogs={relatedBlogs}
+          allTags={allTags}
+        >
+          <BlogContentServer post={blogPost} allTags={allTags} />
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-muted-foreground">Loading content...</div>
               </div>
-            </div>
-          )}
-        </div>
+            }
+          >
+            <BlogMarkdownContent
+              content={blogPost.content || ""}
+              postTitle={blogPost.title}
+            />
+          </Suspense>
+        </BlogRenderer>
       );
     }
 
     // Try to get as folder
-    const folders = await API.blogs.getFolders({ tree: true });
-    const allFolders = Array.isArray(folders) ? folders : [];
-    const folder = allFolders.find(
-      (f: any) => f.path === path || f.slug === path
-    );
+    const folder = await BlogFolderService.getFolderByPath(path, false);
 
     if (folder) {
       // Get all published posts in this folder
@@ -286,37 +275,28 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
         })
         .map((p: any) => adaptBlogPost(p));
 
-      // TODO: Replace with actual BlogsGroup component when available
       return (
-        <div className="container mx-auto py-8">
-          <h1 className="text-4xl font-bold mb-4">
-            {folder.path || folder.slug}
-          </h1>
-          <div className="grid gap-6">
-            {groupBlogs.length === 0 ? (
-              <p className="text-muted-foreground">
-                No blog posts in this category.
-              </p>
-            ) : (
-              groupBlogs.map((blog) => (
-                <div key={blog.id} className="border rounded-lg p-6">
-                  <h2 className="text-2xl font-semibold mb-2">{blog.title}</h2>
-                  <p className="text-muted-foreground mb-4">{blog.description}</p>
-                  <a
-                    href={blog.slug}
-                    className="text-primary hover:underline"
-                  >
-                    Read more →
-                  </a>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <BlogsGroup
+          blogs={groupBlogs}
+          allTags={allTags}
+          groupName={folder.path || folder.slug}
+        />
       );
     }
-  } catch (error) {
-    console.error("Error fetching blog post:", error);
+  } catch (error: any) {
+    // Log error details for debugging
+    const errorMessage = error?.message || error?.data?.message || "Unknown error";
+    const errorStatus = error?.status || error?.response?.status || error?.statusCode;
+    
+    // Only log if it's not a 404 (which is expected for not found posts/folders)
+    if (errorStatus !== 404) {
+      console.error("Error fetching blog post:", {
+        message: errorMessage,
+        status: errorStatus,
+        path,
+        error: error instanceof Error ? error : String(error),
+      });
+    }
   }
 
   // Not found

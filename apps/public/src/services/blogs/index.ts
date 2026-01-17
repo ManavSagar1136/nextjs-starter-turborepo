@@ -6,6 +6,7 @@ export interface IBlogPost {
   id: string;
   title: string;
   slug: string;
+  url?: string;
   description: string;
   excerpt?: string | null;
   content: string;
@@ -46,6 +47,7 @@ export interface IBlogTag {
   id: string;
   title: string;
   slug: string;
+  url?: string;
   isPublic: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -138,13 +140,22 @@ export class BlogApis extends BaseApiPaginationController<IBlogPost> {
    * Get blog post by path (public)
    * @param path - Full path like "tech/react/hooks" or just "hooks"
    */
-  async getByPath(path: string): Promise<IBlogPost> {
-    const result = await this.get(
-      `${this.urlPath}/path?path=${encodeURIComponent(path)}`,
-      {},
-      {},
-    );
-    return result.data;
+  async getByPath(path: string): Promise<IBlogPost | null> {
+    try {
+      const result = await this.get(
+        `${this.urlPath}/path?path=${encodeURIComponent(path)}`,
+        {},
+        {},
+      );
+      return result.data;
+    } catch (error: any) {
+      // Handle 404 as null (not found) instead of throwing
+      if (error?.status === 404 || error?.response?.status === 404 || error?.statusCode === 404) {
+        return null;
+      }
+      // Re-throw other errors
+      throw error;
+    }
   }
 
   /**
@@ -175,9 +186,24 @@ export class BlogApis extends BaseApiPaginationController<IBlogPost> {
     if (filter.search) query.search = filter.search;
 
     const response = await this.get(`${this.urlPath}/tags/public`, query, {});
-    const data = response.data.data || response.data;
-    // Support both new format (docs) and backward compatibility (tags)
-    return data.tags || data.docs || [];
+    const data = response.data;
+    // API route returns array directly, but HTTP client might wrap it
+    if (Array.isArray(data)) {
+      return data;
+    }
+    // If wrapped, try to extract the array
+    if (data?.data && Array.isArray(data.data)) {
+      return data.data;
+    }
+    // Support both new format (tags) and backward compatibility (docs)
+    if (data?.tags && Array.isArray(data.tags)) {
+      return data.tags;
+    }
+    if (data?.docs && Array.isArray(data.docs)) {
+      return data.docs;
+    }
+    // Fallback to empty array
+    return [];
   }
 
   /**
@@ -204,7 +230,9 @@ export class BlogApis extends BaseApiPaginationController<IBlogPost> {
         query,
         {},
       );
-      return response.data;
+      // API route returns array directly, but HTTP client might wrap it
+      const data = response.data;
+      return Array.isArray(data) ? data : (data?.data || data || []);
     }
 
     // Standard IPageFilter params

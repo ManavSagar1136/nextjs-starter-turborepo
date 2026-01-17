@@ -5,6 +5,12 @@ import { generateSEOMetadata } from "@/utils/seo";
 
 import { SiteConfig } from "@/config";
 import { API } from "@/services";
+import type { IDocPost } from "@/services/docs";
+import { DocFolderService } from "@/lib/docs/doc-folder.service";
+
+import DynamicDocPage from "@/components/doc/DocPage";
+import DocRenderer from "@/components/doc/DocRenderer";
+import GroupRender from "@/components/doc/GroupRender";
 
 // Force static generation
 export const dynamic = "force-static";
@@ -30,6 +36,19 @@ export async function generateStaticParams() {
       : postsResult?.data || postsResult?.docs || [];
     const folders = Array.isArray(foldersResult) ? foldersResult : [];
 
+    // Flatten folder tree structure
+    const flattenFolders = (folders: any[]): any[] => {
+      const result: any[] = [];
+      folders.forEach((folder) => {
+        result.push(folder);
+        if (folder.subFolders) {
+          result.push(...flattenFolders(folder.subFolders));
+        }
+      });
+      return result;
+    };
+    const allFolders = flattenFolders(folders);
+
     // Generate paths for all documents
     const docParams = posts.map((post: any) => {
       const slug = post.slug || post.path || post.id;
@@ -40,7 +59,7 @@ export async function generateStaticParams() {
     });
 
     // Generate paths for all folders
-    const folderParams = folders.map((folder: any) => {
+    const folderParams = allFolders.map((folder: any) => {
       const path = folder.path || folder.slug || folder.id;
       const slugArray = typeof path === "string" ? path.split("/") : path;
       return {
@@ -94,11 +113,7 @@ export async function generateMetadata({
     }
 
     // Try to get as folder
-    const folders = await API.docs.getFolders({ tree: true });
-    const allFolders = Array.isArray(folders) ? folders : [];
-    const folder = allFolders.find(
-      (f: any) => f.path === path || f.slug === path
-    );
+    const folder = await DocFolderService.getFolderByPath(path, false);
 
     if (folder) {
       const folderName = folder.name;
@@ -111,8 +126,16 @@ export async function generateMetadata({
         type: "website",
       });
     }
-  } catch (error) {
-    console.error("Error generating metadata:", error);
+  } catch (error: any) {
+    // Only log non-404 errors
+    const errorStatus = error?.status || error?.response?.status || error?.statusCode;
+    if (errorStatus !== 404) {
+      console.error("Error generating metadata:", {
+        message: error?.message || error?.data?.message || "Unknown error",
+        status: errorStatus,
+        path,
+      });
+    }
   }
 
   // Not found
@@ -150,103 +173,35 @@ const DocsPages = async (props: PostPageProps) => {
         ? allDocsResult
         : allDocsResult?.data || allDocsResult?.docs || [];
 
-      // TODO: Replace with actual DocRenderer component when available
       return (
-        <div className="container mx-auto py-8 max-w-4xl">
-          <article>
-            <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-            {post.subtitle && (
-              <p className="text-xl text-muted-foreground mb-2">
-                {post.subtitle}
-              </p>
-            )}
-            {post.description && (
-              <p className="text-lg text-muted-foreground mb-6">
-                {post.description}
-              </p>
-            )}
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              {/* TODO: Replace with MarkdownView component when available */}
-              <div dangerouslySetInnerHTML={{ __html: post.content }} />
-            </div>
-          </article>
-
-          {allDocs.length > 0 && (
-            <div className="mt-12 border-t pt-8">
-              <h2 className="text-2xl font-bold mb-4">More Documentation</h2>
-              <div className="grid gap-4">
-                {allDocs
-                  .filter((doc: any) => doc.id !== post.id)
-                  .slice(0, 6)
-                  .map((doc: any) => (
-                    <a
-                      key={doc.id}
-                      href={`${Routes.docs}/${doc.slug}`}
-                      className="border rounded-lg p-4 hover:bg-accent transition-colors"
-                    >
-                      <h3 className="font-semibold mb-2">{doc.title}</h3>
-                      {doc.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {doc.description}
-                        </p>
-                      )}
-                    </a>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <DocRenderer
+          data={post as unknown as IDocPost}
+          allDocs={allDocs as IDocPost[]}
+        />
       );
     }
 
     // Try to get as folder
-    const folders = await API.docs.getFolders({ tree: true });
-    const allFolders = Array.isArray(folders) ? folders : [];
-    const folder = allFolders.find(
-      (f: any) => f.path === path || f.slug === path
-    );
+    const folder = await DocFolderService.getFolderByPath(path, false);
 
     if (folder) {
       // Render a folder/group index page
-      // TODO: Replace with actual GroupRender component when available
-      const folderDocsResult = await API.docs.getAllPublished({
-        $page: 1,
-        $limit: 1000,
-        folderId: folder.id,
-      });
-
-      const folderDocs = Array.isArray(folderDocsResult)
-        ? folderDocsResult
-        : folderDocsResult?.data || folderDocsResult?.docs || [];
-
-      return (
-        <div className="container mx-auto py-8">
-          <h1 className="text-4xl font-bold mb-4">{folder.name}</h1>
-          <div className="grid gap-4">
-            {folderDocs.length === 0 ? (
-              <p className="text-muted-foreground">
-                No documentation in this category.
-              </p>
-            ) : (
-              folderDocs.map((doc: any) => (
-                <a
-                  key={doc.id}
-                  href={`${Routes.docs}/${doc.slug}`}
-                  className="border rounded-lg p-6 hover:bg-accent transition-colors"
-                >
-                  <h2 className="text-xl font-semibold mb-2">{doc.title}</h2>
-                  {doc.description && (
-                    <p className="text-muted-foreground">{doc.description}</p>
-                  )}
-                </a>
-              ))
-            )}
-          </div>
-        </div>
-      );
+      return <GroupRender groupPath={path} />;
     }
-  } catch (error) {
-    console.error("Error fetching doc:", error);
+  } catch (error: any) {
+    // Log error details for debugging
+    const errorMessage = error?.message || error?.data?.message || "Unknown error";
+    const errorStatus = error?.status || error?.response?.status || error?.statusCode;
+    
+    // Only log if it's not a 404 (which is expected for not found docs/folders)
+    if (errorStatus !== 404) {
+      console.error("Error fetching doc:", {
+        message: errorMessage,
+        status: errorStatus,
+        path,
+        error: error instanceof Error ? error : String(error),
+      });
+    }
   }
 
   // Not found

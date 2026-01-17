@@ -5,6 +5,8 @@ import { SiteConfig } from "@/config";
 import { adaptBlogPost, adaptTag } from "@/lib/blogs/blog-adapter";
 import { API } from "@/services";
 
+import BlogExplorer from "@/components/blog/BlogExplorer";
+
 // Force static generation
 export const dynamic = "force-static";
 
@@ -41,38 +43,18 @@ export default async function BlogGroups() {
   const allBlogs = postsData.map((post: any) => adaptBlogPost(post));
   const allTags = tagsData.map((tag: any) => adaptTag(tag));
 
-  // TODO: Replace with actual BlogExplorer component when available
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-4xl font-bold mb-8">Blog Groups</h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        {allFolders.map((folder: any) => (
-          <a
-            key={folder.id}
-            href={`${Routes.blogs}/${folder.path || folder.slug}`}
-            className="border rounded-lg p-6 hover:bg-accent transition-colors"
-          >
-            <h2 className="text-xl font-semibold mb-2">{folder.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              {folder.path || folder.slug}
-            </p>
-          </a>
-        ))}
-      </div>
-      <div className="grid gap-6">
-        {allBlogs.map((blog) => (
-          <div key={blog.id} className="border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-2">{blog.title}</h2>
-            <p className="text-muted-foreground mb-4">{blog.description}</p>
-            <a
-              href={blog.slug}
-              className="text-primary hover:underline"
-            >
-              Read more →
-            </a>
-          </div>
-        ))}
-      </div>
-    </div>
+    <BlogExplorer
+      mode="groups"
+      allTags={allTags}
+      allBlogs={allBlogs}
+      allFolders={allFolders.map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        slug: f.slug || "",
+        path: f.path || f.slug || "",
+        parentFolderId: f.parentFolderId,
+      }))}
+    />
   );
 }

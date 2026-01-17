@@ -93,9 +93,18 @@ export class DocApis extends BaseApiPaginationController<IDocPost> {
    * Get document by path (public)
    * @param path - Full path like "guides/api/integration" or just "integration"
    */
-  async getByPath(path: string): Promise<IDocPost> {
-    const result = await this.get(`${this.urlPath}/path?path=${encodeURIComponent(path)}`, {}, {});
-    return result.data;
+  async getByPath(path: string): Promise<IDocPost | null> {
+    try {
+      const result = await this.get(`${this.urlPath}/path?path=${encodeURIComponent(path)}`, {}, {});
+      return result.data;
+    } catch (error: any) {
+      // Handle 404 as null (not found) instead of throwing
+      if (error?.status === 404 || error?.response?.status === 404 || error?.statusCode === 404) {
+        return null;
+      }
+      // Re-throw other errors
+      throw error;
+    }
   }
 
   /**
@@ -118,7 +127,19 @@ export class DocApis extends BaseApiPaginationController<IDocPost> {
         query.parentFolderId = filter.parentFolderId;
       }
       const response = await this.get(`${this.urlPath}/folders/public`, query, {});
-      return response.data;
+      // API route returns array directly when tree=true
+      // HTTP client wraps it in response.data
+      const data = response.data;
+      // Handle both direct array and wrapped responses
+      if (Array.isArray(data)) {
+        return data;
+      }
+      // If wrapped, try to extract the array
+      if (data?.data && Array.isArray(data.data)) {
+        return data.data;
+      }
+      // Fallback to empty array
+      return [];
     }
 
     // Standard IPageFilter params

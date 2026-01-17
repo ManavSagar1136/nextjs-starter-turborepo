@@ -8,6 +8,7 @@ import { formatGroupName } from "@buildbase/utils/path-utils";
 import { ArrowRight, FileText, Folder } from "lucide-react";
 
 import { IDocPost } from "@/services/docs";
+import { computeDocUrl } from "@/lib/docs/doc-url.service";
 
 import { DataStateRenderer } from "@buildbase/ui/components/ui/data-state-renderer";
 import { ScrollArea } from "@buildbase/ui/components/ui/scroll-area";
@@ -91,7 +92,7 @@ const getSections = ({
     showError: docs.error,
     renderItem: (doc: IDocPost) => (
       <HeaderDropDownLinkItem
-        href={doc.url || `/docs/${doc.slug}`}
+        href={doc.url || computeDocUrl(doc)}
         aria-label={`View ${doc.title} documentation`}
         activeUrl={activeUrl}
         onLinkClick={onLinkClick}

@@ -91,7 +91,7 @@ const getSections = ({
     showError: tags.error,
     renderItem: (tag: IBlogTag) => (
       <HeaderDropDownLinkItem
-        href={tag.slug}
+        href={tag.url || `${Routes.blogTags}/${tag.slug}`}
         aria-label={`View blogs tagged with ${tag.title}`}
         activeUrl={activeUrl}
         onLinkClick={onLinkClick}

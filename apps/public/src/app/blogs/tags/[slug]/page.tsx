@@ -11,6 +11,11 @@ import {
 } from "@/lib/blogs/blog-adapter";
 import { API } from "@/services";
 
+import TagBlogsList from "@/components/blog/TagBlogsList";
+import BlogsError from "@/components/blog/BlogsError";
+import CustomButton from "@/components/ui/custom-button";
+import HeroBgWrapper from "@/components/hero-bg-wrapper";
+
 interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -105,23 +110,21 @@ export default async function BlogsByTag(props: PostPageProps) {
     const adaptedAllTags = allTags.map((t: any) => adaptTag(t));
 
     if (!tag || !tag.isPublic) {
-      // TODO: Replace with actual BlogsError and CustomButton components when available
       return (
         <div className="flex flex-col">
-          <div className="text-[30px] md:text-[56px] font-bold mb-8">Tags</div>
+          <HeroBgWrapper classNames="">
+            <div className="text-[30px] md:text-[56px] font-bold">{"Tags"}</div>
+          </HeroBgWrapper>
           <div className="flex flex-col justify-center items-center container mx-auto p-5 md:p-10 rounded-[10px] py-5 md:py-10">
-            <p className="text-muted-foreground mb-4">
-              There's no content available under this tag right now. Please
-              check back later or explore other tags and topics that might
-              interest you.
-            </p>
-            <a
+            <BlogsError subTitle="There's no content available under this tag right now. Please check back later or explore other tags and topics that might interest you." />
+            <CustomButton
+              link={true}
               href={Routes.blogTags}
-              className="text-primary hover:underline inline-flex items-center gap-2 px-6 py-2 border rounded-md"
+              classNames="px-6 flex justify-center items-center gap-2"
             >
               <MoveLeftIcon />
-              See All Tags
-            </a>
+              {"See All Tags"}
+            </CustomButton>
           </div>
         </div>
       );
@@ -135,52 +138,12 @@ export default async function BlogsByTag(props: PostPageProps) {
 
     const postsData = Array.isArray(postsResult)
       ? postsResult
-      : postsResult?.data || postsResult?.docs || [];
+      : postsResult?.data || [];
 
     const posts = postsData.map((post: any) => adaptBlogPost(post));
     const tagData = adaptTag(tag);
 
-    // TODO: Replace with actual TagBlogsList component when available
-    return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-4xl font-bold mb-2">
-          Posts tagged with: {tagData.title}
-        </h1>
-        <div className="flex flex-wrap gap-2 mb-8">
-          {adaptedAllTags.map((t) => (
-            <a
-              key={t.id}
-              href={`${Routes.blogTags}/${extractSlugPart(t.slug)}`}
-              className={`px-4 py-2 rounded-md transition-colors ${
-                extractSlugPart(t.slug) === slug
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-primary/10 text-primary hover:bg-primary/20"
-              }`}
-            >
-              {t.title}
-            </a>
-          ))}
-        </div>
-        <div className="grid gap-6">
-          {posts.length === 0 ? (
-            <p className="text-muted-foreground">No posts found for this tag.</p>
-          ) : (
-            posts.map((post) => (
-              <div key={post.id} className="border rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-                <p className="text-muted-foreground mb-4">{post.description}</p>
-                <a
-                  href={post.slug}
-                  className="text-primary hover:underline"
-                >
-                  Read more →
-                </a>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    );
+    return <TagBlogsList posts={posts} tagData={tagData} allTags={adaptedAllTags} />;
   } catch (error) {
     console.error("Error fetching blog posts by tag:", error);
     return (
