@@ -42,6 +42,18 @@
       "types": "./dist/common/SparklesSiteNameText.d.ts",
       "default": "./dist/common/SparklesSiteNameText.js"
     },
+    "./common/sparkles-text": {
+      "types": "./dist/common/sparkles-text.d.ts",
+      "default": "./dist/common/sparkles-text.js"
+    },
+    "./common/NotLoggedIn": {
+      "types": "./dist/common/NotLoggedIn.d.ts",
+      "default": "./dist/common/NotLoggedIn.js"
+    },
+    "./common/AppIcon": {
+      "types": "./dist/common/AppIcon.d.ts",
+      "default": "./dist/common/AppIcon.js"
+    },
     "./common/*": {
       "types": "./dist/common/*.d.ts",
       "default": "./dist/common/*.js"

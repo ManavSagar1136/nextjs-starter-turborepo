@@ -17,7 +17,7 @@ import { SiteConfig } from "@/config";
 
 import { HEADER_KEYS, NAVIGATION_ITEMS } from ".";
 import { Logo } from "@/components/logo/Logo";
-import { SparklesText } from "@buildbase/magicui/components/sparkles-text";
+import { SparklesText } from "@buildbase/components/common/sparkles-text";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@buildbase/ui/accordion";
 import { ScrollArea } from "@buildbase/ui/components/ui/scroll-area";
 import { JoinWaitlistButton } from "@/components/waitlist/JoinWaitlistButton";

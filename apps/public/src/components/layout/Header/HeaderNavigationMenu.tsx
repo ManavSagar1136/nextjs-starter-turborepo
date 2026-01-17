@@ -14,7 +14,7 @@ import {
 import { cn } from "@buildbase/ui/lib/utils";
 
 import { HEADER_KEYS, NAVIGATION_ITEMS } from ".";
-import { SparklesText } from "@buildbase/magicui/components/sparkles-text";
+import { SparklesText } from "@buildbase/components/common/sparkles-text";
 import BlogDropdownContent from "./BlogDropdownContent";
 import DocsDropdownContent from "./DocsDropdownContent";
 
