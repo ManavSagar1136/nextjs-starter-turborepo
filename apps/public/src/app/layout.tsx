@@ -1,4 +1,3 @@
-import "@buildbase/ui/styles.css";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { AppProviders } from "@/components/providers/AppProviders";

@@ -9,7 +9,7 @@ import customUtilities from "./tailwind-utilities";
  * Shared Tailwind configuration for all apps
  * This config can be extended by individual apps if needed
  */
-export const sharedTailwindConfig = {
+const config = {
   darkMode: "class",
   theme: {
     container: {
@@ -351,3 +351,5 @@ export const sharedTailwindConfig = {
   },
   plugins: [tailwindcssAnimate, customUtilities, containerQueries],
 } satisfies Omit<Config, "content">;
+
+export default config;

@@ -1,8 +1,10 @@
-@import "tailwindcss";
-@import "@buildbase/tailwind-config";
+@import "../../../../packages/tailwind-config/themes.css";
 
-/* Tailwind v4 auto-detects classes, but we can explicitly add sources if needed */
-@source "../**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../**/*.{js,ts,jsx,tsx,mdx}";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* App-specific styles - body will use Tailwind's background/foreground from UI package */
+/* App-specific styles */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}

@@ -1,4 +1,3 @@
-import "@buildbase/ui/styles.css";
 import "@buildbase/sdk/dist/saas-os.css";
 import "./globals.css";
 import type { Metadata } from "next";
