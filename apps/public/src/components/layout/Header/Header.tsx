@@ -22,11 +22,15 @@ const Header = () => {
   const isProductLive = isProductLaunched();
 
   return (
-    <div className="header sticky top-0 z-[11] mb-10 flex w-full justify-center" id="header" key="header">
-      <div className="bg-primary-foreground flex w-full max-w-[1280px] items-center justify-between gap-3 rounded px-6 py-4">
+    <div
+      className="header w-full flex justify-center mb-10 sticky top-0 z-[11]"
+      id="header"
+      key="header"
+    >
+      <div className="max-w-[1280px] w-full flex items-center justify-between bg-primary-foreground px-6 py-4 rounded gap-3">
         {/* Logo and Brand */}
-        <div className="flex min-w-[133px] shrink-0 items-center">
-          <div className="mr-2 h-8 w-8 overflow-hidden">
+        <div className="flex items-center min-w-[133px] shrink-0">
+          <div className="w-8 h-8 mr-2 overflow-hidden">
             <Logo />
           </div>
           <Link href={Routes.root} className="font-extrabold">
@@ -35,7 +39,7 @@ const Header = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden flex-1 items-center justify-end space-x-8 text-sm font-medium lg:flex">
+        <div className="hidden lg:flex items-center justify-end flex-1 space-x-8 text-sm font-medium">
           <HeaderNavigationMenu isProductLive={isProductLive} />
           {isProductLive ? (
             <>

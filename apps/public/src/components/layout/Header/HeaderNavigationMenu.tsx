@@ -37,11 +37,15 @@ const navigationMenuTriggerStyle = "!bg-transparent px-0 text-sm";
  * @component
  * @returns {JSX.Element}
  */
-const HeaderNavigationMenu: React.FC<{ isProductLive: boolean }> = ({ isProductLive }) => {
+const HeaderNavigationMenu: React.FC<{ isProductLive: boolean }> = ({
+  isProductLive,
+}) => {
   return (
     <NavigationMenu className="ml-auto">
       <NavigationMenuList className="gap-4">
-        {NAVIGATION_ITEMS.filter(item => (item.requiresProductLive ? isProductLive : true)).map((item, index) => {
+        {NAVIGATION_ITEMS.filter((item) =>
+          item.requiresProductLive ? isProductLive : true,
+        ).map((item, index) => {
           // Extract repeated label rendering logic for sparkles animation
           const labelContent = item.isSparkles ? (
             <SparklesText
@@ -63,9 +67,14 @@ const HeaderNavigationMenu: React.FC<{ isProductLive: boolean }> = ({ isProductL
                 <>
                   {/* The trigger renders as a button with correct classes, but inside it is a Link for semantic/SEO/keyboard reasons.
                       We stop event propagation to ensure the trigger logic isn't interfered with by nested Link clicks. */}
-                  <NavigationMenuTrigger className={cn(navigationMenuTriggerStyle, item?.className)}>
+                  <NavigationMenuTrigger
+                    className={cn(navigationMenuTriggerStyle, item?.className)}
+                  >
                     {item.href ? (
-                      <Link href={item.href} onClick={e => e.stopPropagation()}>
+                      <Link
+                        href={item.href}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {item.label}
                       </Link>
                     ) : (
@@ -89,13 +98,18 @@ const HeaderNavigationMenu: React.FC<{ isProductLive: boolean }> = ({ isProductL
                 </>
               ) : // Render a normal navigation link item
               item.href ? (
-                <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle, item?.className)}>
+                <NavigationMenuLink
+                  asChild
+                  className={cn(navigationMenuTriggerStyle, item?.className)}
+                >
                   <Link href={item.href} className={item?.className}>
                     {labelContent}
                   </Link>
                 </NavigationMenuLink>
               ) : (
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle, item?.className)}>
+                <NavigationMenuLink
+                  className={cn(navigationMenuTriggerStyle, item?.className)}
+                >
                   {labelContent}
                 </NavigationMenuLink>
               )}

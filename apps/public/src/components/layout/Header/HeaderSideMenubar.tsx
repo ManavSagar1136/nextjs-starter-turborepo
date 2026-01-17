@@ -4,8 +4,14 @@ import { Routes } from "@/data/routes";
 import { THEME_COLOR } from "@/utils/colors";
 import { Menu } from "lucide-react";
 
-import { Button } from "@buildbase/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@buildbase/ui/components/ui/sheet";
+import { Button } from "@buildbase/ui/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@buildbase/ui/components/ui/sheet";
 
 import { SiteConfig } from "@/config";
 
@@ -45,12 +51,12 @@ const HeaderSideMenubar: React.FC<IHeaderSideMenubarProps> = ({
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="scroll-parent gap-0 p-0">
+      <SheetContent side="left" className="scroll-parent p-0 gap-0">
         <SheetHeader className="space-y-2 border-b p-3">
           <SheetTitle>
             <div className="flex items-center gap-4">
               <div className="flex items-center">
-                <div className="mr-2 h-8 w-8 overflow-hidden">
+                <div className="w-8 h-8 mr-2 overflow-hidden">
                   <Logo />
                 </div>
                 <Link href={Routes.root} className="font-extrabold">
@@ -72,16 +78,22 @@ const HeaderSideMenubar: React.FC<IHeaderSideMenubarProps> = ({
           )}
         </SheetHeader>
         <ScrollArea>
-          <Accordion type="multiple" className="flex w-full flex-col gap-4 p-4">
-            {NAVIGATION_ITEMS.filter(item => (item.requiresProductLive ? isProductLive : true)).map((item, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="border-none">
+          <Accordion type="multiple" className="w-full flex flex-col gap-4 p-4">
+            {NAVIGATION_ITEMS.filter((item) =>
+              item.requiresProductLive ? isProductLive : true,
+            ).map((item, index) => (
+              <AccordionItem
+                key={index}
+                value={`item-${index}`}
+                className="border-none"
+              >
                 {item.hasDropdown ? (
                   <>
-                    <AccordionTrigger className="py-0 text-base hover:no-underline">
+                    <AccordionTrigger className="py-0 hover:no-underline text-base">
                       {item.href ? (
                         <Link
                           href={item.href}
-                          onClick={e => {
+                          onClick={(e) => {
                             e.stopPropagation(); // Prevent accordion toggle when clicking link
                             onOpenChange?.(false);
                           }}
@@ -97,9 +109,19 @@ const HeaderSideMenubar: React.FC<IHeaderSideMenubarProps> = ({
                       {(() => {
                         switch (item.key) {
                           case HEADER_KEYS.BLOGS:
-                            return <BlogDropdownContent isMobile={true} onLinkClick={() => onOpenChange?.(false)} />;
+                            return (
+                              <BlogDropdownContent
+                                isMobile={true}
+                                onLinkClick={() => onOpenChange?.(false)}
+                              />
+                            );
                           case HEADER_KEYS.DOCS:
-                            return <DocsDropdownContent isMobile={true} onLinkClick={() => onOpenChange?.(false)} />;
+                            return (
+                              <DocsDropdownContent
+                                isMobile={true}
+                                onLinkClick={() => onOpenChange?.(false)}
+                              />
+                            );
                           default:
                             return null;
                         }
@@ -142,12 +164,12 @@ const HeaderSideMenubar: React.FC<IHeaderSideMenubarProps> = ({
           </Accordion>
         </ScrollArea>
         {!isProductLive && (
-          <div className="flex border-t p-4 *:mx-auto *:w-full *:max-w-72">
+          <div className="flex border-t p-4 *:w-full *:max-w-72 *:mx-auto">
             <JoinWaitlistButton
               closeMenu={true}
               onMenuClose={() => onOpenChange?.(false)}
               size="lg"
-              className="h-12 w-full text-base font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
+              className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             />
           </div>
         )}
