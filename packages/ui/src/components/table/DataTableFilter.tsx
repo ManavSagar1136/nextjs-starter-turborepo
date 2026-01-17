@@ -4,9 +4,9 @@ import { Table } from "@tanstack/react-table";
 import { CheckIcon, XIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -15,12 +15,12 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+} from "../ui/command";
+import { DatePickerWithRange } from "../ui/date-range-picker";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Separator } from "../ui/separator";
 
 import { cn } from "../../lib/utils";
 

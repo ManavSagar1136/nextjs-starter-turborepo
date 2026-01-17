@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "./input";
 import { cn } from "../../lib/utils";
 
 export interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
@@ -41,7 +41,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
 
     return (
       <div className="relative">
-        <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">🇺🇸</div>
+        <div className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 text-sm">🇺🇸</div>
         <Input
           ref={ref}
           type="tel"

@@ -2,11 +2,9 @@ import { Routes } from "@/data/routes";
 import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
-import HeaderCard from "@/components/ui/HeaderCard";
+import { HeaderCard } from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
-import TestimonialMarquee, {
-  ITestimonial,
-} from "@/components/marketing/TestimonialMarquee";
+import TestimonialMarquee, { ITestimonial } from "@/components/testimonials/TestimonialMarquee";
 
 export async function generateMetadata() {
   return generateSEOMetadata({
@@ -76,7 +74,7 @@ const TestimonialWall = () => {
         subTitle="See what our customers are saying about us on Twitter"
         h1
       />
-      <div className="grid gap-6 max-w-4xl mx-auto">
+      <div className="mx-auto grid max-w-4xl gap-6">
         <TestimonialMarquee testimonials={testimonials} />
       </div>
     </PageWithHeaderFooter>

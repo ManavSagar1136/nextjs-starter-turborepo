@@ -2,8 +2,8 @@ import * as React from "react";
 import { Check, Palette } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "./button";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 const colors = [
   "#ef4444",

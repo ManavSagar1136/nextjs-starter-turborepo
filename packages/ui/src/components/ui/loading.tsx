@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "./button";
+import { Skeleton } from "./skeleton";
 
 export interface LoadingProps {
   size?: "sm" | "md" | "lg" | "xl";

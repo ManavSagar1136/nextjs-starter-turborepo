@@ -3,16 +3,16 @@ import { Routes } from "@/data/routes";
 import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
-import { ClickToActionBox } from "@/components/marketing/ClickToActionBox";
-import { ExplainerVideo } from "@/components/marketing/ExplainerVideo";
-import { FAQ } from "@/components/marketing/FAQ";
-import { Features } from "@/components/marketing/Features";
-import { Hero } from "@/components/marketing/Hero";
-import { Newsletter } from "@/components/marketing/Newsletter";
+import { ClickToActionBox } from "@/components/click-to-action-box/ClickToActionBox";
+import { ExplainerVideo } from "@/components/explainer-video/ExplainerVideo";
+import { FAQ } from "@/components/faq/FAQ";
+import { Features } from "@/components/features/Features";
+import { Hero } from "@/components/hero/Hero";
+import { Newsletter } from "@/components/newsletter/Newsletter";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 import { SalesNotifications } from "@/components/marketing/SalesNotifications";
-import Testimonials from "@/components/marketing/Testimonials";
-import { PageWrapper } from "@/components/ui/PageWrapper";
+import Testimonials from "@/components/testimonial/Testimonials";
+import { PageWrapper } from "@buildbase/ui/components/ui/page-wrapper";
 
 export async function generateMetadata() {
   return generateSEOMetadata({

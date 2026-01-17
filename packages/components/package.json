@@ -10,7 +10,47 @@
     "dist"
   ],
   "exports": {
-    "./components/*": "./dist/components/*.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./common/PageError": {
+      "types": "./dist/common/PageError.d.ts",
+      "default": "./dist/common/PageError.js"
+    },
+    "./common/custom-image": {
+      "types": "./dist/common/custom-image.d.ts",
+      "default": "./dist/common/custom-image.js"
+    },
+    "./common/header-card": {
+      "types": "./dist/common/header-card.d.ts",
+      "default": "./dist/common/header-card.js"
+    },
+    "./common/feature-line": {
+      "types": "./dist/common/feature-line.d.ts",
+      "default": "./dist/common/feature-line.js"
+    },
+    "./common/doc-headers": {
+      "types": "./dist/common/doc-headers.d.ts",
+      "default": "./dist/common/doc-headers.js"
+    },
+    "./common/hero-bg-wrapper": {
+      "types": "./dist/common/hero-bg-wrapper.d.ts",
+      "default": "./dist/common/hero-bg-wrapper.js"
+    },
+    "./common/SparklesSiteNameText": {
+      "types": "./dist/common/SparklesSiteNameText.d.ts",
+      "default": "./dist/common/SparklesSiteNameText.js"
+    },
+    "./common/*": {
+      "types": "./dist/common/*.d.ts",
+      "default": "./dist/common/*.js"
+    },
+    "./components/*": "./dist/components/*.js",
+    "./notifications": {
+      "types": "./dist/notifications/index.d.ts",
+      "default": "./dist/notifications/index.js"
+    }
   },
   "license": "MIT",
   "scripts": {
@@ -25,12 +65,16 @@
   },
   "dependencies": {
     "@buildbase/ui": "*",
-    "@buildbase/magicui": "*"
+    "@buildbase/magicui": "*",
+    "@buildbase/utils": "*",
+    "aos": "^2.3.4",
+    "react-icons": "^5.0.0"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",
     "@buildbase/tailwind-config": "*",
     "@buildbase/typescript-config": "*",
+    "@types/aos": "^3.0.7",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",

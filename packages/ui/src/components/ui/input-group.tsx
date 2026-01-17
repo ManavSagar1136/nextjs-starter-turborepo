@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "./input";
+import { Button } from "./button";
 
 export interface InputGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   leftAddon?: React.ReactNode;

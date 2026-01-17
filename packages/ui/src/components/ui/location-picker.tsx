@@ -1,10 +1,10 @@
 import * as React from "react";
 import { MapPin, Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Card, CardContent } from "./card";
+import { Badge } from "./badge";
 
 export interface Location {
   id: string;
@@ -133,18 +133,18 @@ export function LocationPicker({
   return (
     <div className={cn("relative w-full", className)}>
       <div className="relative">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+        <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
         <Input
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder={placeholder}
-          className="pr-10 pl-10"
+          className="pl-10 pr-10"
         />
         {selectedLocation && (
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 p-0"
+            className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 p-0"
             onClick={clearSelection}
           >
             <X className="h-4 w-4" />

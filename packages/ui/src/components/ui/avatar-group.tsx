@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 
 export interface AvatarGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   avatars: {

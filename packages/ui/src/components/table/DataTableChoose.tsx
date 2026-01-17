@@ -1,10 +1,10 @@
 import { ColumnDef } from "@tanstack/table-core";
 
-import { IPageFilter, PaginationResponse } from "@/types/pagination";
+import { IPageFilter, PaginationResponse } from "../../types/pagination";
 
-import { DataTable } from "@/components/table/DataTable";
-import { IDataTableFilterType } from "@/components/table/DataTableFilter";
-import { Checkbox } from "@/components/ui/checkbox";
+import { DataTable } from "./DataTable";
+import { IDataTableFilterType } from "./DataTableFilter";
+import { Checkbox } from "../ui/checkbox";
 
 interface DataTableChooseProps<T> {
   getData: (filter: IPageFilter) => Promise<PaginationResponse<T>>;

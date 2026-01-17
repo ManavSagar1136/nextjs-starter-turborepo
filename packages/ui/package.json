@@ -80,6 +80,54 @@
       "types": "./dist/components/ui/lazy-image.d.ts",
       "default": "./dist/components/ui/lazy-image.js"
     },
+    "./heading": {
+      "types": "./dist/components/ui/heading.d.ts",
+      "default": "./dist/components/ui/heading.js"
+    },
+    "./page-wrapper": {
+      "types": "./dist/components/ui/page-wrapper.d.ts",
+      "default": "./dist/components/ui/page-wrapper.js"
+    },
+    "./H1H6": {
+      "types": "./dist/components/ui/H1H6.d.ts",
+      "default": "./dist/components/ui/H1H6.js"
+    },
+    "./scroll-area": {
+      "types": "./dist/components/ui/scroll-area.d.ts",
+      "default": "./dist/components/ui/scroll-area.js"
+    },
+    "./custom-loader": {
+      "types": "./dist/components/ui/custom-loader.d.ts",
+      "default": "./dist/components/ui/custom-loader.js"
+    },
+    "./search-bar": {
+      "types": "./dist/components/ui/search-bar.d.ts",
+      "default": "./dist/components/ui/search-bar.js"
+    },
+    "./custom-input": {
+      "types": "./dist/components/ui/custom-input.d.ts",
+      "default": "./dist/components/ui/custom-input.js"
+    },
+    "./custom-svg": {
+      "types": "./dist/components/ui/custom-svg.d.ts",
+      "default": "./dist/components/ui/custom-svg.js"
+    },
+    "./motion-wrapper": {
+      "types": "./dist/components/ui/motion-wrapper.d.ts",
+      "default": "./dist/components/ui/motion-wrapper.js"
+    },
+    "./not-authorized": {
+      "types": "./dist/components/ui/not-authorized.d.ts",
+      "default": "./dist/components/ui/not-authorized.js"
+    },
+    "./app-breadcrumb": {
+      "types": "./dist/components/ui/app-breadcrumb.d.ts",
+      "default": "./dist/components/ui/app-breadcrumb.js"
+    },
+    "./background-pattern": {
+      "types": "./dist/components/ui/background-pattern.d.ts",
+      "default": "./dist/components/ui/background-pattern.js"
+    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"

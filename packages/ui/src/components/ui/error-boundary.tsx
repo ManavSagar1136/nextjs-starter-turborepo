@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "./button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Alert, AlertDescription } from "./alert";
 import { isDevelopment } from "@buildbase/env";
 
 export interface ErrorBoundaryState {

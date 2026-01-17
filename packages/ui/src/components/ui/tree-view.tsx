@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ChevronRight, ChevronDown, File, Folder, FolderOpen } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "./button";
 
 export interface TreeNode {
   id: string;

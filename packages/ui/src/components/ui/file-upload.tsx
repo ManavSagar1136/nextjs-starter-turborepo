@@ -4,8 +4,8 @@ import { useDropzone } from "react-dropzone";
 import { Upload, X, File, Image as ImageIcon } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "./button";
+import { Progress } from "./progress";
 
 export interface FileUploadProps {
   onFileSelect?: (files: File[]) => void;

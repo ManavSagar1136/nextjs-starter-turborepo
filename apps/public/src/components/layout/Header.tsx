@@ -14,9 +14,6 @@ const Header = () => {
   const navigationItems = [
     { label: "Home", href: Routes.root },
     { label: "Contact", href: Routes.contactus },
-    { label: "FAQs", href: Routes.faqs },
-    { label: "Testimonials", href: Routes.testimonials },
-    { label: "Affiliates", href: Routes.affiliates },
   ];
 
   return (

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Plus, Search, FileX, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "./button";
 
 export interface EmptyStateProps {
   icon?: React.ReactNode;

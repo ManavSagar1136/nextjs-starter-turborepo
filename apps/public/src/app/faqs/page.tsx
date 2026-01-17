@@ -4,7 +4,7 @@ import { Routes } from "@/data/routes";
 import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
-import { FAQ } from "@/components/marketing/FAQ";
+import { FAQ } from "@/components/faq/FAQ";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 
 export async function generateMetadata() {

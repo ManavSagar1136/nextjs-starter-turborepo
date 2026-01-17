@@ -4,6 +4,6 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["tailwind.config.ts", "tailwind-utilities.ts"],
+  "include": ["tailwind.config.ts", "tailwind-utilities.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

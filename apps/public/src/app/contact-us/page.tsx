@@ -4,8 +4,8 @@ import { Routes } from "@/data/routes";
 import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
-import ContactUsForm from "@/components/contact/ContactUsForm";
-import HeaderCard from "@/components/ui/HeaderCard";
+import ContactUsForm from "@/components/contact-us/ContactUsForm";
+import { HeaderCard } from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 
 export async function generateMetadata() {

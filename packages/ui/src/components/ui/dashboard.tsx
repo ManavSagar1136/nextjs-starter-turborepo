@@ -1,9 +1,9 @@
 import * as React from "react";
 import { TrendingUp, Users, DollarSign, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Badge } from "./badge";
+import { Button } from "./button";
 
 export interface DashboardMetric {
   title: string;

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { TbCoin, TbPointer, TbShare } from "react-icons/tb";
 
-import HeaderCard from "@/components/ui/HeaderCard";
+import HeaderCard from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 import { Button } from "@buildbase/ui/button";
 import { Slider } from "@buildbase/ui/slider";

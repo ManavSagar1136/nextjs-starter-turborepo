@@ -4,4 +4,13 @@ export const Routes = {
   faqs: "/faqs",
   testimonials: "/testimonials",
   affiliates: "/affiliates",
+  changelogs: "/changelogs",
+  blogs: "/blogs",
+  blogTags: "/blog-tags",
+  blogGroups: "/blog-groups",
+  docs: "/docs",
+  docsTags: "/docs/tags",
+  docsGroups: "/docs/groups",
+  privacy: "/docs/privacy-policy",
+  terms: "/docs/terms-of-service",
 };

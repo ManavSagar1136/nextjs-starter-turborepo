@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Calendar, User, ArrowRight, Tag } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "./button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Badge } from "./badge";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 
 export interface BlogPost {
   id: string;

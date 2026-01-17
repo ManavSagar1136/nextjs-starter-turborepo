@@ -1,5 +1,6 @@
-import { Footer } from "./Footer";
-import Header from "./Header";
+import { Footer } from "@/components/layout/Footer";
+import Header from "@/components/layout/Header/Header";
+
 import { cn } from "@buildbase/ui/lib/utils";
 
 export default function PageWithHeaderFooter({

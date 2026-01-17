@@ -204,7 +204,7 @@ const SearchBar = forwardRef<ISearchBarRefType, ISearchBarProps>(
         )}
       >
         {/* Search icon on the left inside input */}
-        <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-4 z-10 size-4 -translate-y-1/2 transform" />
+        <Search className="text-muted-foreground pointer-events-none absolute left-4 top-1/2 z-10 size-4 -translate-y-1/2 transform" />
         <Input
           {...props}
           value={query}
@@ -224,7 +224,7 @@ const SearchBar = forwardRef<ISearchBarRefType, ISearchBarProps>(
         {!hideCloseIcon && query?.length > 0 && (
           <X
             onClick={handleClearQuery}
-            className="text-muted-foreground hover:text-primary absolute top-1/2 right-3 size-4 -translate-y-1/2 cursor-pointer"
+            className="text-muted-foreground hover:text-primary absolute right-3 top-1/2 size-4 -translate-y-1/2 cursor-pointer"
             aria-label="Clear search"
             tabIndex={0}
             onKeyDown={e => {

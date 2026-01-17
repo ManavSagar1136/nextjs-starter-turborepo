@@ -1,17 +1,17 @@
 import * as React from "react";
 import { Menu, X, Search, User, ShoppingCart } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+} from "./dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "./sheet";
 
 export interface HeaderLink {
   label: string;
@@ -196,7 +196,7 @@ export function Header({
           {search && (
             <div className="hidden items-center lg:flex">
               <form onSubmit={handleSearch} className="relative">
-                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <Input
                   type="search"
                   placeholder={search.placeholder || "Search..."}
