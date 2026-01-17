@@ -16,6 +16,10 @@
   "exports": {
     "./format": "./dist/format.js",
     "./validation": "./dist/validation.js",
+    "./path-utils": {
+      "types": "./dist/path-utils.d.ts",
+      "default": "./dist/path-utils.js"
+    },
     "./config": {
       "types": "./dist/config/site-config.d.ts",
       "default": "./dist/config/site-config.js"

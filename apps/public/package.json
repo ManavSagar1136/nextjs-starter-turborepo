@@ -21,6 +21,7 @@
     "@buildbase/tanstack-query": "*",
     "@buildbase/http-client": "*",
     "aos": "^2.3.4",
+    "date-fns": "^3.0.0",
     "next": "16.0.10",
     "react": "^19.2.0",
     "react-dom": "^19.1.0",

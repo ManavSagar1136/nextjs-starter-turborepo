@@ -28,25 +28,24 @@ export const HEADER_KEYS = {
 /**
  * Navigation items used in the header navigation bar.
  * Each item can be a simple link or a dropdown trigger.
- * For public app, we only include items that don't require blogs/docs
  */
 export const NAVIGATION_ITEMS: INavigationItem[] = [
   { href: Routes.root, label: "Home" },
   {
+    href: Routes.blogs,
+    label: "Blogs",
+    hasDropdown: true,
+    key: HEADER_KEYS.BLOGS,
+  },
+  {
+    href: Routes.docs,
+    label: "Docs",
+    hasDropdown: true,
+    key: HEADER_KEYS.DOCS,
+  },
+  {
     href: Routes.contactus,
     label: "Contact Us",
-  },
-  {
-    href: Routes.faqs,
-    label: "FAQs",
-  },
-  {
-    href: Routes.testimonials,
-    label: "Testimonials",
-  },
-  {
-    href: Routes.affiliates,
-    label: "Affiliates",
   },
 ];
 
@@ -58,8 +57,8 @@ export const NAVIGATION_ITEMS: INavigationItem[] = [
  */
 export const HeaderDropDownErrorView = ({ message }: { message: string }) => {
   return (
-    <div className="flex-center flex-col gap-2 px-4 py-4 text-sm text-muted-foreground bg-destructive/10 border border-destructive/50 rounded-lg">
-      <AlertCircle className="size-6 text-destructive flex-shrink-0" />
+    <div className="flex-center text-muted-foreground bg-destructive/10 border-destructive/50 flex-col gap-2 rounded-lg border px-4 py-4 text-sm">
+      <AlertCircle className="text-destructive size-6 flex-shrink-0" />
       <span>{message}</span>
     </div>
   );
@@ -73,8 +72,8 @@ export const HeaderDropDownErrorView = ({ message }: { message: string }) => {
  */
 export const HeaderDropDownEmptyView = ({ message }: { message: string }) => {
   return (
-    <div className="flex-center flex-col gap-2 px-4 py-4 text-sm text-muted-foreground bg-muted/50 border border-muted/50 rounded-lg">
-      <Inbox className="size-6 text-muted-foreground flex-shrink-0" />
+    <div className="flex-center text-muted-foreground bg-muted/50 border-muted/50 flex-col gap-2 rounded-lg border px-4 py-4 text-sm">
+      <Inbox className="text-muted-foreground size-6 flex-shrink-0" />
       <span>{message}</span>
     </div>
   );
@@ -114,15 +113,15 @@ export const HeaderDropDownLinkItem = ({
         href={href}
         onClick={handleClick}
         className={cn(
-          "block text-sm px-2 py-1.5 rounded-lg",
+          "block rounded-lg px-2 py-1.5 text-sm",
           "bg-background hover:bg-accent hover:text-accent-foreground",
-          "border border-transparent hover:border-border",
+          "hover:border-border border border-transparent",
           "transition-all duration-200 ease-in-out",
           "truncate",
           "font-medium",
           "active:scale-[0.98]",
           activeUrl === href &&
-            "border-brand-600 bg-brand-50 text-brand-950 hover:bg-brand-100 hover:text-brand-950 hover:border-brand-600",
+            "border-brand-600 bg-brand-50 text-brand-950 hover:bg-brand-100 hover:text-brand-950 hover:border-brand-600"
         )}
         tabIndex={0}
       >
@@ -135,15 +134,15 @@ export const HeaderDropDownLinkItem = ({
       href={href}
       onClick={handleClick}
       className={cn(
-        "block text-sm px-2 py-1.5 rounded-lg",
+        "block rounded-lg px-2 py-1.5 text-sm",
         "bg-background hover:bg-accent hover:text-accent-foreground",
-        "border border-transparent hover:border-border",
+        "hover:border-border border border-transparent",
         "transition-all duration-200 ease-in-out",
         "truncate",
         "font-medium",
         "active:scale-[0.98]",
         activeUrl === href &&
-          "border-brand-600 bg-brand-50 text-brand-950 hover:bg-brand-100 hover:text-brand-950 hover:border-brand-600",
+          "border-brand-600 bg-brand-50 text-brand-950 hover:bg-brand-100 hover:text-brand-950 hover:border-brand-600"
       )}
       tabIndex={0}
     >
