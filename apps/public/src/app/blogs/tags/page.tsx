@@ -20,26 +20,40 @@ export async function generateMetadata() {
 }
 
 export default async function BlogTags() {
-  // Fetch all published posts and public tags from API
-  const [postsResult, tagsResult] = await Promise.all([
-    API.blogs.getAllPublished({
-      $page: 1,
-      $limit: 10000,
-      sorting: [{ id: "publishedAt", desc: true }],
-    }),
-    API.blogs.getTags({
-      $page: 1,
-      $limit: 10000,
-    }),
-  ]);
+  try {
+    // Fetch all published posts and public tags from API
+    const [postsResult, tagsResult] = await Promise.all([
+      API.blogs.getAllPublished({
+        $page: 1,
+        $limit: 10000,
+        sorting: [{ id: "publishedAt", desc: true }],
+      }),
+      API.blogs.getTags({
+        $page: 1,
+        $limit: 10000,
+      }),
+    ]);
 
-  const postsData = Array.isArray(postsResult)
-    ? postsResult
-    : postsResult?.data || postsResult?.docs || [];
-  const tagsData = Array.isArray(tagsResult) ? tagsResult : tagsResult || [];
+    const postsData = Array.isArray(postsResult)
+      ? postsResult
+      : postsResult?.data || postsResult?.docs || [];
+    const tagsData = Array.isArray(tagsResult) ? tagsResult : tagsResult || [];
 
-  const allBlogs = postsData.map((post: any) => adaptBlogPost(post));
-  const allTags = tagsData.map((tag: any) => adaptTag(tag));
+    const allBlogs = postsData.map((post: any) => adaptBlogPost(post));
+    const allTags = tagsData.map((tag: any) => adaptTag(tag));
 
-  return <BlogExplorer allTags={allTags} allBlogs={allBlogs} />;
+    return <BlogExplorer allTags={allTags} allBlogs={allBlogs} />;
+  } catch (error: any) {
+    // Log error details for debugging (only non-connection errors)
+    const errorCode = error?.code || error?.cause?.code;
+    if (errorCode !== "ECONNREFUSED") {
+      console.error("Error fetching blog tags data:", {
+        message: error?.message || error?.data?.message || "Unknown error",
+        code: errorCode,
+      });
+    }
+    
+    // Return empty state to allow build to continue
+    return <BlogExplorer allTags={[]} allBlogs={[]} />;
+  }
 }

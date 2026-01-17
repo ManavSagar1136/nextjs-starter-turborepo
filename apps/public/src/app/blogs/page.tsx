@@ -20,32 +20,46 @@ export async function generateMetadata() {
 }
 
 const BlogsPage = async () => {
-  // Fetch all published posts and tags from API
-  const [postsResult, tagsResult] = await Promise.all([
-    API.blogs.getAllPublished({
-      $page: 1,
-      $limit: 1000,
-      sorting: [{ id: "publishedAt", desc: true }],
-    }),
-    API.blogs.getTags({
-      $page: 1,
-      $limit: 1000,
-    }),
-  ]);
+  try {
+    // Fetch all published posts and tags from API
+    const [postsResult, tagsResult] = await Promise.all([
+      API.blogs.getAllPublished({
+        $page: 1,
+        $limit: 1000,
+        sorting: [{ id: "publishedAt", desc: true }],
+      }),
+      API.blogs.getTags({
+        $page: 1,
+        $limit: 1000,
+      }),
+    ]);
 
-  // Handle API response format - convert to base template format
-  const postsData = Array.isArray(postsResult)
-    ? postsResult
-    : postsResult?.data || postsResult?.docs || [];
-  const tagsData = Array.isArray(tagsResult) ? tagsResult : tagsResult || [];
+    // Handle API response format - convert to base template format
+    const postsData = Array.isArray(postsResult)
+      ? postsResult
+      : postsResult?.data || postsResult?.docs || [];
+    const tagsData = Array.isArray(tagsResult) ? tagsResult : tagsResult || [];
 
-  // Convert API posts to UI-compatible Blog format (matching base template)
-  const allBlogs = postsData.map((post: any) => adaptBlogPost(post));
+    // Convert API posts to UI-compatible Blog format (matching base template)
+    const allBlogs = postsData.map((post: any) => adaptBlogPost(post));
 
-  // Convert API tags to UI-compatible Tag format (matching base template)
-  const allTags = tagsData.map((tag: any) => adaptTag(tag));
+    // Convert API tags to UI-compatible Tag format (matching base template)
+    const allTags = tagsData.map((tag: any) => adaptTag(tag));
 
-  return <BlogWrapper allTags={allTags} allBlogs={allBlogs} />;
+    return <BlogWrapper allTags={allTags} allBlogs={allBlogs} />;
+  } catch (error: any) {
+    // Log error details for debugging (only non-connection errors)
+    const errorCode = error?.code || error?.cause?.code;
+    if (errorCode !== "ECONNREFUSED") {
+      console.error("Error fetching blogs data:", {
+        message: error?.message || error?.data?.message || "Unknown error",
+        code: errorCode,
+      });
+    }
+    
+    // Return empty state to allow build to continue
+    return <BlogWrapper allTags={[]} allBlogs={[]} />;
+  }
 };
 
 export default BlogsPage;

@@ -82,8 +82,15 @@ export async function generateStaticParams() {
 
     // Combine both blogs and folders
     return [...blogParams, ...folderParams];
-  } catch (error) {
-    console.error("Error generating static params for blogs:", error);
+  } catch (error: any) {
+    // Only log non-connection errors to reduce build noise
+    const errorCode = error?.code || error?.cause?.code;
+    if (errorCode !== "ECONNREFUSED") {
+      console.error("Error generating static params for blogs:", {
+        message: error?.message || error?.data?.message || "Unknown error",
+        code: errorCode,
+      });
+    }
     return [];
   }
 }
