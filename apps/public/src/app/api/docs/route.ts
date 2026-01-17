@@ -58,10 +58,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Apply pagination
+    // Apply pagination (if limit is very high, return all)
     const total = filteredDocs.length;
     const offset = ($page - 1) * $limit;
-    const paginatedDocs = filteredDocs.slice(offset, offset + $limit);
+    const paginatedDocs = $limit >= 10000 ? filteredDocs : filteredDocs.slice(offset, offset + $limit);
     const totalPages = Math.ceil(total / $limit);
 
     // Calculate and set the URL for each doc

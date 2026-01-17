@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
       filteredTags.sort((a, b) => a.title.localeCompare(b.title));
     }
 
-    // Apply pagination
+    // Apply pagination (if limit is very high, return all)
     const total = filteredTags.length;
     const offset = ($page - 1) * $limit;
-    const paginatedTags = filteredTags.slice(offset, offset + $limit);
+    const paginatedTags = $limit >= 10000 ? filteredTags : filteredTags.slice(offset, offset + $limit);
 
     // Calculate and set the URL for each tag
     const { Routes } = await import("@/data/routes");

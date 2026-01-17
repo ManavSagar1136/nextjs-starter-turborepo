@@ -191,14 +191,16 @@ const BlogDropdownContent = ({
     isLoading: isLoadingTags,
     isError: isErrorTags,
   } = useBlogTags({
-    limit: 10000,
+    limit: 10,
   });
 
   const {
     data: foldersData,
     isLoading: isLoadingFolders,
     isError: isErrorFolders,
-  } = useBlogFolders();
+  } = useBlogFolders({
+    limit: 10,
+  });
 
   // Process the fetched data into the format needed for the dropdown
   const blogContent = useMemo(

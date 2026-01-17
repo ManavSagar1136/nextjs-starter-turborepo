@@ -56,10 +56,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(rootFolders);
     }
 
-    // Apply pagination
+    // Apply pagination (if limit is very high, return all)
     const total = filteredFolders.length;
     const offset = ($page - 1) * $limit;
-    const paginatedFolders = filteredFolders.slice(offset, offset + $limit);
+    const paginatedFolders = $limit >= 10000 ? filteredFolders : filteredFolders.slice(offset, offset + $limit);
 
     return NextResponse.json(paginatedFolders);
   } catch (error) {

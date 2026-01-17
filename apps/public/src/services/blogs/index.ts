@@ -257,9 +257,24 @@ export class BlogApis extends BaseApiPaginationController<IBlogPost> {
       query,
       {},
     );
-    const data = response.data.data || response.data;
+    const data = response.data;
+    // API route returns array directly when not tree
+    if (Array.isArray(data)) {
+      return data;
+    }
+    // If wrapped, try to extract the array
+    if (data?.data && Array.isArray(data.data)) {
+      return data.data;
+    }
     // Support both new format (docs) and backward compatibility (folders)
-    return data.folders || data.docs || [];
+    if (data?.folders && Array.isArray(data.folders)) {
+      return data.folders;
+    }
+    if (data?.docs && Array.isArray(data.docs)) {
+      return data.docs;
+    }
+    // Fallback to empty array
+    return [];
   }
 
   /**

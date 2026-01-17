@@ -86,7 +86,9 @@ export class DocApis extends BaseApiPaginationController<IDocPost> {
     if (filter.search) query.search = filter.search;
 
     const response = await this.get(this.urlPath, query, {});
-    return response.data.data || response.data;
+    // API returns { data: [...], docs: [...], posts: [...], total, ... }
+    // Return the full response object so hooks can access both data and docs properties
+    return response.data;
   }
 
   /**
@@ -160,8 +162,23 @@ export class DocApis extends BaseApiPaginationController<IDocPost> {
     if (filter.parentFolderId) query.parentFolderId = filter.parentFolderId;
 
     const response = await this.get(`${this.urlPath}/folders/public`, query, {});
-    const data = response.data.data || response.data;
+    const data = response.data;
+    // API route returns array directly when not tree
+    if (Array.isArray(data)) {
+      return data;
+    }
+    // If wrapped, try to extract the array
+    if (data?.data && Array.isArray(data.data)) {
+      return data.data;
+    }
     // Support both new format (docs) and backward compatibility (folders)
-    return data.folders || data.docs || [];
+    if (data?.folders && Array.isArray(data.folders)) {
+      return data.folders;
+    }
+    if (data?.docs && Array.isArray(data.docs)) {
+      return data.docs;
+    }
+    // Fallback to empty array
+    return [];
   }
 }

@@ -192,7 +192,7 @@ const DocsDropdownContent = ({
     isLoading: isLoadingFolders,
     isError: isErrorFolders,
   } = useDocFolders({
-    limit: 10000,
+    limit: 10,
   });
 
   const {
@@ -200,7 +200,7 @@ const DocsDropdownContent = ({
     isLoading: isLoadingDocs,
     isError: isErrorDocs,
   } = useDocPosts({
-    limit: 10000,
+    limit: 10,
   });
 
   // Process the fetched data into the format needed for the dropdown
