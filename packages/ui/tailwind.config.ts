@@ -3,7 +3,11 @@ import sharedConfig from "@buildbase/tailwind-config/tailwind.config.ts";
 import type { Config } from "tailwindcss";
 
 const config: Pick<Config, "presets"> = {
-  presets: [sharedConfig],
+  presets: [
+    {
+      ...(sharedConfig as unknown as Record<string, unknown>),
+    },
+  ],
 };
 
 export default config;
