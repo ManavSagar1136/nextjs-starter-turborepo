@@ -13,57 +13,57 @@
   "exports": {
     "./components/aurora-text": {
       "types": "./dist/components/aurora-text.d.ts",
-      "source": "./src/components/aurora-text.tsx",
+      "development": "./src/components/aurora-text.tsx",
       "default": "./dist/components/aurora-text.js"
     },
     "./components/avatar-circles": {
       "types": "./dist/components/avatar-circles.d.ts",
-      "source": "./src/components/avatar-circles.tsx",
+      "development": "./src/components/avatar-circles.tsx",
       "default": "./dist/components/avatar-circles.js"
     },
     "./components/number-ticker": {
       "types": "./dist/components/number-ticker.d.ts",
-      "source": "./src/components/number-ticker.tsx",
+      "development": "./src/components/number-ticker.tsx",
       "default": "./dist/components/number-ticker.js"
     },
     "./components/text-animate": {
       "types": "./dist/components/text-animate.d.ts",
-      "source": "./src/components/text-animate.tsx",
+      "development": "./src/components/text-animate.tsx",
       "default": "./dist/components/text-animate.js"
     },
     "./components/animated-gradient-text": {
       "types": "./dist/components/animated-gradient-text.d.ts",
-      "source": "./src/components/animated-gradient-text.tsx",
+      "development": "./src/components/animated-gradient-text.tsx",
       "default": "./dist/components/animated-gradient-text.js"
     },
     "./components/animated-subscribe-button": {
       "types": "./dist/components/animated-subscribe-button.d.ts",
-      "source": "./src/components/animated-subscribe-button.tsx",
+      "development": "./src/components/animated-subscribe-button.tsx",
       "default": "./dist/components/animated-subscribe-button.js"
     },
     "./components/hero-video-dialog": {
       "types": "./dist/components/hero-video-dialog.d.ts",
-      "source": "./src/components/hero-video-dialog.tsx",
+      "development": "./src/components/hero-video-dialog.tsx",
       "default": "./dist/components/hero-video-dialog.js"
     },
     "./components/sparkles-text": {
       "types": "./dist/components/sparkles-text.d.ts",
-      "source": "./src/components/sparkles-text.tsx",
+      "development": "./src/components/sparkles-text.tsx",
       "default": "./dist/components/sparkles-text.js"
     },
     "./components/rainbow-button": {
       "types": "./dist/components/rainbow-button.d.ts",
-      "source": "./src/components/rainbow-button.tsx",
+      "development": "./src/components/rainbow-button.tsx",
       "default": "./dist/components/rainbow-button.js"
     },
     "./components/marquee": {
       "types": "./dist/components/marquee.d.ts",
-      "source": "./src/components/marquee.tsx",
+      "development": "./src/components/marquee.tsx",
       "default": "./dist/components/marquee.js"
     },
     "./components/*": {
       "types": "./dist/components/*.d.ts",
-      "source": "./src/components/*.tsx",
+      "development": "./src/components/*.tsx",
       "default": "./dist/components/*.js"
     }
   },
