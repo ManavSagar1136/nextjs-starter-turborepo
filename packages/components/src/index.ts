@@ -24,3 +24,13 @@ export { default as NotLoggedInDefault } from "./common/NotLoggedIn";
 
 export { AppIcon } from "./common/AppIcon";
 export { default as AppIconDefault } from "./common/AppIcon";
+
+// Dashboard components
+export { DashboardLayout } from "./dashboard/dashboard-layout";
+export { ConditionalDashboardLayout } from "./dashboard/conditional-dashboard-layout";
+export { DashboardConfigProvider } from "./dashboard/dashboard-config-provider";
+export { NavMain } from "./dashboard/nav-main";
+export { NavUser } from "./dashboard/nav-user";
+export { DashboardBreadcrumb } from "./dashboard/dashboard-breadcrumb";
+export type { MenuItem, DashboardLayoutProps } from "./dashboard/types";
+export type { NavUserProps } from "./dashboard/nav-user";

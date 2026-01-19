@@ -4,6 +4,7 @@ import { SaaSProvider as BaseSaaSProvider } from "@buildbase/saas-sdk";
 import React from "react";
 import { API } from "@/services";
 import { env } from "@buildbase/env";
+import { Routes } from "@/data/routes";
 
 interface SaaSProviderProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
   // Get base URL from environment variable
   // Use NEXT_PUBLIC_* variable for client components
   const baseUrl = env.NEXT_PUBLIC_ADMIN_APP_URL;
-  const redirectUrl = `${baseUrl}`;
+  const redirectUrl = `${baseUrl}${Routes.login}`;
 
   return (
     <BaseSaaSProvider

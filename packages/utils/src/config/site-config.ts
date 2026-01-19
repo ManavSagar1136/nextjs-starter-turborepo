@@ -51,6 +51,13 @@ export interface ISiteConfig {
   affiliateProgramLink: string;
   affiliateStoreName: string;
   calendlyLink: string;
+
+  // Login page configuration
+  login: {
+    title: string;
+    description: string;
+    buttonText: string;
+  };
 }
 
 /**
@@ -105,4 +112,12 @@ export const SiteConfig: ISiteConfig = {
   affiliateProgramLink: (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK) || "",
   affiliateStoreName: (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AFFILIATE_STORE_NAME) || "",
   calendlyLink: (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BOOK_MEETING_LINK) || "",
+
+  // Login page configuration
+  // Note: title and buttonText will be overridden by app-specific configs
+  login: {
+    title: "Welcome back to Next.js App",
+    description: "Login to your account to continue managing your content, websites, and applications",
+    buttonText: "Login",
+  },
 };

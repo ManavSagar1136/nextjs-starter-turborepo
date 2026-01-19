@@ -16,11 +16,17 @@
   "exports": {
     "./hooks/use-local-storage": "./dist/hooks/use-local-storage.js",
     "./hooks/use-debounce": "./dist/hooks/use-debounce.js",
+    "./hooks/use-auth": "./dist/hooks/use-auth.js",
+    "./hoc/withClientAuth": "./dist/hoc/withClientAuth.js",
+    "./hoc/withServerAuth": "./dist/hoc/withServerAuth.js",
+    "./hoc": "./dist/hoc/index.js",
     "./auth": "./dist/auth/index.js"
   },
   "dependencies": {
     "@buildbase/utils": "*",
     "@buildbase/env": "*",
+    "@buildbase/saas-sdk": "*",
+    "@buildbase/database": "*",
     "jsonwebtoken": "^9.0.2"
   },
   "peerDependencies": {
