@@ -7,11 +7,16 @@ import { Badge } from "@buildbase/ui/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@buildbase/ui/components/ui/avatar";
 import { ThemeToggle } from "@buildbase/ui/components/ui/theme-toggle";
 import { WorkspaceSwitcher } from "@buildbase/saas-sdk";
-import { Building2, LogIn, LogOut, User, ChevronDown } from "lucide-react";
+import { Building2, LogOut, User, ChevronDown } from "lucide-react";
+import { withClientAuth } from "@buildbase/helpers/hoc/withClientAuth";
+import { useAuth } from "@buildbase/helpers/hooks/use-auth";
 import { useSDKAuth } from "@/hooks/useSDKAuth";
+import { Routes } from "@/data/routes";
+import { APP_ROLES } from "@buildbase/database/user";
 
-export default function Home() {
-  const { isAuthenticated, isLoading, signIn, signOut, user } = useSDKAuth();
+const HomePage = () => {
+  const { user } = useAuth();
+  const { signOut } = useSDKAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -42,12 +47,7 @@ export default function Home() {
             <div className="space-y-4">
               <h4 className="text-sm font-medium">Authentication</h4>
 
-              {isLoading ? (
-                <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                  <div className="border-primary h-4 w-4 animate-spin rounded-full border-b-2"></div>
-                  Loading...
-                </div>
-              ) : isAuthenticated && user?.id ? (
+              {user?.id ? (
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -74,14 +74,7 @@ export default function Home() {
                     Sign Out
                   </Button>
                 </div>
-              ) : (
-                <div className="flex items-center justify-center rounded-lg border p-4">
-                  <Button onClick={signIn} className="flex items-center gap-2">
-                    <LogIn className="h-4 w-4" />
-                    Sign In
-                  </Button>
-                </div>
-              )}
+              ) : null}
             </div>
 
             {/* Workspace Switcher Section */}
@@ -133,19 +126,15 @@ export default function Home() {
                 }}
               />
             </div>
-
-            {/* Status Information */}
-            <div className="space-y-2 border-t pt-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Authentication Status:</span>
-                <Badge variant={isAuthenticated ? "default" : "secondary"}>
-                  {isAuthenticated ? "Authenticated" : "Not Authenticated"}
-                </Badge>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-}
+};
+
+// Protect the page with authentication HOC
+// Redirects to login if not authenticated
+export default withClientAuth(HomePage, [APP_ROLES.USER], {
+  redirectTo: Routes.login,
+});

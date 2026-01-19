@@ -4,6 +4,7 @@ import React from "react";
 import { Button } from "@buildbase/ui/button";
 import { cn } from "@buildbase/ui/lib/utils";
 import { AppIcon } from "./AppIcon";
+import { SiteConfig as SharedConfig } from "@buildbase/utils/config";
 
 interface NotLoggedInProps {
   /**
@@ -41,17 +42,12 @@ interface NotLoggedInProps {
 }
 
 export const NotLoggedIn = ({
-  title,
-  description,
-  buttonText = "Login",
+  title = SharedConfig.login.title,
+  description = SharedConfig.login.description,
+  buttonText = SharedConfig.login.buttonText,
   onLoginClick,
   className,
-  appName = "Buildbase",
 }: NotLoggedInProps) => {
-  const defaultTitle = title || `Welcome back to ${appName}`;
-  const defaultDescription =
-    description || "Login to your account to continue managing your content and websites and applications";
-
   const handleLoginClick = () => {
     if (onLoginClick) {
       onLoginClick();
@@ -78,10 +74,10 @@ export const NotLoggedIn = ({
       </div>
 
       {/* Title */}
-      <h1 className="mb-4 text-center text-2xl font-bold text-slate-900 md:text-3xl">{defaultTitle}</h1>
+      <h1 className="mb-4 text-center text-2xl font-bold text-slate-900 md:text-3xl">{title}</h1>
 
       {/* Description */}
-      <p className="mb-8 max-w-2xl text-center text-base text-slate-600 md:text-lg">{defaultDescription}</p>
+      <p className="mb-8 max-w-2xl text-center text-base text-slate-600 md:text-lg">{description}</p>
 
       {/* Login Button */}
       <Button
@@ -91,7 +87,7 @@ export const NotLoggedIn = ({
         size="lg"
         className="bg-slate-700 px-8 py-6 text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-500"
         tabIndex={0}
-        aria-label="Login to your account"
+        aria-label={buttonText}
       >
         {buttonText}
       </Button>
