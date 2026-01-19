@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { AUTH_TOKEN_COOKIE_NAME } from "./auth-token";
-import { env } from "@buildbase/env";
-import type { AuthenticatedUser } from "./auth-middleware";
+import { verifyAuthToken, type AuthenticatedUser } from "./auth-middleware";
 
 /**
  * Get the current user session from HTTP-only cookie
@@ -36,9 +35,8 @@ export async function getServerSession(): Promise<{ user: AuthenticatedUser } | 
       return null;
     }
 
-    // Verify the token using the same secret as API routes
-    const jwtSecret = env.APP_JWT_SECRET as string;
-    const decoded = jwt.verify(token, jwtSecret) as AuthenticatedUser;
+    // Verify the token using shared verification function
+    const decoded = verifyAuthToken(token);
 
     return { user: decoded };
   } catch (error) {

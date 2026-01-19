@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { clearAuthTokenCookie, AUTH_TOKEN_COOKIE_NAME } from "./auth-token";
 import { env } from "@buildbase/env";
+import type { AppRole } from "@buildbase/database/user";
 
 export interface AuthenticatedUser extends JwtPayload {
   userId?: string; // Database user ID
@@ -12,6 +13,25 @@ export interface AuthenticatedUser extends JwtPayload {
   role?: string;
   [key: string]: any;
 }
+
+/**
+ * Shared function to extract auth token from NextRequest cookies
+ * @param request - Next.js request object
+ * @returns Token string or undefined if not found
+ */
+export const getAuthTokenFromRequest = (request: NextRequest): string | undefined => {
+  return request.cookies.get(AUTH_TOKEN_COOKIE_NAME)?.value;
+};
+
+/**
+ * Shared function to verify JWT token
+ * @param token - JWT token string to verify
+ * @returns Decoded user data or throws error
+ */
+export const verifyAuthToken = (token: string): AuthenticatedUser => {
+  const jwtSecret = env.APP_JWT_SECRET as string;
+  return jwt.verify(token, jwtSecret) as AuthenticatedUser;
+};
 
 export interface AuthMiddlewareResult {
   success: boolean;
@@ -57,7 +77,7 @@ export const authenticateRequest = (request: NextRequest): AuthMiddlewareResult 
 
     // Get token from HTTP-only cookie only (we no longer use Authorization header for user tokens)
     // Cookies are automatically sent by the browser and are more secure (HTTP-only)
-    const token = request.cookies.get(AUTH_TOKEN_COOKIE_NAME)?.value;
+    const token = getAuthTokenFromRequest(request);
 
     if (!token) {
       return {
@@ -67,9 +87,8 @@ export const authenticateRequest = (request: NextRequest): AuthMiddlewareResult 
       };
     }
 
-    // Verify the token
-    const jwtSecret = env.APP_JWT_SECRET as string;
-    const decoded = jwt.verify(token, jwtSecret) as AuthenticatedUser;
+    // Verify the token using shared verification function
+    const decoded = verifyAuthToken(token);
 
     return {
       success: true,
@@ -105,33 +124,54 @@ export const authenticateRequest = (request: NextRequest): AuthMiddlewareResult 
   }
 };
 
+export interface WithAuthOptions {
+  /**
+   * Whether to allow internal API key to bypass role checks
+   * @default true
+   */
+  allowInternalApiKey?: boolean;
+}
+
 /**
  * Unified higher-order function to wrap API route handlers with authentication and optional role-based access control
- * Combines withAuth and withRoleCheck into a single, flexible function
+ *
+ * **IMPORTANT**: This function checks APP_ROLES only (system-level roles: admin, user).
+ * For workspace-level permissions, use `withPermissionCheck` instead.
+ *
+ * Roles are read from the JWT token (which contains the app role from Buildbase SaaS SDK).
+ * The role stored in the token should be an APP_ROLE (admin or user).
  *
  * @param handler - The API route handler function
- * @param allowedRoles - Optional array of allowed roles. If empty or not provided, only authentication is required
+ * @param allowedRoles - Optional array of allowed APP_ROLES. If empty or not provided, only authentication is required
+ * @param options - Optional configuration
  * @returns Wrapped handler with authentication and optional role check
  *
  * @example
  * ```typescript
+ * import { withAuth } from "@buildbase/helpers/auth";
+ * import { APP_ROLES } from "@buildbase/database/user";
+ *
  * // Basic authentication only
- * const handlePOST = async (req: NextRequest, user: AuthenticatedUser) => {
- *   return NextResponse.json({ success: true });
+ * const handlePOST = async (req: NextRequest) => {
+ *   const user = (req as any).authenticatedUser;
+ *   return NextResponse.json({ success: true, user });
  * };
  * export const POST = withAuth(handlePOST);
  *
- * // Authentication with role check
- * export const POST = withAuth(handlePOST, ["admin", "manager"]);
+ * // Authentication with APP_ROLE check
+ * export const POST = withAuth(handlePOST, [APP_ROLES.ADMIN]);
  *
- * // Multiple roles allowed
- * export const POST = withAuth(handlePOST, ["admin", "manager", "editor"]);
+ * // Multiple APP_ROLES allowed
+ * export const POST = withAuth(handlePOST, [APP_ROLES.ADMIN, APP_ROLES.USER]);
  * ```
  */
 export const withAuth = <T extends any[]>(
   handler: (request: NextRequest, ...args: T) => Promise<NextResponse>,
-  allowedRoles?: string[]
+  allowedRoles?: AppRole[],
+  options: WithAuthOptions = {}
 ) => {
+  const { allowInternalApiKey = true } = options;
+
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
     const authResult = authenticateRequest(request);
 
@@ -141,12 +181,25 @@ export const withAuth = <T extends any[]>(
 
     const user = authResult.user;
 
+    // Allow internal API key to bypass role checks if configured
+    if (allowInternalApiKey && authResult.isInternalApiKey) {
+      (request as any).authenticatedUser = user;
+      return handler(request, ...args);
+    }
+
+    // Check roles if specified
     if (allowedRoles && allowedRoles.length > 0) {
-      const userRole = user.role;
+      const userRole = user.role as AppRole | undefined;
 
       if (!userRole || !allowedRoles.includes(userRole)) {
         console.error(`User role ${userRole || "undefined"} not in allowed roles: ${allowedRoles.join(", ")}`);
-        return NextResponse.json({ error: "Forbidden - Insufficient permissions" }, { status: 403 });
+        return NextResponse.json(
+          {
+            error: "Forbidden",
+            message: `Insufficient permissions. Required roles: ${allowedRoles.join(", ")}`,
+          },
+          { status: 403 }
+        );
       }
     }
 

@@ -64,7 +64,7 @@ export const NotLoggedIn = ({
   return (
     <div
       className={cn(
-        "flex min-h-[400px] w-full flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-50/50 p-8 md:p-12",
+        "flex min-h-[400px] w-full flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50 p-8 shadow-lg md:p-12",
         className
       )}
     >

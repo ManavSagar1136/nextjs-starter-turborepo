@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { NotLoggedIn } from "@buildbase/components";
 import { useSDKAuth } from "@/hooks/useSDKAuth";
@@ -9,10 +9,18 @@ import { Routes } from "@/data/routes";
 const LoginPage = () => {
   const { isAuthenticated, isLoading, signIn } = useSDKAuth();
   const router = useRouter();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push(Routes.dashboard);
+    // Prevent multiple redirects
+    if (hasRedirected.current || isLoading) {
+      return;
+    }
+
+    // Only redirect if we're sure the user is authenticated
+    if (isAuthenticated) {
+      hasRedirected.current = true;
+      router.replace(Routes.dashboard);
     }
   }, [isAuthenticated, isLoading, router]);
 

@@ -26,6 +26,7 @@
     "@buildbase/utils": "*",
     "@buildbase/env": "*",
     "@buildbase/saas-sdk": "*",
+    "@buildbase/database": "*",
     "jsonwebtoken": "^9.0.2"
   },
   "peerDependencies": {

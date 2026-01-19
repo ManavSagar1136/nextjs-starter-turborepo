@@ -23,6 +23,7 @@ export const Routes = {
    * Protected routes - Dashboard and user features
    */
   dashboard: "/",
+  profile: "/profile",
 
   /**
    * API routes

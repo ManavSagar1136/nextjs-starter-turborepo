@@ -1,0 +1,58 @@
+import { withServerAuth } from "@buildbase/helpers/hoc/withServerAuth";
+import { APP_ROLES } from "@buildbase/database/user";
+import { Routes } from "@/data/routes";
+
+import { DashboardConfigProvider } from "@buildbase/components";
+
+const menuItemsConfig = [
+  {
+    title: "Overview",
+    url: "#",
+    items: [
+      {
+        title: "Dashboard",
+        url: Routes.dashboard,
+        iconName: "LayoutDashboard",
+      },
+    ],
+  },
+  {
+    title: "User Management",
+    url: "#",
+    items: [
+      {
+        title: "Users",
+        url: Routes.users,
+        iconName: "Users",
+      },
+      {
+        title: "Workspaces",
+        url: Routes.workspaces,
+        iconName: "Building2",
+      },
+    ],
+  },
+];
+
+async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <DashboardConfigProvider
+      menuItemsConfig={menuItemsConfig}
+      breadcrumbExcludeSegments={[Routes.dashboard]}
+      brand={{
+        text: "Admin",
+        href: Routes.dashboard,
+      }}
+      profileRoute={Routes.profile}
+      excludeRoutes={[Routes.login]}
+    >
+      {children}
+    </DashboardConfigProvider>
+  );
+}
+
+// Apply auth protection to all routes in this group
+export default withServerAuth(ProtectedLayout, {
+  redirectTo: Routes.login,
+  allowedRoles: [APP_ROLES.ADMIN],
+});

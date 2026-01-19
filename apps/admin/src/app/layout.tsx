@@ -5,6 +5,8 @@ import "@buildbase/sdk/dist/saas-os.css";
 import "./globals.css";
 
 import { AppProviders } from "@/components/providers/AppProviders";
+import { DashboardConfigProvider } from "@buildbase/components";
+import { Routes } from "@/data/routes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,8 +22,7 @@ export const metadata: Metadata = {
   title: "Admin Panel",
   description: "Admin panel for data management",
 };
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -30,3 +31,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
+export default RootLayout;
