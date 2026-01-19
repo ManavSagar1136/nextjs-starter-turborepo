@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     "@buildbase/helpers",
     "@buildbase/hooks-manager",
     "@buildbase/tanstack-query",
+    "@buildbase/env",
   ],
   turbopack: {
     root: resolve(__dirname, "../.."),
