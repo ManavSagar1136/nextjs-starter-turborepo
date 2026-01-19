@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Check, Search } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./command";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 // Popular icon sets - you can expand this with more icons
 const iconSets = {

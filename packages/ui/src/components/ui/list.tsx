@@ -3,8 +3,8 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { GripVertical } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "./button";
+import { Checkbox } from "./checkbox";
 
 const listVariants = cva("flex flex-col gap-2", {
   variants: {
@@ -53,7 +53,7 @@ const ListItem = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "group bg-background hover:bg-muted/50 relative flex items-center gap-3 rounded-lg border p-3 transition-colors",
+        "bg-background hover:bg-muted/50 group relative flex items-center gap-3 rounded-lg border p-3 transition-colors",
         isDragging && "opacity-50",
         isSelected && "bg-muted",
         className
@@ -88,7 +88,7 @@ ListHeader.displayName = "ListHeader";
 
 const ListTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("leading-none font-semibold tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn("font-semibold leading-none tracking-tight", className)} {...props} />
   )
 );
 ListTitle.displayName = "ListTitle";

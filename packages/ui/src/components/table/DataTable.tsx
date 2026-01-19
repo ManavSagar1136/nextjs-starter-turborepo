@@ -9,12 +9,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { IPageFilter, PaginationResponse } from "@/types/pagination";
-import { DataTableFilter, IDataTableFilter, IDataTableFilterType } from "@/components/table/DataTableFilter";
-import { DataTablePagination } from "@/components/table/DataTablePagination";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { IPageFilter, PaginationResponse } from "../../types/pagination";
+import { DataTableFilter, IDataTableFilter, IDataTableFilterType } from "./DataTableFilter";
+import { DataTablePagination } from "./DataTablePagination";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

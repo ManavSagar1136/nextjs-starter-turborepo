@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "./button";
+import { Input } from "./input";
 
 export interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   value?: string;
@@ -50,7 +50,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             type="button"
             variant="ghost"
             size="sm"
-            className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
             onClick={() => setShowPassword(!showPassword)}
             tabIndex={-1}
           >

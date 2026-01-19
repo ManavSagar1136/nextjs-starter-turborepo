@@ -96,3 +96,8 @@ export type {
 // Re-export our own exports
 export * from "./provider";
 export * from "./utils/query-helpers";
+
+// Custom hooks
+export * from "./hooks/use-custom-query-client";
+export * from "./hooks/use-tanstack-query";
+export * from "./hooks/use-tanstack-mutation";

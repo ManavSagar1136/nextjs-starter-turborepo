@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
 import { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "./button";
 
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: LucideIcon;

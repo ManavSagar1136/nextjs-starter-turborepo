@@ -1,0 +1,9 @@
+{
+  "extends": "@buildbase/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "."
+  },
+  "include": ["tailwind.config.ts", "tailwind-utilities.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

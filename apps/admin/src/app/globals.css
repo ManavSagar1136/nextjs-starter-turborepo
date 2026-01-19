@@ -1,8 +1,16 @@
-@import "tailwindcss";
-@import "@buildbase/tailwind-config";
+@import "../../../../packages/tailwind-config/themes.css";
+@import "../../../../packages/tailwind-config/shared-styles.css";
 
-/* Tailwind v4 auto-detects classes, but we can explicitly add sources if needed */
-@source "../**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../**/*.{js,ts,jsx,tsx,mdx}";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* App-specific styles - body will use Tailwind's background/foreground from UI package */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  }
+}

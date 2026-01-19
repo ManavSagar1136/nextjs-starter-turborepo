@@ -1,10 +1,10 @@
 import * as React from "react";
 import { X, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "./button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Badge } from "./badge";
+import { Progress } from "./progress";
 
 export interface OnboardingStep {
   id: string;
@@ -183,7 +183,7 @@ export function Onboarding({
 
   if (variant === "sidebar") {
     return (
-      <div className="bg-background fixed top-0 right-0 z-50 h-full w-96 border-l shadow-lg">
+      <div className="bg-background fixed right-0 top-0 z-50 h-full w-96 border-l shadow-lg">
         <div className="h-full overflow-y-auto p-6">{content}</div>
       </div>
     );

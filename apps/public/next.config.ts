@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: resolve(__dirname, "../.."),
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.pravatar.cc",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

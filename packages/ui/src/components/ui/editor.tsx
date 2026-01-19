@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "./button";
 import {
   Bold,
   Italic,
@@ -110,7 +110,7 @@ export const Editor = React.forwardRef<HTMLTextAreaElement, EditorProps>(
           value={content}
           onChange={handleChange}
           placeholder={placeholder}
-          className="min-h-[200px] w-full resize-none border-0 p-4 focus:ring-0 focus:outline-none"
+          className="min-h-[200px] w-full resize-none border-0 p-4 focus:outline-none focus:ring-0"
           {...props}
         />
       </div>

@@ -1,8 +1,8 @@
 import * as React from "react";
 import { X, Check, AlertTriangle, Info, AlertCircle } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "./button";
+import { Badge } from "./badge";
 
 export interface Notification {
   id: string;

@@ -1,10 +1,10 @@
 import * as React from "react";
 import { X, Cookie, Settings } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/ui-switch";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "./button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Switch } from "./ui-switch";
+import { Separator } from "./separator";
 
 export interface CookiePreferences {
   necessary: boolean;
@@ -59,7 +59,7 @@ export function CookieConsent({ onAccept, onReject, className, showSettings = tr
   if (!isVisible) return null;
 
   return (
-    <div className={cn("fixed right-4 bottom-4 left-4 z-50 mx-auto max-w-2xl", className)}>
+    <div className={cn("fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-2xl", className)}>
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">

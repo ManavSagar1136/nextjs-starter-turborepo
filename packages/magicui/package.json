@@ -10,7 +10,17 @@
     "dist"
   ],
   "exports": {
-    "./components/*": "./dist/components/*.js"
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "default": "./dist/components/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/components/*.d.ts"
+      ]
+    }
   },
   "license": "MIT",
   "scripts": {
@@ -25,12 +35,16 @@
   },
   "dependencies": {
     "@buildbase/ui": "*",
-    "framer-motion": "^11.11.17"
+    "canvas-confetti": "^1.9.3",
+    "cobe": "^0.6.3",
+    "framer-motion": "^11.11.17",
+    "react-tweet": "^3.2.1"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",
     "@buildbase/tailwind-config": "*",
     "@buildbase/typescript-config": "*",
+    "@types/canvas-confetti": "^1.6.4",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",

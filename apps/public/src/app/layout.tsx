@@ -1,20 +1,35 @@
-import "@buildbase/ui/styles.css";
-import "./globals.css";
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+
+import "./globals.css";
+
+import { generateSEOMetadata } from "@/utils/seo";
+import { SiteConfig } from "@/config";
+
 import { AppProviders } from "@/components/providers/AppProviders";
 
-const geist = Geist({ subsets: ["latin"] });
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
 
-export const metadata: Metadata = {
-  title: "Public Showcase",
-  description: "Public showcase and landing pages",
-};
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata = generateSEOMetadata({
+  title: SiteConfig.meta.title,
+  description: SiteConfig.meta.description,
+  url: SiteConfig.baseUrl,
+});
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={geist.className}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

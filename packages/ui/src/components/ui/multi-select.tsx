@@ -2,10 +2,10 @@ import * as React from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "./button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./command";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Badge } from "./badge";
 
 export interface MultiSelectOption {
   label: string;
@@ -64,7 +64,7 @@ export function MultiSelect({
                   <Badge
                     variant="secondary"
                     key={item}
-                    className="mr-1 mb-1"
+                    className="mb-1 mr-1"
                     onClick={e => {
                       e.stopPropagation();
                       handleUnselect(item);
@@ -97,7 +97,7 @@ export function MultiSelect({
               <span className="text-muted-foreground">{placeholder}</span>
             )}
             {selected.length > maxDisplay && (
-              <Badge variant="secondary" className="mr-1 mb-1">
+              <Badge variant="secondary" className="mb-1 mr-1">
                 +{selected.length - maxDisplay} more
               </Badge>
             )}

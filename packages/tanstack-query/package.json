@@ -20,10 +20,14 @@
   "exports": {
     ".": "./dist/index.js",
     "./provider": "./dist/provider.js",
-    "./utils/query-helpers": "./dist/utils/query-helpers.js"
+    "./utils/query-helpers": "./dist/utils/query-helpers.js",
+    "./hooks/use-custom-query-client": "./dist/hooks/use-custom-query-client.js",
+    "./hooks/use-tanstack-query": "./dist/hooks/use-tanstack-query.js",
+    "./hooks/use-tanstack-mutation": "./dist/hooks/use-tanstack-mutation.js"
   },
   "dependencies": {
     "@buildbase/env": "*",
+    "@buildbase/ui": "*",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-query-devtools": "^5.62.0"
   },

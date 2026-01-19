@@ -5,11 +5,36 @@
   "private": true,
   "exports": {
     ".": "./shared-styles.css",
-    "./postcss": "./postcss.config.js"
+    "./tailwind.config.ts": "./tailwind.config.ts",
+    "./themes.css": "./themes.css",
+    "./postcss": "./postcss.config.cjs",
+    "./config": {
+      "types": "./dist/tailwind.config.d.ts",
+      "default": "./dist/tailwind.config.js"
+    },
+    "./utilities": {
+      "types": "./dist/tailwind-utilities.d.ts",
+      "default": "./dist/tailwind-utilities.js"
+    },
+    "./colors": {
+      "types": "./dist/src/colors.d.ts",
+      "default": "./dist/src/colors.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "tailwindcss": "^3.4.4",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.5",
+    "@tailwindcss/container-queries": "^0.1.1",
     "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.5"
+    "postcss-import": "^15.1.0",
+    "tailwindcss": "^3.4.4",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "5.9.2"
   }
 }

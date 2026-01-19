@@ -1,8 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
-import TimesAgo from "@/components/timesAgo";
-import { Button } from "@/components/ui/button";
+import TimesAgo from "../../timesAgo";
+import { Button } from "../../ui/button";
 
 import { cn } from "../../../lib/utils";
 

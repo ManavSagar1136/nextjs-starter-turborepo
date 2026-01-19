@@ -1,16 +1,11 @@
 import * as React from "react";
 import { Search as SearchIcon, X, Filter, SortAsc, SortDesc } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Badge } from "./badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export interface SearchFilter {
   key: string;
@@ -182,20 +177,20 @@ export function Search({
     return (
       <div className={cn("relative", className)}>
         <form onSubmit={handleSearch} className="relative">
-          <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             type="search"
             placeholder={placeholder}
             value={query}
             onChange={e => onQueryChange(e.target.value)}
-            className="pr-10 pl-10"
+            className="pl-10 pr-10"
           />
           {query && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 p-0"
+              className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 p-0"
               onClick={() => onQueryChange("")}
             >
               <X className="h-4 w-4" />
@@ -211,15 +206,15 @@ export function Search({
       <div className={cn("space-y-4", className)}>
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="relative">
-          <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             type="search"
             placeholder={placeholder}
             value={query}
             onChange={e => onQueryChange(e.target.value)}
-            className="pr-20 pl-10"
+            className="pl-10 pr-20"
           />
-          <div className="absolute top-1/2 right-2 flex -translate-y-1/2 gap-1">
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 gap-1">
             {query && (
               <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onQueryChange("")}>
                 <X className="h-4 w-4" />
@@ -320,20 +315,20 @@ export function Search({
     <div className={cn("space-y-4", className)}>
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="relative">
-        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+        <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
         <Input
           type="search"
           placeholder={placeholder}
           value={query}
           onChange={e => onQueryChange(e.target.value)}
-          className="pr-10 pl-10"
+          className="pl-10 pr-10"
         />
         {query && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 p-0"
+            className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 p-0"
             onClick={() => onQueryChange("")}
           >
             <X className="h-4 w-4" />

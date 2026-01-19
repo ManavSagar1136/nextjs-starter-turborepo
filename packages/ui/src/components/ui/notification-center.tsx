@@ -3,16 +3,11 @@
 import * as React from "react";
 import { Bell, Check, X, MoreHorizontal } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Notification, type Notification as NotificationType } from "@/components/ui/notification";
+import { Button } from "./button";
+import { Badge } from "./badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Notification, type Notification as NotificationType } from "./notification";
 
 export interface NotificationCenterProps {
   notifications: NotificationType[];
@@ -114,7 +109,7 @@ export function NotificationCenter({
             {unreadCount > 0 && (
               <Badge
                 variant="destructive"
-                className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center p-0 text-xs"
+                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-xs"
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
@@ -140,7 +135,7 @@ export function NotificationCenter({
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center p-0 text-xs"
+              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-xs"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>

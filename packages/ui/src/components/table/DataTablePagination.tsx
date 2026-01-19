@@ -1,8 +1,8 @@
 import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import { Table } from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
@@ -15,12 +15,12 @@ export function DataTablePagination<TData>({ table, totalRecord }: DataTablePagi
   const currentPageIndex = table.getState().pagination.pageIndex;
   return (
     <div className="flex w-full flex-col items-center px-2 py-2 sm:flex-row sm:justify-between">
-      <div className="text-sm whitespace-nowrap">
+      <div className="whitespace-nowrap text-sm">
         Showing {currentPageIndex * pageSize + 1} to{" "}
         {(currentPageIndex + 1) * pageSize > totalRecord ? totalRecord : (currentPageIndex + 1) * pageSize} of{" "}
         {totalRecord}
       </div>
-      <div className="flex flex-wrap items-center justify-center space-x-6 gap-y-2 lg:space-x-8">
+      <div className="flex flex-wrap items-center justify-center gap-y-2 space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
           <Select

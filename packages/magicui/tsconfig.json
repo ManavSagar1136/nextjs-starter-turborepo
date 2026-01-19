@@ -1,12 +1,14 @@
 {
   "extends": "@buildbase/typescript-config/react-library.json",
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "noUncheckedIndexedAccess": false
   },
-  "include": ["src/**/*"],
+  "include": ["src"],
   "exclude": ["dist", "build", "node_modules"]
 }

@@ -1,9 +1,9 @@
 import * as React from "react";
 import { X, ArrowRight, ArrowLeft, Target } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "./button";
+import { Card, CardContent } from "./card";
+import { Badge } from "./badge";
 
 export interface TourStep {
   id: string;
@@ -223,7 +223,7 @@ export function Tour({
       {/* Highlighted Element */}
       {targetElement && (
         <div
-          className="pointer-events-none fixed z-45"
+          className="z-45 pointer-events-none fixed"
           style={{
             top: targetElement.offsetTop - 4,
             left: targetElement.offsetLeft - 4,

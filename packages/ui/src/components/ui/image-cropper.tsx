@@ -1,8 +1,8 @@
 import * as React from "react";
 import { X, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Button } from "./button";
+import { Slider } from "./slider";
 
 export interface ImageCropperProps {
   src: string;
