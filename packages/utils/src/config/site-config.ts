@@ -67,9 +67,9 @@ export interface ISiteConfig {
 export const SiteConfig: ISiteConfig = {
   // App URLs - all apps can access all URLs
   publicAppUrl: env.NEXT_PUBLIC_PUBLIC_APP_URL || "http://localhost:3100",
-  userAppUrl: env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3000",
-  adminAppUrl: env.NEXT_PUBLIC_ADMIN_APP_URL || "http://localhost:3001",
-  docsAppUrl: env.NEXT_PUBLIC_DOCS_APP_URL || "http://localhost:3002",
+  userAppUrl: env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3101",
+  adminAppUrl: env.NEXT_PUBLIC_ADMIN_APP_URL || "http://localhost:3102",
+  docsAppUrl: env.NEXT_PUBLIC_DOCS_APP_URL || "http://localhost:3103",
 
   // App branding
   name: "Next.js App",
