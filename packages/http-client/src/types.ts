@@ -14,6 +14,7 @@ export interface PaginationResponse<T> {
   hasNextPage: boolean;
   prevPage: number | null;
   nextPage: number | null;
+  groups?: any[];
 }
 
 export interface IDataTableFilter {
@@ -32,6 +33,7 @@ export interface IPageFilter {
     desc: boolean;
   }>;
   filter?: IDataTableFilter;
+  groupBy?: string;
 }
 
 export interface HttpClientConfig {

@@ -18,6 +18,8 @@
     "./prisma": "./dist/prisma.js",
     "./middleware/with-cron-check": "./dist/middleware/with-cron-check.js",
     "./middleware/types": "./dist/middleware/types.js",
+    "./middleware/rate-limit-helper": "./dist/middleware/rate-limit-helper.js",
+    "./middleware/org-helper": "./dist/middleware/org-helper.js",
     "./paginate-prisma": "./dist/paginate-prisma.js",
     "./populate-prisma": "./dist/populate-prisma.js",
     "./summarize-prisma": "./dist/summarize-prisma.js",
