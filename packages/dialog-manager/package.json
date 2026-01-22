@@ -1,0 +1,60 @@
+{
+  "name": "@buildbase/dialog-manager",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./provider": {
+      "types": "./dist/provider.d.ts",
+      "default": "./dist/provider.js"
+    },
+    "./registry": {
+      "types": "./dist/registry.d.ts",
+      "default": "./dist/registry.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks.d.ts",
+      "default": "./dist/hooks.js"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./dist/common/index.js"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19",
+    "next": "^15"
+  },
+  "dependencies": {
+    "@buildbase/ui": "*",
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-alert-dialog": "^1.1.0",
+    "lucide-react": "^0.469.0"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2"
+  }
+}
