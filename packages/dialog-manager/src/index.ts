@@ -3,6 +3,9 @@ export { DIALOG_AUTO_CLEANUP_DELAY_MS, DIALOG_URL_PARAMS, COMMON_DIALOG_KEYS, DI
 export type { CommonDialogKey } from "./config";
 import { DIALOG_URL_PARAMS } from "./config";
 
+// Base Props (for dialogs and sheets)
+export type { DialogOrSheetBaseProps, DialogOrSheetComponent, DialogOrSheetCustomProps } from "./base-props";
+
 // Types
 export type {
   DialogComponentMap,
@@ -11,6 +14,7 @@ export type {
   DialogInstance,
   DialogContextType,
   DialogRegistryOptions,
+  DialogOpenOptions,
 } from "./types";
 
 // Context

@@ -7,6 +7,7 @@ import React from "react";
 import { dialogRegistry } from "./registry";
 import { initializeCommonDialogs } from "./initialize";
 import type { DialogComponentMap } from "./types";
+import type { DialogOrSheetBaseProps, DialogOrSheetComponent } from "./base-props";
 
 /**
  * Options for app dialog setup.
@@ -28,15 +29,24 @@ export interface AppDialogSetupOptions {
  * Setup dialogs for an app.
  * This should be called once when the app initializes.
  *
+ * All dialogs must extend DialogOrSheetBaseProps (have `open` and `onOpenChange` props).
+ *
  * @example
  * ```tsx
  * // apps/user/src/dialogs/setup.ts
  * import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
- * import { UserDialogs } from "./user-dialogs";
+ * import { DialogOrSheetBaseProps } from "@buildbase/dialog-manager/base-props";
+ * import CreateUserDialog from "./components/CreateUserDialog";
+ *
+ * interface CreateUserDialogProps extends DialogOrSheetBaseProps {
+ *   title?: string;
+ * }
  *
  * export function setupUserDialogs() {
  *   setupAppDialogs({
- *     dialogs: UserDialogs,
+ *     dialogs: {
+ *       "user:create": CreateUserDialog, // Must extend DialogOrSheetBaseProps
+ *     },
  *     initializeCommon: true,
  *   });
  * }
@@ -54,12 +64,14 @@ export function setupAppDialogs<T extends DialogComponentMap>(
   }
 
   // Register app-specific dialogs
+  // All components are validated to extend DialogOrSheetBaseProps
   dialogRegistry.registerMany(dialogs, { override: overrideCommon });
 }
 
 /**
- * Helper to create lazy dialog loaders.
+ * Helper to create lazy dialog/sheet loaders.
  * Useful for code-splitting dialogs that are rarely used.
+ * The loaded component must extend DialogOrSheetBaseProps.
  *
  * @example
  * ```tsx
@@ -72,7 +84,7 @@ export function setupAppDialogs<T extends DialogComponentMap>(
  * ```
  */
 export function createLazyDialogLoader(
-  importFn: () => Promise<{ default: React.ComponentType<any> }>
-): () => Promise<{ default: React.ComponentType<any> }> {
+  importFn: () => Promise<{ default: DialogOrSheetComponent<DialogOrSheetBaseProps> }>
+): () => Promise<{ default: DialogOrSheetComponent<DialogOrSheetBaseProps> }> {
   return importFn;
 }

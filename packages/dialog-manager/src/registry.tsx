@@ -1,5 +1,6 @@
 import React from "react";
 import type { DialogComponentMap, DialogKey } from "./types";
+import type { DialogOrSheetBaseProps, DialogOrSheetComponent } from "./base-props";
 
 /**
  * Global dialog registry that stores all registered dialog components.
@@ -10,16 +11,27 @@ class DialogRegistry<T extends DialogComponentMap = DialogComponentMap> {
   private lazyLoaders: Map<string, () => Promise<{ default: React.ComponentType<any> }>> = new Map();
 
   /**
-   * Register a dialog component with a key.
+   * Register a dialog or sheet component with a key.
+   * The component must extend DialogOrSheetBaseProps (have `open` and `onOpenChange` props).
+   *
    * @param key - The dialog key
-   * @param component - The React component for the dialog
+   * @param component - The React component for the dialog/sheet (must extend DialogOrSheetBaseProps)
    * @param options - Registration options
    * @throws Error if dialog already exists and override is false
+   * @throws Error if component doesn't have required props
    */
-  register<K extends string>(key: K, component: React.ComponentType<any>, options: { override?: boolean } = {}): void {
+  register<K extends string>(
+    key: K,
+    component: DialogOrSheetComponent<DialogOrSheetBaseProps>,
+    options: { override?: boolean } = {}
+  ): void {
     if (this.components.has(key) && !options.override) {
       throw new Error(`Dialog with key "${key}" is already registered. Use override: true to replace it.`);
     }
+
+    // Validate that component has the required props
+    // This is a runtime check - TypeScript will catch it at compile time
+    this.validateComponent(component, key);
 
     this.components.set(key, component);
     // Remove lazy loader if component is directly registered
@@ -27,15 +39,32 @@ class DialogRegistry<T extends DialogComponentMap = DialogComponentMap> {
   }
 
   /**
-   * Register a lazy-loaded dialog component.
+   * Validates that a component extends DialogOrSheetBaseProps.
+   * This is a runtime check to ensure type safety.
+   */
+  private validateComponent(component: React.ComponentType<any>, key: string): void {
+    if (!component) {
+      throw new Error(`Component for dialog "${key}" is null or undefined.`);
+    }
+
+    // Check if component is a valid React component
+    if (typeof component !== "function" && typeof component !== "object") {
+      throw new Error(`Component for dialog "${key}" must be a React component. Received: ${typeof component}`);
+    }
+  }
+
+  /**
+   * Register a lazy-loaded dialog or sheet component.
    * The component will only be loaded when the dialog is first opened.
+   * The loaded component must extend DialogOrSheetBaseProps.
+   *
    * @param key - The dialog key
-   * @param loader - Function that returns a promise resolving to the dialog component
+   * @param loader - Function that returns a promise resolving to the dialog/sheet component
    * @param options - Registration options
    */
   registerLazy<K extends string>(
     key: K,
-    loader: () => Promise<{ default: React.ComponentType<any> }>,
+    loader: () => Promise<{ default: DialogOrSheetComponent<DialogOrSheetBaseProps> }>,
     options: { override?: boolean } = {}
   ): void {
     if (this.components.has(key) && !options.override) {
@@ -48,13 +77,17 @@ class DialogRegistry<T extends DialogComponentMap = DialogComponentMap> {
   }
 
   /**
-   * Register multiple dialog components at once.
+   * Register multiple dialog/sheet components at once.
+   * All components must extend DialogOrSheetBaseProps.
+   *
    * @param components - Object mapping keys to components
    * @param options - Registration options
    */
   registerMany(components: Partial<T>, options: { override?: boolean } = {}): void {
     Object.entries(components).forEach(([key, component]) => {
-      this.register(key, component, options);
+      if (component) {
+        this.register(key, component as DialogOrSheetComponent<DialogOrSheetBaseProps>, options);
+      }
     });
   }
 
@@ -198,19 +231,25 @@ export const dialogRegistry = new DialogRegistry();
  */
 export class DialogRegistryController<T extends DialogComponentMap = DialogComponentMap> {
   /**
-   * Register a single dialog component.
+   * Register a single dialog/sheet component.
+   * Component must extend DialogOrSheetBaseProps.
    */
-  register<K extends string>(key: K, component: React.ComponentType<any>, options?: { override?: boolean }): this {
+  register<K extends string>(
+    key: K,
+    component: DialogOrSheetComponent<DialogOrSheetBaseProps>,
+    options?: { override?: boolean }
+  ): this {
     dialogRegistry.register(key, component, options);
     return this;
   }
 
   /**
-   * Register a lazy-loaded dialog component.
+   * Register a lazy-loaded dialog/sheet component.
+   * Loaded component must extend DialogOrSheetBaseProps.
    */
   registerLazy<K extends string>(
     key: K,
-    loader: () => Promise<{ default: React.ComponentType<any> }>,
+    loader: () => Promise<{ default: DialogOrSheetComponent<DialogOrSheetBaseProps> }>,
     options?: { override?: boolean }
   ): this {
     dialogRegistry.registerLazy(key, loader, options);
@@ -218,7 +257,8 @@ export class DialogRegistryController<T extends DialogComponentMap = DialogCompo
   }
 
   /**
-   * Register multiple dialog components.
+   * Register multiple dialog/sheet components.
+   * All components must extend DialogOrSheetBaseProps.
    */
   registerMany(components: Partial<T>, options?: { override?: boolean }): this {
     dialogRegistry.registerMany(components, options);

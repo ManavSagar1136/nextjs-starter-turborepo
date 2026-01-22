@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { DialogProps } from "@radix-ui/react-dialog";
 import { AlertCircle, Info, CheckCircle2, XCircle } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
 import { Button } from "@buildbase/ui/button";
 import { cn } from "@buildbase/ui/lib/utils";
+import type { DialogOrSheetBaseProps } from "../base-props";
 
 /**
  * Variants available for the AlertDialog.
@@ -22,8 +22,9 @@ export type AlertDialogVariant = (typeof ALERT_DIALOG_VARIANTS)[keyof typeof ALE
 
 /**
  * Props for the AlertDialog component.
+ * Extends DialogOrSheetBaseProps to ensure compatibility with dialog manager.
  */
-export interface AlertDialogProps extends DialogProps {
+export interface AlertDialogProps extends DialogOrSheetBaseProps {
   title?: string;
   description?: string;
   variant?: AlertDialogVariant;
@@ -100,13 +101,12 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   };
 
   return (
-    <Dialog {...props}>
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
         className={cn("rounded-xl p-6 sm:max-w-lg")}
         onInteractOutside={e => {
-          if (props.onOpenChange) {
-            e.preventDefault();
-          }
+          // Prevent closing on outside click for alert dialogs
+          e.preventDefault();
         }}
       >
         <DialogHeader className="space-y-4">

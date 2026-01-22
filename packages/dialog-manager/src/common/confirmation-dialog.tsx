@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { DialogProps } from "@radix-ui/react-dialog";
 import { AlertTriangle, LucideIcon, Star } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
 import { Button, type ButtonProps } from "@buildbase/ui/button";
 import { cn } from "@buildbase/ui/lib/utils";
+import type { DialogOrSheetBaseProps } from "../base-props";
 
 /**
  * Variants available for the ConfirmationDialog.
@@ -21,8 +21,9 @@ export type ConfirmationDialogVariant =
 
 /**
  * Props for the ConfirmationDialog component.
+ * Extends DialogOrSheetBaseProps to ensure compatibility with dialog manager.
  */
-export interface ConfirmationDialogProps extends DialogProps {
+export interface ConfirmationDialogProps extends DialogOrSheetBaseProps {
   title?: string;
   description?: string;
   variant?: ConfirmationDialogVariant;

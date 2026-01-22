@@ -29,6 +29,10 @@
     "./common": {
       "types": "./dist/common/index.d.ts",
       "default": "./dist/common/index.js"
+    },
+    "./app-setup": {
+      "types": "./dist/app-setup.d.ts",
+      "default": "./dist/app-setup.js"
     }
   },
   "license": "MIT",

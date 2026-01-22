@@ -52,9 +52,9 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
     <K extends DialogKey>(
       key: K,
       props: Omit<React.ComponentProps<(typeof dialogComponents)[K]>, "open" | "onOpenChange">,
-      id?: string
+      options?: { id?: string; onClose?: () => void; onOpen?: () => void }
     ) => {
-      const dialogMapId = id ? `${key}-${id}` : `${key}-${Date.now()}`;
+      const dialogMapId = options?.id ? `${key}-${options.id}` : `${key}-${Date.now()}`;
 
       // Cancel cleanup if dialog was recently closed
       const existingTimer = cleanupTimersRef.current.get(dialogMapId);
@@ -63,17 +63,36 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
         cleanupTimersRef.current.delete(dialogMapId);
       }
 
+      const isNewDialog = !openDialogIds.has(dialogMapId);
+
       dialogMap.set(dialogMapId, {
         id: dialogMapId,
         key,
         props,
+        options: {
+          onClose: options?.onClose,
+          onOpen: options?.onOpen,
+        },
         createdAt: new Date().getTime(),
       });
 
-      setOpenDialogIds(prev => new Set(prev).add(dialogMapId));
+      setOpenDialogIds(prev => {
+        const updated = new Set(prev);
+        updated.add(dialogMapId);
+        return updated;
+      });
+
+      // Call onOpen callback if this is a new dialog
+      if (isNewDialog && options?.onOpen) {
+        // Use setTimeout to ensure dialog is rendered first
+        setTimeout(() => {
+          options.onOpen?.();
+        }, 0);
+      }
+
       return dialogMapId;
     },
-    [dialogMap, dialogComponents]
+    [dialogMap, dialogComponents, openDialogIds]
   );
 
   /**
@@ -137,6 +156,9 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
    */
   const closeDialog = useCallback(
     (id: string) => {
+      const dialog = dialogMap.get(id);
+      const wasOpen = openDialogIds.has(id);
+
       setOpenDialogIds(prev => {
         const updated = new Set(prev);
         updated.delete(id);
@@ -152,8 +174,13 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
 
         return updated;
       });
+
+      // Call onClose callback if dialog was open
+      if (wasOpen && dialog?.options?.onClose) {
+        dialog.options.onClose();
+      }
     },
-    [dialogMap]
+    [dialogMap, openDialogIds]
   );
 
   /**
