@@ -53,10 +53,11 @@ export interface AppDialogSetupOptions {
  * ```
  */
 export function setupAppDialogs<T extends DialogComponentMap>(
-  dialogs: Partial<T>,
-  options: AppDialogSetupOptions = {}
+  options: {
+    dialogs?: Partial<T>;
+  } & AppDialogSetupOptions
 ): void {
-  const { initializeCommon = true, overrideCommon = false } = options;
+  const { dialogs = {}, initializeCommon = true, overrideCommon = false } = options;
 
   // Initialize common dialogs first
   if (initializeCommon) {
@@ -65,7 +66,9 @@ export function setupAppDialogs<T extends DialogComponentMap>(
 
   // Register app-specific dialogs
   // All components are validated to extend DialogOrSheetBaseProps
-  dialogRegistry.registerMany(dialogs, { override: overrideCommon });
+  if (dialogs && Object.keys(dialogs).length > 0) {
+    dialogRegistry.registerMany(dialogs, { override: overrideCommon });
+  }
 }
 
 /**
