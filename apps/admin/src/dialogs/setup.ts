@@ -10,19 +10,28 @@
  * 3. Add it to the dialogs object (eager load) or use registerLazy (lazy load)
  */
 
-import { setupAppDialogs, createLazyDialogLoader } from "@buildbase/dialog-manager/app-setup";
-import { dialogRegistry } from "@buildbase/dialog-manager/registry";
-import type { DialogComponentMap } from "@buildbase/dialog-manager/types";
+import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
+// import { dialogRegistry } from "@buildbase/dialog-manager/registry";
+import type { DialogComponentMap } from "@buildbase/dialog-manager";
+// import { ADMIN_DIALOG_KEYS } from "./constants";
 
 /**
- * Define your app's dialog component map type
- * This provides type safety when registering dialogs
+ * Define your app's dialog component map type.
+ * Use ADMIN_DIALOG_KEYS constants for the keys to ensure consistency.
+ *
+ * @example
+ * ```ts
+ * export type AdminAppDialogs = {
+ *   [ADMIN_DIALOG_KEYS.CREATE_USER]: typeof CreateUserDialog;
+ *   [ADMIN_DIALOG_KEYS.EDIT_USER]: typeof EditUserDialog;
+ * } & DialogComponentMap;
+ * ```
  */
 export type AdminAppDialogs = {
-  // Add your dialog keys here as you create them
+  // Add your dialog keys here using ADMIN_DIALOG_KEYS constants
   // Example:
-  // "admin:create-user": typeof CreateUserDialog;
-  // "admin:manage-permissions": typeof ManagePermissionsDialog;
+  // [ADMIN_DIALOG_KEYS.CREATE_USER]: typeof CreateUserDialog;
+  // [ADMIN_DIALOG_KEYS.EDIT_USER]: typeof EditUserDialog;
 } & DialogComponentMap;
 
 /**
@@ -32,12 +41,12 @@ export type AdminAppDialogs = {
 export function setupAdminDialogs() {
   // Register frequently used dialogs (eager load)
   // These dialogs are loaded immediately when the app starts
-  setupAppDialogs({
+  setupAppDialogs<AdminAppDialogs>({
     dialogs: {
-      // Add your frequently used dialogs here
+      // Add your frequently used dialogs here using ADMIN_DIALOG_KEYS constants
       // Example:
-      // "admin:create-user": CreateUserDialog,
-      // "admin:edit-user": EditUserDialog,
+      // [ADMIN_DIALOG_KEYS.CREATE_USER]: CreateUserDialog,
+      // [ADMIN_DIALOG_KEYS.EDIT_USER]: EditUserDialog,
     },
     initializeCommon: true, // Initialize confirmation & alert dialogs
   });

@@ -10,19 +10,31 @@
  * 3. Add it to the dialogs object (eager load) or use registerLazy (lazy load)
  */
 
-import { setupAppDialogs, createLazyDialogLoader } from "@buildbase/dialog-manager/app-setup";
-import { dialogRegistry } from "@buildbase/dialog-manager/registry";
-import type { DialogComponentMap } from "@buildbase/dialog-manager/types";
+import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
+import type { DialogComponentMap } from "@buildbase/dialog-manager";
+import { PUBLIC_DIALOG_KEYS } from "./constants";
 
 /**
  * Define your app's dialog component map type
  * This provides type safety when registering dialogs
  */
+/**
+ * Define your app's dialog component map type.
+ * Use PUBLIC_DIALOG_KEYS constants for the keys to ensure consistency.
+ * 
+ * @example
+ * ```ts
+ * export type PublicAppDialogs = {
+ *   [PUBLIC_DIALOG_KEYS.CONTACT]: typeof ContactDialog;
+ *   [PUBLIC_DIALOG_KEYS.NEWSLETTER]: typeof NewsletterDialog;
+ * } & DialogComponentMap;
+ * ```
+ */
 export type PublicAppDialogs = {
-  // Add your dialog keys here as you create them
+  // Add your dialog keys here using PUBLIC_DIALOG_KEYS constants
   // Example:
-  // "public:contact": typeof ContactDialog;
-  // "public:newsletter": typeof NewsletterDialog;
+  // [PUBLIC_DIALOG_KEYS.CONTACT]: typeof ContactDialog;
+  // [PUBLIC_DIALOG_KEYS.NEWSLETTER]: typeof NewsletterDialog;
 } & DialogComponentMap;
 
 /**
@@ -32,12 +44,12 @@ export type PublicAppDialogs = {
 export function setupPublicDialogs() {
   // Register frequently used dialogs (eager load)
   // These dialogs are loaded immediately when the app starts
-  setupAppDialogs({
+  setupAppDialogs<PublicAppDialogs>({
     dialogs: {
-      // Add your frequently used dialogs here
+      // Add your frequently used dialogs here using PUBLIC_DIALOG_KEYS constants
       // Example:
-      // "public:contact": ContactDialog,
-      // "public:newsletter": NewsletterDialog,
+      // [PUBLIC_DIALOG_KEYS.CONTACT]: ContactDialog,
+      // [PUBLIC_DIALOG_KEYS.NEWSLETTER]: NewsletterDialog,
     },
     initializeCommon: true, // Initialize confirmation & alert dialogs
   });

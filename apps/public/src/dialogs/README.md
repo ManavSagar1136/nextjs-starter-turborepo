@@ -1,120 +1,141 @@
 # Public App Dialogs
 
-This directory contains all dialog components and setup for the public app.
+This directory contains all dialogs for the public app, including setup, constants, and dialog components.
 
 ## Structure
 
 ```
 dialogs/
-├── setup.ts              # Dialog registration and setup
-├── initialize.tsx        # Client-side initialization component
-├── index.ts              # Barrel exports for dialog components
-├── components/            # Dialog component files
-│   └── .gitkeep
-└── README.md             # This file
+├── constants.ts      # Dialog key constants (single source of truth)
+├── setup.ts         # Dialog registration and setup
+├── index.ts         # Main exports
+├── components/      # Dialog components
+└── README.md        # This file
 ```
 
-## Adding a New Dialog
+## Using Dialog Constants
 
-### 1. Create the Dialog Component
+### 1. Define Dialog Keys in `constants.ts`
 
-Create your dialog component in `components/`:
-
-```tsx
-// dialogs/components/ContactDialog.tsx
-"use client";
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
-
-interface ContactDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  // Your custom props
-}
-
-export default function ContactDialog({
-  open,
-  onOpenChange,
-}: ContactDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Contact Us</DialogTitle>
-        </DialogHeader>
-        {/* Your dialog content */}
-      </DialogContent>
-    </Dialog>
-  );
-}
+```typescript
+export const PUBLIC_DIALOG_KEYS = {
+  CONTACT: "public:contact",
+  NEWSLETTER: "public:newsletter",
+  INPUT: "public:input",
+} as const;
 ```
 
-### 2. Register the Dialog
+### 2. Register Dialogs in `setup.ts`
 
-Add it to `setup.ts`:
-
-```tsx
-// dialogs/setup.ts
+```typescript
+import { PUBLIC_DIALOG_KEYS } from "./constants";
 import ContactDialog from "./components/ContactDialog";
 
-export function setupPublicDialogs() {
-  setupAppDialogs({
-    dialogs: {
-      "public:contact": ContactDialog, // Eager load (frequently used)
-    },
-  });
+export type PublicAppDialogs = {
+  [PUBLIC_DIALOG_KEYS.CONTACT]: typeof ContactDialog;
+} & DialogComponentMap;
 
-  // Or lazy load for heavy/rarely-used dialogs:
-  // dialogRegistry.registerLazy(
-  //   "public:advanced-search",
-  //   createLazyDialogLoader(() => import("./components/AdvancedSearchDialog"))
-  // );
+export function setupPublicDialogs() {
+  setupAppDialogs<PublicAppDialogs>({
+    dialogs: {
+      [PUBLIC_DIALOG_KEYS.CONTACT]: ContactDialog,
+    },
+    initializeCommon: true,
+  });
 }
 ```
 
-### 3. Export from Index (Optional)
+### 3. Use Constants When Opening Dialogs
 
-```tsx
-// dialogs/index.ts
-export { default as ContactDialog } from "./components/ContactDialog";
-```
-
-### 4. Use the Dialog
-
-```tsx
+```typescript
 import { useDialogManager } from "@buildbase/dialog-manager";
+import { PUBLIC_DIALOG_KEYS } from "@/dialogs/constants";
 
 function MyComponent() {
   const { openDialog } = useDialogManager();
 
-  const handleContact = () => {
-    openDialog("public:contact", {
-      // props (excluding open and onOpenChange)
+  const handleOpenContact = () => {
+    openDialog(PUBLIC_DIALOG_KEYS.CONTACT, {
+      title: "Contact Us",
+      // ... other props
     });
   };
 
-  return <button onClick={handleContact}>Contact Us</button>;
+  return <button onClick={handleOpenContact}>Open Contact</button>;
 }
 ```
 
-## Dialog Naming Convention
+## Benefits
 
-Use the pattern: `{app}:{action}` or `{feature}:{action}`
+✅ **Type Safety** - TypeScript will catch typos and invalid keys  
+✅ **Single Source of Truth** - All keys defined in one place  
+✅ **Refactoring** - Easy to rename keys across the entire app  
+✅ **Autocomplete** - IDE autocomplete for dialog keys  
+✅ **Consistency** - Ensures consistent naming across the app
 
-- ✅ `"public:contact"`
-- ✅ `"public:newsletter"`
-- ✅ `"public:subscribe"`
-- ❌ `"contact"` (not namespaced)
-- ❌ `"form"` (too generic)
+## Adding a New Dialog
 
-## Eager vs Lazy Loading
+1. **Add the key to `constants.ts`**:
+   ```typescript
+   export const PUBLIC_DIALOG_KEYS = {
+     // ... existing keys
+     MY_NEW_DIALOG: "public:my-new-dialog",
+   } as const;
+   ```
 
-**Eager Load** (in `setupAppDialogs`):
-- Frequently used dialogs
-- Small, simple dialogs
-- Dialogs that need instant opening
+2. **Create the dialog component** in `components/MyNewDialog.tsx`
 
-**Lazy Load** (with `registerLazy`):
-- Rarely used dialogs
-- Heavy dialogs with large dependencies
-- Secondary/advanced features
+3. **Register it in `setup.ts`**:
+   ```typescript
+   import MyNewDialog from "./components/MyNewDialog";
+   
+   export type PublicAppDialogs = {
+     // ... existing dialogs
+     [PUBLIC_DIALOG_KEYS.MY_NEW_DIALOG]: typeof MyNewDialog;
+   } & DialogComponentMap;
+   
+   setupAppDialogs<PublicAppDialogs>({
+     dialogs: {
+       // ... existing dialogs
+       [PUBLIC_DIALOG_KEYS.MY_NEW_DIALOG]: MyNewDialog,
+     },
+   });
+   ```
+
+4. **Use it in your components**:
+   ```typescript
+   import { PUBLIC_DIALOG_KEYS } from "@/dialogs/constants";
+   
+   openDialog(PUBLIC_DIALOG_KEYS.MY_NEW_DIALOG, { /* props */ });
+   ```
+
+## Importing Constants
+
+You can import constants from the main dialogs export:
+
+```typescript
+// Import from main dialogs export
+import { PUBLIC_DIALOG_KEYS, ALL_DIALOG_KEYS } from "@/dialogs";
+
+// Or import directly
+import { PUBLIC_DIALOG_KEYS } from "@/dialogs/constants";
+```
+
+## Common Dialogs
+
+Common dialogs (confirmation, alert) are available via `COMMON_DIALOG_KEYS`:
+
+```typescript
+import { COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
+
+openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, { /* props */ });
+```
+
+Or use the combined `ALL_DIALOG_KEYS` which includes both common and app-specific:
+
+```typescript
+import { ALL_DIALOG_KEYS } from "@/dialogs";
+
+openDialog(ALL_DIALOG_KEYS.CONFIRMATION, { /* props */ });
+openDialog(ALL_DIALOG_KEYS.CONTACT, { /* props */ });
+```

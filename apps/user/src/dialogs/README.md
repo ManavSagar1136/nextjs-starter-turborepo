@@ -1,127 +1,152 @@
 # User App Dialogs
 
-This directory contains all dialog components and setup for the user app.
+This directory contains all dialogs for the user app, including setup, constants, and dialog components.
 
 ## Structure
 
 ```
 dialogs/
-├── setup.ts              # Dialog registration and setup
-├── initialize.tsx        # Client-side initialization component
-├── index.ts              # Barrel exports for dialog components
-├── components/            # Dialog component files
-│   └── .gitkeep
-└── README.md             # This file
+├── constants.ts      # Dialog key constants (single source of truth)
+├── setup.ts         # Dialog registration and setup
+├── index.ts         # Main exports
+├── components/      # Dialog components
+└── README.md        # This file
 ```
 
-## Adding a New Dialog
+## Using Dialog Constants
 
-### 1. Create the Dialog Component
+### 1. Define Dialog Keys in `constants.ts`
 
-Create your dialog component in `components/`:
-
-```tsx
-// dialogs/components/CreateUserDialog.tsx
-"use client";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@buildbase/ui/dialog";
-
-interface CreateUserDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  // Your custom props
-}
-
-export default function CreateUserDialog({
-  open,
-  onOpenChange,
-}: CreateUserDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create User</DialogTitle>
-        </DialogHeader>
-        {/* Your dialog content */}
-      </DialogContent>
-    </Dialog>
-  );
-}
+```typescript
+export const USER_DIALOG_KEYS = {
+  CREATE: "user:create",
+  EDIT: "user:edit",
+  SETTINGS: "user:settings",
+} as const;
 ```
 
-### 2. Register the Dialog
+### 2. Register Dialogs in `setup.ts`
 
-Add it to `setup.ts`:
+```typescript
+import { USER_DIALOG_KEYS } from "./constants";
+import CreateDialog from "./components/CreateDialog";
 
-```tsx
-// dialogs/setup.ts
-import CreateUserDialog from "./components/CreateUserDialog";
+export type UserAppDialogs = {
+  [USER_DIALOG_KEYS.CREATE]: typeof CreateDialog;
+} & DialogComponentMap;
 
 export function setupUserDialogs() {
-  setupAppDialogs({
+  setupAppDialogs<UserAppDialogs>({
     dialogs: {
-      "user:create": CreateUserDialog, // Eager load (frequently used)
+      [USER_DIALOG_KEYS.CREATE]: CreateDialog,
     },
+    initializeCommon: true,
   });
-
-  // Or lazy load for heavy/rarely-used dialogs:
-  // dialogRegistry.registerLazy(
-  //   "user:bulk-import",
-  //   createLazyDialogLoader(() => import("./components/BulkImportDialog"))
-  // );
 }
 ```
 
-### 3. Export from Index (Optional)
+### 3. Use Constants When Opening Dialogs
 
-```tsx
-// dialogs/index.ts
-export { default as CreateUserDialog } from "./components/CreateUserDialog";
-```
-
-### 4. Use the Dialog
-
-```tsx
+```typescript
 import { useDialogManager } from "@buildbase/dialog-manager";
+import { USER_DIALOG_KEYS } from "@/dialogs/constants";
 
 function MyComponent() {
   const { openDialog } = useDialogManager();
 
-  const handleCreate = () => {
-    openDialog("user:create", {
-      // props (excluding open and onOpenChange)
+  const handleOpenCreate = () => {
+    openDialog(USER_DIALOG_KEYS.CREATE, {
+      title: "Create Item",
+      // ... other props
     });
   };
 
-  return <button onClick={handleCreate}>Create User</button>;
+  return <button onClick={handleOpenCreate}>Create</button>;
 }
 ```
 
-## Dialog Naming Convention
+## Benefits
 
-Use the pattern: `{app}:{action}` or `{feature}:{action}`
+✅ **Type Safety** - TypeScript will catch typos and invalid keys  
+✅ **Single Source of Truth** - All keys defined in one place  
+✅ **Refactoring** - Easy to rename keys across the entire app  
+✅ **Autocomplete** - IDE autocomplete for dialog keys  
+✅ **Consistency** - Ensures consistent naming across the app
 
-- ✅ `"user:create"`
-- ✅ `"user:edit"`
-- ✅ `"settings:profile"`
-- ❌ `"createUser"` (not namespaced)
-- ❌ `"edit"` (too generic)
+## Adding a New Dialog
 
-## Eager vs Lazy Loading
+1. **Add the key to `constants.ts`**:
 
-**Eager Load** (in `setupAppDialogs`):
+   ```typescript
+   export const USER_DIALOG_KEYS = {
+     // ... existing keys
+     MY_NEW_DIALOG: "user:my-new-dialog",
+   } as const;
+   ```
 
-- Frequently used dialogs
-- Small, simple dialogs
-- Dialogs that need instant opening
+2. **Create the dialog component** in `components/MyNewDialog.tsx`
 
-**Lazy Load** (with `registerLazy`):
+3. **Register it in `setup.ts`**:
 
-- Rarely used dialogs
-- Heavy dialogs with large dependencies
-- Secondary/advanced features
+   ```typescript
+   import MyNewDialog from "./components/MyNewDialog";
+
+   export type UserAppDialogs = {
+     // ... existing dialogs
+     [USER_DIALOG_KEYS.MY_NEW_DIALOG]: typeof MyNewDialog;
+   } & DialogComponentMap;
+
+   setupAppDialogs<UserAppDialogs>({
+     dialogs: {
+       // ... existing dialogs
+       [USER_DIALOG_KEYS.MY_NEW_DIALOG]: MyNewDialog,
+     },
+   });
+   ```
+
+4. **Use it in your components**:
+
+   ```typescript
+   import { USER_DIALOG_KEYS } from "@/dialogs/constants";
+
+   openDialog(USER_DIALOG_KEYS.MY_NEW_DIALOG, {
+     /* props */
+   });
+   ```
+
+## Importing Constants
+
+You can import constants from the main dialogs export:
+
+```typescript
+// Import from main dialogs export
+import { USER_DIALOG_KEYS, ALL_DIALOG_KEYS } from "@/dialogs";
+
+// Or import directly
+import { USER_DIALOG_KEYS } from "@/dialogs/constants";
+```
+
+## Common Dialogs
+
+Common dialogs (confirmation, alert) are available via `COMMON_DIALOG_KEYS`:
+
+```typescript
+import { COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
+
+openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+  /* props */
+});
+```
+
+Or use the combined `ALL_DIALOG_KEYS` which includes both common and app-specific:
+
+```typescript
+import { ALL_DIALOG_KEYS } from "@/dialogs";
+
+openDialog(ALL_DIALOG_KEYS.CONFIRMATION, {
+  /* props */
+});
+openDialog(ALL_DIALOG_KEYS.CREATE, {
+  /* props */
+});
+```
