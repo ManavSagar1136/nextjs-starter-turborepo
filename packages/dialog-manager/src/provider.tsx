@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { dialogRegistry } from "./registry";
@@ -33,12 +33,90 @@ export interface DialogProviderProps {
 /**
  * Provides context and rendering logic for dialogs across the application.
  */
+/**
+ * Component that handles URL-based dialog opening.
+ * Wrapped in Suspense to satisfy Next.js requirements for useSearchParams.
+ */
+const UrlDialogHandler = ({
+  enableUrlDialogs,
+  customDialogs,
+  openDialog,
+  onToast,
+  router,
+}: {
+  enableUrlDialogs: boolean;
+  customDialogs?: DialogComponentMap;
+  openDialog: <K extends DialogKey>(
+    key: K,
+    props: Omit<React.ComponentProps<any>, "open" | "onOpenChange">,
+    options?: { id?: string; onClose?: () => void; onOpen?: () => void }
+  ) => string;
+  onToast?: (options: { title: string; description?: string; variant?: "default" | "destructive" }) => void;
+  router: ReturnType<typeof useRouter>;
+}) => {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!enableUrlDialogs || typeof window === "undefined") {
+      return;
+    }
+
+    const dialogKey = searchParams.get(DIALOG_URL_PARAMS.DIALOG);
+    const dialogPropsParam = searchParams.get(DIALOG_URL_PARAMS.DIALOG_PROPS);
+
+    // Check if dialog key exists in URL
+    if (dialogKey) {
+      const isValidDialogKey = dialogRegistry.has(dialogKey) || (customDialogs && dialogKey in customDialogs);
+
+      // Check if dialog is blacklisted from URL opening
+      const isBlacklisted = DIALOG_URL_BLACKLIST.includes(dialogKey as any);
+
+      if (isValidDialogKey && !isBlacklisted) {
+        try {
+          let dialogProps: Record<string, any> = {};
+
+          // Parse dialog props from URL if provided
+          if (dialogPropsParam) {
+            dialogProps = JSON.parse(decodeURIComponent(dialogPropsParam));
+          }
+
+          // Open the dialog with the parsed props
+          openDialog(dialogKey as DialogKey, dialogProps);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          if (onToast) {
+            onToast({
+              title: "Failed to open dialog",
+              description: "Unable to open the requested dialog. Please try again.",
+              variant: "destructive",
+            });
+          } else {
+            console.error("Failed to open dialog:", errorMessage);
+          }
+        }
+      }
+
+      // Clean up URL parameters regardless of validity or success
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.delete(DIALOG_URL_PARAMS.DIALOG);
+      newSearchParams.delete(DIALOG_URL_PARAMS.DIALOG_PROPS);
+
+      const newSearch = newSearchParams.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+
+      // Use replace to avoid adding to browser history
+      router.replace(newUrl);
+    }
+  }, [searchParams, openDialog, router, enableUrlDialogs, customDialogs, onToast]);
+
+  return null;
+};
+
 export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, customDialogs }: DialogProviderProps) => {
   const [openDialogIds, setOpenDialogIds] = useState<Set<string>>(new Set());
   const [dialogMap] = useState<Map<string, DialogInstance>>(new Map());
   const cleanupTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Get dialog components from registry or custom dialogs
   const dialogComponents = useMemo(() => {
@@ -94,62 +172,6 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
     },
     [dialogMap, dialogComponents, openDialogIds]
   );
-
-  /**
-   * Effect to handle opening dialogs from URL search parameters.
-   */
-  useEffect(() => {
-    if (!enableUrlDialogs || typeof window === "undefined") {
-      return;
-    }
-
-    const dialogKey = searchParams.get(DIALOG_URL_PARAMS.DIALOG);
-    const dialogPropsParam = searchParams.get(DIALOG_URL_PARAMS.DIALOG_PROPS);
-
-    // Check if dialog key exists in URL
-    if (dialogKey) {
-      const isValidDialogKey = dialogRegistry.has(dialogKey) || (customDialogs && dialogKey in customDialogs);
-
-      // Check if dialog is blacklisted from URL opening
-      const isBlacklisted = DIALOG_URL_BLACKLIST.includes(dialogKey as any);
-
-      if (isValidDialogKey && !isBlacklisted) {
-        try {
-          let dialogProps: Record<string, any> = {};
-
-          // Parse dialog props from URL if provided
-          if (dialogPropsParam) {
-            dialogProps = JSON.parse(decodeURIComponent(dialogPropsParam));
-          }
-
-          // Open the dialog with the parsed props
-          openDialog(dialogKey as DialogKey, dialogProps);
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : "Unknown error";
-          if (onToast) {
-            onToast({
-              title: "Failed to open dialog",
-              description: "Unable to open the requested dialog. Please try again.",
-              variant: "destructive",
-            });
-          } else {
-            console.error("Failed to open dialog:", errorMessage);
-          }
-        }
-      }
-
-      // Clean up URL parameters regardless of validity or success
-      const newSearchParams = new URLSearchParams(searchParams.toString());
-      newSearchParams.delete(DIALOG_URL_PARAMS.DIALOG);
-      newSearchParams.delete(DIALOG_URL_PARAMS.DIALOG_PROPS);
-
-      const newSearch = newSearchParams.toString();
-      const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
-
-      // Use replace to avoid adding to browser history
-      router.replace(newUrl);
-    }
-  }, [searchParams, openDialog, router, enableUrlDialogs, customDialogs, onToast]);
 
   /**
    * Closes the dialog and schedules a cleanup to remove its entry after a delay.
@@ -235,10 +257,21 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
     };
 
     loadLazyDialogs();
-  }, [orderedDialogs, openDialogIds, dialogComponents]);
+  }, [orderedDialogs, openDialogIds, dialogComponents, lazyDialogs]);
 
   return (
     <DialogContext.Provider value={{ openDialog, closeDialog, forceCloseAllDialogs }}>
+      {enableUrlDialogs && (
+        <Suspense fallback={null}>
+          <UrlDialogHandler
+            enableUrlDialogs={enableUrlDialogs}
+            customDialogs={customDialogs}
+            openDialog={openDialog}
+            onToast={onToast}
+            router={router}
+          />
+        </Suspense>
+      )}
       {children}
       {orderedDialogs.map(dialog => {
         const isOpen = openDialogIds.has(dialog.id);
