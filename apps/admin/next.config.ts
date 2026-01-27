@@ -2,9 +2,10 @@ import type { NextConfig } from "next";
 import { resolve } from "path";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // TypeScript errors should be fixed, not ignored
+  // typescript: {
+  //   ignoreBuildErrors: true,
+  // },
   transpilePackages: [
     "@buildbase/ui",
     "@buildbase/magicui",
