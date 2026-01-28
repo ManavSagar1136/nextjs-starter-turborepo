@@ -125,11 +125,11 @@ export const useDocPostByPath = (
   path: string,
   enabled: boolean = true,
   queryOptions?: Omit<
-    UseQueryOptions<IDocPost, Error>,
+    UseQueryOptions<IDocPost | null, Error>,
     "queryKey" | "queryFn" | "enabled"
   >,
 ) => {
-  return useQuery<IDocPost>({
+  return useQuery<IDocPost | null>({
     queryKey: TANSTACK_KEYS.docs.postByPath(path),
     queryFn: async () => {
       return await API.docs.getByPath(path);

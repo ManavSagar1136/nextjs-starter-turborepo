@@ -10,7 +10,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from "@buildbase/ui/components/ui/pagination";
 
 import { cn } from "@buildbase/ui/lib/utils";
 
@@ -182,7 +182,7 @@ const PaginationControls = ({
         <PaginationItem>
           <PaginationPrevious
             href="#"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent) => {
               e.preventDefault();
               if (hasPreviousPage) {
                 handlePageChange(validCurrentPage - 1);
@@ -202,7 +202,7 @@ const PaginationControls = ({
             ) : (
               <PaginationLink
                 href="#"
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.preventDefault();
                   handlePageChange(page);
                 }}
@@ -219,7 +219,7 @@ const PaginationControls = ({
         <PaginationItem>
           <PaginationNext
             href="#"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent) => {
               e.preventDefault();
               if (hasNextPage) {
                 handlePageChange(validCurrentPage + 1);
