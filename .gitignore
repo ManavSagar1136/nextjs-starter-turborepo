@@ -97,3 +97,10 @@ storybook-static/
 .yalc/
 yalc.lock
 packages/*/yalc.lock
+
+# Ralph planning files (AI development)
+prd.json
+progress.txt
+ralph.sh
+CLAUDE.md
+TESTING_PLAN.md
