@@ -1,0 +1,118 @@
+{
+  "name": "@buildbase/testing",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "description": "Shared testing utilities, mocks, fixtures, and configurations for the CMS monorepo",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./config/vitest": {
+      "types": "./dist/config/vitest.config.d.ts",
+      "default": "./dist/config/vitest.config.js"
+    },
+    "./setup/unit": {
+      "types": "./dist/setup/unit.setup.d.ts",
+      "default": "./dist/setup/unit.setup.js"
+    },
+    "./setup/integration": {
+      "types": "./dist/setup/integration.setup.d.ts",
+      "default": "./dist/setup/integration.setup.js"
+    },
+    "./mocks/prisma": {
+      "types": "./dist/mocks/prisma.mock.d.ts",
+      "default": "./dist/mocks/prisma.mock.js"
+    },
+    "./mocks/next": {
+      "types": "./dist/mocks/next.mock.d.ts",
+      "default": "./dist/mocks/next.mock.js"
+    },
+    "./mocks/http": {
+      "types": "./dist/mocks/http.mock.d.ts",
+      "default": "./dist/mocks/http.mock.js"
+    },
+    "./mocks/redis": {
+      "types": "./dist/mocks/redis.mock.d.ts",
+      "default": "./dist/mocks/redis.mock.js"
+    },
+    "./mocks/buildbase": {
+      "types": "./dist/mocks/buildbase.mock.d.ts",
+      "default": "./dist/mocks/buildbase.mock.js"
+    },
+    "./mocks/qstash": {
+      "types": "./dist/mocks/qstash.mock.d.ts",
+      "default": "./dist/mocks/qstash.mock.js"
+    },
+    "./fixtures": {
+      "types": "./dist/fixtures/index.d.ts",
+      "default": "./dist/fixtures/index.js"
+    },
+    "./fixtures/user": {
+      "types": "./dist/fixtures/user.fixture.d.ts",
+      "default": "./dist/fixtures/user.fixture.js"
+    },
+    "./fixtures/workspace": {
+      "types": "./dist/fixtures/workspace.fixture.d.ts",
+      "default": "./dist/fixtures/workspace.fixture.js"
+    },
+    "./utils/render": {
+      "types": "./dist/utils/render.d.ts",
+      "default": "./dist/utils/render.js"
+    },
+    "./utils/api-test": {
+      "types": "./dist/utils/api-test.d.ts",
+      "default": "./dist/utils/api-test.js"
+    },
+    "./e2e/pages": {
+      "types": "./dist/e2e/pages/index.d.ts",
+      "default": "./dist/e2e/pages/index.js"
+    },
+    "./e2e/fixtures": {
+      "types": "./dist/e2e/fixtures/index.d.ts",
+      "default": "./dist/e2e/fixtures/index.js"
+    },
+    "./e2e/helpers": {
+      "types": "./dist/e2e/helpers/index.d.ts",
+      "default": "./dist/e2e/helpers/index.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.3.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.5.2",
+    "msw": "^2.7.0",
+    "vitest-mock-extended": "^2.0.2"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@playwright/test": "^1.49.1",
+    "@types/react": "^19.1.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.39.1",
+    "happy-dom": "^15.11.7",
+    "typescript": "5.9.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^2.1.8"
+  }
+}
