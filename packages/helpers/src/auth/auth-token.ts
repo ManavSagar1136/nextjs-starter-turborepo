@@ -43,7 +43,7 @@ export const createAuthToken = (userData: Partial<AuthenticatedUser>): string =>
  * @param token - JWT token to set, or undefined/null/empty string to clear
  * @returns The same response with cookie set/cleared
  */
-export const setAuthTokenCookie = (response: NextResponse, token?: string | null): NextResponse => {
+export const setAuthTokenCookie = <T>(response: NextResponse<T>, token?: string | null): NextResponse<T> => {
   const tokenValue = token || "";
   response.cookies.set(AUTH_TOKEN_COOKIE_NAME, tokenValue, {
     ...BASE_COOKIE_OPTIONS,
@@ -68,7 +68,7 @@ export const withAuthToken = <T = any>(data: T, userData: Partial<AuthenticatedU
  * @param response - NextResponse to clear the cookie on
  * @returns The same response with cookie cleared
  */
-export const clearAuthTokenCookie = (response: NextResponse): NextResponse => {
+export const clearAuthTokenCookie = <T>(response: NextResponse<T>): NextResponse<T> => {
   return setAuthTokenCookie(response);
 };
 
