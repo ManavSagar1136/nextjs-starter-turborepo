@@ -67,6 +67,9 @@ jobs:
         env:
           DATABASE_URL: "mongodb://localhost:27017/test"
 
+      - name: Build packages
+        run: yarn build
+
       - name: Type check
         run: yarn check-types
 
