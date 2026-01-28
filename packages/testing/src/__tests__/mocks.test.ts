@@ -4,7 +4,7 @@
  * Verify that mock utilities work correctly
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { prismaMock, resetPrismaMock, createPrismaMock, setupPrismaMock } from "../mocks/prisma.mock";
 import {
   mockRouter,
