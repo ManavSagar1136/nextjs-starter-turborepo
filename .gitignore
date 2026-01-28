@@ -49,7 +49,7 @@ yarn-error.log*
 
 # Package files
 package-lock.json
-yarn.lock
+# yarn.lock - KEEP COMMITTED for CI
 *.tgz
 
 # Prisma generated client
