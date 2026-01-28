@@ -7,5 +7,5 @@ export async function POST(_request: NextRequest) {
     message: "Logged out successfully",
   });
 
-  return clearAuthTokenCookie(response as NextResponse);
+  return clearAuthTokenCookie(response);
 }
