@@ -11,11 +11,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,css,json,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,css,json,yml,yaml}\"",
     "prepare": "husky install",
-    "test": "turbo run test",
-    "test:unit": "turbo run test:unit",
-    "test:integration": "turbo run test:integration",
-    "test:e2e": "turbo run test:e2e",
-    "test:coverage": "turbo run test:coverage"
+    "test": "turbo run test"
   },
   "devDependencies": {
     "husky": "^9.1.7",
