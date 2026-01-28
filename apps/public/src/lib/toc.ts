@@ -25,8 +25,8 @@ export function generateTOCFromText(textContent: string): TOCItem[] {
   lines.forEach((line) => {
     const match = line.match(/^(#{1,6})\s+(.+)$/);
     if (match) {
-      const level = match[1].length;
-      const text = match[2].trim();
+      const level = match[1]!.length;
+      const text = match[2]!.trim();
       const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
       toc.push({ level, text, id });

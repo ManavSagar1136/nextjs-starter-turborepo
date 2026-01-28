@@ -166,11 +166,11 @@ export const useBlogPostByPath = (
   path: string,
   enabled: boolean = true,
   queryOptions?: Omit<
-    UseQueryOptions<IBlogPost, Error>,
+    UseQueryOptions<IBlogPost | null, Error>,
     "queryKey" | "queryFn" | "enabled"
   >,
 ) => {
-  return useQuery<IBlogPost>({
+  return useQuery<IBlogPost | null>({
     queryKey: TANSTACK_KEYS.blogs.postByPath(path),
     queryFn: async () => {
       return await API.blogs.getByPath(path);

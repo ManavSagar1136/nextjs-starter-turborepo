@@ -39,9 +39,9 @@ export function parseDocPath(path: string): {
     throw new Error("Invalid path: empty path");
   }
   if (parts.length === 1) {
-    return { folderPath: null, slug: parts[0] };
+    return { folderPath: null, slug: parts[0]! };
   }
-  const slug = parts[parts.length - 1];
+  const slug = parts[parts.length - 1]!;
   const folderPath = parts.slice(0, -1).join("/");
   return { folderPath, slug };
 }

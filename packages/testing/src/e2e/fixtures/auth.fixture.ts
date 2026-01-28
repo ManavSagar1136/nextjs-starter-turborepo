@@ -37,7 +37,7 @@
  * ```
  */
 
-import { test as base, type Page, type BrowserContext } from "@playwright/test";
+import { test as base, type Page } from "@playwright/test";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -164,7 +164,7 @@ export const test = base.extend<AuthFixtures>({
     await use(save);
   },
 
-  clearAuthState: async ({}, use) => {
+  clearAuthState: async (_, use) => {
     const clear = async (filePath = AUTH_FILE) => {
       clearAuthStateFile(filePath);
     };
