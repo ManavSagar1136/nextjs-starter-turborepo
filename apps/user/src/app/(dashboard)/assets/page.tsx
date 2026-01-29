@@ -15,6 +15,7 @@ import {
   AssignTagsDialog,
   MoveAssetDialog,
   MediaUploadDialog,
+  AssetPreviewDialog,
   type UploadedFile,
 } from "@buildbase/dialog-manager/media-library";
 import { useDialogManager, COMMON_DIALOG_KEYS, type ConfirmationDialogProps } from "@buildbase/dialog-manager";
@@ -464,6 +465,9 @@ export default function AssetsPage() {
     $limit?: number;
   }>({ $page: 1, $limit: 20 });
 
+  // Preview dialog state (needs to be here to pass to provider)
+  const [previewAsset, setPreviewAsset] = useState<IAsset | null>(null);
+
   const assetsQuery = useAssets(queryParams);
   const folderTreeQuery = useFolderTree();
   const tagsQuery = useTags();
@@ -475,6 +479,14 @@ export default function AssetsPage() {
 
   const handleTogglePrivacy = useCallback(async (asset: IAsset) => {
     // Handled in AssetsPageContent
+  }, []);
+
+  const handlePreviewAsset = useCallback((asset: IAsset) => {
+    setPreviewAsset(asset);
+  }, []);
+
+  const handleDownloadAsset = useCallback((asset: IAsset) => {
+    window.open(asset.url, "_blank");
   }, []);
 
   return (
@@ -491,8 +503,20 @@ export default function AssetsPage() {
       onRefreshTags={() => tagsQuery.refetch()}
       onDeleteAsset={handleDeleteAsset}
       onTogglePrivacy={handleTogglePrivacy}
+      onPreviewAsset={handlePreviewAsset}
+      onDownloadAsset={handleDownloadAsset}
     >
       <AssetsPageContent />
+
+      {/* Asset Preview Dialog - at page level to receive from provider */}
+      {previewAsset && (
+        <AssetPreviewDialog
+          open={!!previewAsset}
+          onOpenChange={open => !open && setPreviewAsset(null)}
+          asset={previewAsset}
+          onDownload={() => window.open(previewAsset.url, "_blank")}
+        />
+      )}
     </MediaLibraryProvider>
   );
 }

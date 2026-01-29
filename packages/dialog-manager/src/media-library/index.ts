@@ -22,6 +22,7 @@ export { EditTagDialog } from "./EditTagDialog";
 export { AssignTagsDialog } from "./AssignTagsDialog";
 export { MoveAssetDialog } from "./MoveAssetDialog";
 export { MediaUploadDialog } from "./MediaUploadDialog";
+export { AssetPreviewDialog, type AssetPreviewDialogProps } from "./AssetPreviewDialog";
 
 // Shared Components
 export { FolderTreeSelect } from "./FolderTreeSelect";
@@ -40,6 +41,7 @@ export const MEDIA_LIBRARY_DIALOG_KEYS = {
   ASSIGN_TAGS: "media-library:assign-tags",
   MOVE_ASSET: "media-library:move-asset",
   MEDIA_UPLOAD: "media-library:upload",
+  ASSET_PREVIEW: "media-library:asset-preview",
 } as const;
 
 export type MediaLibraryDialogKey = (typeof MEDIA_LIBRARY_DIALOG_KEYS)[keyof typeof MEDIA_LIBRARY_DIALOG_KEYS];
