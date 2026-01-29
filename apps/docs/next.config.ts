@@ -13,9 +13,10 @@ const withNextra = nextra({
 });
 
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // TypeScript errors should be fixed, not ignored
+  // typescript: {
+  //   ignoreBuildErrors: true,
+  // },
   transpilePackages: ["nextra", "nextra-theme-docs"],
   turbopack: {
     root: resolve(__dirname, "../.."),

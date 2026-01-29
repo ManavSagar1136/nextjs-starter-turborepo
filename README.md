@@ -591,35 +591,35 @@ See `packages/env/README.md` and `ENV_MANAGEMENT.md` for more details.
 
 ## Scripts
 
-| Command            | Description                           |
-| ------------------ | ------------------------------------- |
-| `yarn dev`         | Start all apps in development mode    |
-| `yarn build`       | Build all packages and apps           |
-| `yarn lint`        | Lint all packages and apps            |
-| `yarn check-types` | Type check all packages and apps      |
-| `yarn format`      | Format code with Prettier             |
-| `yarn db:generate` | Generate Prisma client                |
-| `yarn db:push`     | Push schema to database               |
-| `yarn db:migrate`  | Run database migrations               |
-| `yarn db:studio`   | Open Prisma Studio                    |
+| Command            | Description                        |
+| ------------------ | ---------------------------------- |
+| `yarn dev`         | Start all apps in development mode |
+| `yarn build`       | Build all packages and apps        |
+| `yarn lint`        | Lint all packages and apps         |
+| `yarn check-types` | Type check all packages and apps   |
+| `yarn format`      | Format code with Prettier          |
+| `yarn db:generate` | Generate Prisma client             |
+| `yarn db:push`     | Push schema to database            |
+| `yarn db:migrate`  | Run database migrations            |
+| `yarn db:studio`   | Open Prisma Studio                 |
 
 ---
 
 ## Tech Stack
 
-| Category           | Technology                       |
-| ------------------ | -------------------------------- |
-| **Framework**      | Next.js 16                       |
-| **Language**       | TypeScript                       |
-| **Styling**        | Tailwind CSS                     |
-| **UI Components**  | shadcn/ui, Magic UI              |
-| **Database**       | Prisma                           |
-| **Data Fetching**  | TanStack Query                   |
-| **State**          | Redux Toolkit                    |
-| **Caching**        | Upstash Redis                    |
-| **Messaging**      | Upstash QStash                   |
-| **Monorepo**       | Turborepo                        |
-| **Package Manager**| Yarn Workspaces                  |
+| Category            | Technology          |
+| ------------------- | ------------------- |
+| **Framework**       | Next.js 16          |
+| **Language**        | TypeScript          |
+| **Styling**         | Tailwind CSS        |
+| **UI Components**   | shadcn/ui, Magic UI |
+| **Database**        | Prisma              |
+| **Data Fetching**   | TanStack Query      |
+| **State**           | Redux Toolkit       |
+| **Caching**         | Upstash Redis       |
+| **Messaging**       | Upstash QStash      |
+| **Monorepo**        | Turborepo           |
+| **Package Manager** | Yarn Workspaces     |
 
 ---
 
