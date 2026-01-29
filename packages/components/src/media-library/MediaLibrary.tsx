@@ -1,0 +1,221 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { FolderPlus, PanelLeft, Upload, X } from "lucide-react";
+
+import { Button } from "@buildbase/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@buildbase/ui/sheet";
+import { cn } from "@buildbase/ui/lib/utils";
+
+import { AssetGrid } from "./AssetGrid";
+import { BreadcrumbNav } from "./BreadcrumbNav";
+import { useMediaLibrary } from "./context";
+import { FolderSidebar } from "./FolderTree";
+import { SearchAndFilters } from "./SearchAndFilters";
+import { type IFolderTreeItem } from "./types";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface MediaLibraryProps {
+  className?: string;
+  /** Custom header content */
+  headerContent?: React.ReactNode;
+  /** Custom actions to show in the header */
+  actions?: React.ReactNode;
+  /** Callback when upload is requested */
+  onUpload?: () => void;
+  /** Callback when create folder is requested */
+  onCreateFolder?: () => void;
+  /** Callback when edit folder is requested */
+  onEditFolder?: (folder: IFolderTreeItem) => void;
+  /** Callback when delete folder is requested */
+  onDeleteFolder?: (folder: IFolderTreeItem) => void;
+  /** Callback when move folder is requested */
+  onMoveFolder?: (folder: IFolderTreeItem) => void;
+}
+
+// ============================================================================
+// Media Library Component
+// ============================================================================
+
+export function MediaLibrary({
+  className,
+  headerContent,
+  actions,
+  onUpload,
+  onCreateFolder,
+  onEditFolder,
+  onDeleteFolder,
+  onMoveFolder,
+}: MediaLibraryProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const { config, isLoadingFolders } = useMediaLibrary();
+
+  return (
+    <div className={cn("bg-background flex h-full overflow-hidden", className)}>
+      {/* Desktop Sidebar */}
+      {config.enableFolders && (
+        <div className="border-border bg-card/50 hidden w-64 flex-col border-r md:flex lg:w-72">
+          <FolderSidebar
+            onCreateFolder={onCreateFolder}
+            onEditFolder={onEditFolder}
+            onDeleteFolder={onDeleteFolder}
+            onMoveFolder={onMoveFolder}
+          />
+        </div>
+      )}
+
+      {/* Mobile Sidebar */}
+      {config.enableFolders && (
+        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+          <SheetContent side="left" className="flex w-80 flex-col p-0">
+            <SheetHeader className="border-border flex flex-row items-center justify-between border-b p-4">
+              <SheetTitle>Folders</SheetTitle>
+              <SheetClose asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <X className="h-4 w-4" />
+                </Button>
+              </SheetClose>
+            </SheetHeader>
+            <FolderSidebar
+              onCreateFolder={() => {
+                onCreateFolder?.();
+                setMobileSidebarOpen(false);
+              }}
+              onEditFolder={folder => {
+                onEditFolder?.(folder);
+                setMobileSidebarOpen(false);
+              }}
+              onDeleteFolder={folder => {
+                onDeleteFolder?.(folder);
+                setMobileSidebarOpen(false);
+              }}
+              onMoveFolder={folder => {
+                onMoveFolder?.(folder);
+                setMobileSidebarOpen(false);
+              }}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Main Content */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
+        <div className="border-border bg-card/50 shrink-0 border-b">
+          <div className="p-4 lg:p-5">
+            {/* Title and Actions Row */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex min-w-0 items-center gap-2">
+                {/* Mobile sidebar toggle */}
+                {config.enableFolders && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 shrink-0 p-0 md:hidden"
+                    onClick={() => setMobileSidebarOpen(true)}
+                  >
+                    <PanelLeft className="h-5 w-5" />
+                  </Button>
+                )}
+
+                {/* Breadcrumb */}
+                {config.enableFolders && <BreadcrumbNav maxVisibleItems={3} />}
+
+                {/* Custom header content */}
+                {headerContent}
+              </div>
+
+              {/* Actions */}
+              <div className="flex shrink-0 items-center gap-2">
+                {actions}
+
+                {config.enableFolders && onCreateFolder && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onCreateFolder}
+                    disabled={isLoadingFolders}
+                    className="hidden gap-1.5 sm:flex"
+                  >
+                    <FolderPlus className="h-4 w-4" />
+                    <span className="hidden lg:inline">{config.labels.newFolderButton}</span>
+                  </Button>
+                )}
+
+                {config.enableUpload && onUpload && (
+                  <Button size="sm" onClick={onUpload} className="gap-1.5">
+                    <Upload className="h-4 w-4" />
+                    <span className="hidden sm:inline">{config.labels.uploadButton}</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Search and Filters */}
+            <SearchAndFilters />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div ref={scrollRef} className="flex-1 overflow-auto">
+          <AssetGrid scrollContainerRef={scrollRef} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Minimal Media Library (without sidebar, for embedded use)
+// ============================================================================
+
+interface MinimalMediaLibraryProps {
+  className?: string;
+  /** Custom actions to show in the header */
+  actions?: React.ReactNode;
+  /** Callback when upload is requested */
+  onUpload?: () => void;
+}
+
+export function MinimalMediaLibrary({ className, actions, onUpload }: MinimalMediaLibraryProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { config } = useMediaLibrary();
+
+  return (
+    <div className={cn("bg-background flex h-full flex-col", className)}>
+      {/* Header */}
+      <div className="border-border bg-card/50 shrink-0 border-b">
+        <div className="p-4">
+          {/* Actions Row */}
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">{config.labels.title}</h2>
+
+            <div className="flex items-center gap-2">
+              {actions}
+
+              {config.enableUpload && onUpload && (
+                <Button size="sm" onClick={onUpload} className="gap-1.5">
+                  <Upload className="h-4 w-4" />
+                  {config.labels.uploadButton}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Search and Filters */}
+          <SearchAndFilters />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div ref={scrollRef} className="flex-1 overflow-auto">
+        <AssetGrid scrollContainerRef={scrollRef} />
+      </div>
+    </div>
+  );
+}

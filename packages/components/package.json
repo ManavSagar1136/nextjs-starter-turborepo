@@ -29,6 +29,10 @@
     "./dashboard": {
       "types": "./dist/dashboard/index.d.ts",
       "default": "./dist/dashboard/index.js"
+    },
+    "./media-library": {
+      "types": "./dist/media-library/index.d.ts",
+      "default": "./dist/media-library/index.js"
     }
   },
   "license": "MIT",
