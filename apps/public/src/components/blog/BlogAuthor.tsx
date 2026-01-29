@@ -95,7 +95,7 @@ export function BlogAuthor({
 
   // Compact variant (small avatar + name, no label)
   if (variant === "compact") {
-    const firstAuthor = authors[0];
+    const firstAuthor = authors[0]!;
     return (
       <div className={cn("flex items-center gap-1.5 min-w-0", className)}>
         <Avatar className={cn("flex-shrink-0", avatarSizeClasses[avatarSize])}>

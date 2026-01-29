@@ -11,10 +11,10 @@ import React, {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
+import { Input } from "@buildbase/ui/components/ui/input";
 
 import { cn } from "@buildbase/ui/lib/utils";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useDebounce } from "@buildbase/helpers/hooks/use-debounce";
 
 const SEARCH_DEBOUNCE_TIME = 350;
 

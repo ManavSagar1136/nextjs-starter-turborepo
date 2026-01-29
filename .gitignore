@@ -49,7 +49,7 @@ yarn-error.log*
 
 # Package files
 package-lock.json
-yarn.lock
+# yarn.lock - KEEP COMMITTED for CI
 *.tgz
 
 # Prisma generated client
@@ -97,3 +97,10 @@ storybook-static/
 .yalc/
 yalc.lock
 packages/*/yalc.lock
+
+# Ralph planning files (AI development)
+prd.json
+progress.txt
+ralph.sh
+CLAUDE.md
+TESTING_PLAN.md

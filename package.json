@@ -10,14 +10,19 @@
     "type-check": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md,css,json,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,css,json,yml,yaml}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "turbo run test"
   },
   "devDependencies": {
     "husky": "^9.1.7",
+    "jiti": "^2.6.1",
     "lint-staged": "^15.2.11",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.6.0",
     "turbo": "^2.7.3"
+  },
+  "resolutions": {
+    "jiti": "^2.6.1"
   },
   "engines": {
     "node": ">=20.9.0"

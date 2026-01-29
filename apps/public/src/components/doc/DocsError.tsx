@@ -2,7 +2,7 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { cn } from "@buildbase/ui/lib/utils";
 
-import { Button } from "../ui/button";
+import { Button } from "@buildbase/ui/components/ui/button";
 
 const DocsError = ({
   error,

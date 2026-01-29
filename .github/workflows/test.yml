@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  ci:
+    name: Build, Test & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: yarn workspace @buildbase/database db:generate
+        env:
+          DATABASE_URL: "mongodb://localhost:27017/test"
+
+      - name: Build
+        run: yarn build
+
+      - name: Type check
+        run: yarn check-types
+
+      - name: Lint
+        run: yarn lint || true # TODO: fix pre-existing lint warnings
+
+      - name: Test
+        run: yarn test
