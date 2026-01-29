@@ -46,6 +46,9 @@ export { initializeCommonDialogs } from "./initialize";
 export { setupAppDialogs, createLazyDialogLoader } from "./app-setup";
 export type { AppDialogSetupOptions } from "./app-setup";
 
+// Media Library Dialogs
+export { MEDIA_LIBRARY_DIALOG_KEYS, type MediaLibraryDialogKey } from "./media-library";
+
 /**
  * Builds a URL for opening a dialog with optional props.
  *

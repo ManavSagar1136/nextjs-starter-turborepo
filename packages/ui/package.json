@@ -144,6 +144,10 @@
       "types": "./dist/components/ui/toggle-group.d.ts",
       "default": "./dist/components/ui/toggle-group.js"
     },
+    "./label": {
+      "types": "./dist/components/ui/label.d.ts",
+      "default": "./dist/components/ui/label.js"
+    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"

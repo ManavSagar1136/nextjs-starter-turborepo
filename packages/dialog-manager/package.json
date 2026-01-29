@@ -33,6 +33,10 @@
     "./app-setup": {
       "types": "./dist/app-setup.d.ts",
       "default": "./dist/app-setup.js"
+    },
+    "./media-library": {
+      "types": "./dist/media-library/index.d.ts",
+      "default": "./dist/media-library/index.js"
     }
   },
   "license": "MIT",
