@@ -59,15 +59,22 @@ export function setupAppDialogs<T extends DialogComponentMap>(
 ): void {
   const { dialogs = {}, initializeCommon = true, overrideCommon = false } = options;
 
-  // Initialize common dialogs first
+  // Initialize common dialogs first (idempotent - safe to call multiple times)
   if (initializeCommon) {
     initializeCommonDialogs();
   }
 
-  // Register app-specific dialogs
+  // Register app-specific dialogs (skip if already registered, unless override is true)
   // All components are validated to extend DialogOrSheetBaseProps
+  // This makes the function idempotent for React Strict Mode
   if (dialogs && Object.keys(dialogs).length > 0) {
-    dialogRegistry.registerMany(dialogs, { override: overrideCommon });
+    Object.entries(dialogs).forEach(([key, component]) => {
+      if (component && (!dialogRegistry.has(key) || overrideCommon)) {
+        dialogRegistry.register(key, component as DialogOrSheetComponent<DialogOrSheetBaseProps>, {
+          override: overrideCommon,
+        });
+      }
+    });
   }
 }
 
