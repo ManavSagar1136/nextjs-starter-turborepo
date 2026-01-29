@@ -51,6 +51,26 @@ export const env = createEnv({
 
     // Cron Jobs (Vercel Cron)
     CRON_SECRET: z.string().min(1).optional(),
+
+    // Storage Provider Configuration
+    STORAGE_PROVIDER: z.enum(["gcs", "s3", "local", "azure"]).optional(),
+
+    // Google Cloud Storage
+    GCS_PROJECT_ID: z.string().optional(),
+    GCS_BUCKET_NAME: z.string().optional(),
+    GCS_KEY_FILE: z.string().optional(),
+    GOOGLE_CLOUD_PROJECT: z.string().optional(),
+    GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
+
+    // AWS S3
+    AWS_REGION: z.string().optional(),
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_BUCKET_NAME: z.string().optional(),
+
+    // Local Storage (dev)
+    LOCAL_STORAGE_PATH: z.string().optional(),
+    LOCAL_STORAGE_URL: z.string().optional(),
   },
 
   /**
@@ -114,6 +134,26 @@ export const env = createEnv({
 
     // Cron Jobs (Vercel Cron)
     CRON_SECRET: process.env.CRON_SECRET,
+
+    // Storage Provider
+    STORAGE_PROVIDER: process.env.STORAGE_PROVIDER,
+
+    // Google Cloud Storage
+    GCS_PROJECT_ID: process.env.GCS_PROJECT_ID,
+    GCS_BUCKET_NAME: process.env.GCS_BUCKET_NAME,
+    GCS_KEY_FILE: process.env.GCS_KEY_FILE,
+    GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
+    GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+
+    // AWS S3
+    AWS_REGION: process.env.AWS_REGION,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
+
+    // Local Storage
+    LOCAL_STORAGE_PATH: process.env.LOCAL_STORAGE_PATH,
+    LOCAL_STORAGE_URL: process.env.LOCAL_STORAGE_URL,
   },
 
   /**
