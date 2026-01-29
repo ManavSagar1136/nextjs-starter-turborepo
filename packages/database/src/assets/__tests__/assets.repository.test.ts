@@ -137,8 +137,8 @@ describe("AssetsRepository", () => {
       const result = await AssetsRepository.create(createData);
 
       expect(prisma.asset.create).toHaveBeenCalled();
-      const createCall = vi.mocked(prisma.asset.create).mock.calls[0][0];
-      expect(createCall.data.folderId).toBe("folder-123");
+      const createCall = vi.mocked(prisma.asset.create).mock.calls[0]?.[0];
+      expect(createCall?.data.folderId).toBe("folder-123");
     });
   });
 

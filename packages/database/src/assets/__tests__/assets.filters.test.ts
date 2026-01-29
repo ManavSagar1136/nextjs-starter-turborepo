@@ -119,13 +119,15 @@ describe("convertWhereToMongoExpr", () => {
 
   it("should handle isPublic filter", () => {
     const result = convertWhereToMongoExpr({ isPublic: true });
-    expect(result?.$expr?.$and).toContainEqual({ $eq: ["$isPublic", true] });
+    const expr = result?.$expr as { $and?: unknown[] } | undefined;
+    expect(expr?.$and).toContainEqual({ $eq: ["$isPublic", true] });
   });
 
   it("should combine with metadata filter", () => {
     const metadataFilter = { "metadata.width": { $gte: 100 } };
     const result = convertWhereToMongoExpr({ isPublic: true }, metadataFilter);
-    expect(result?.$expr?.$and).toBeDefined();
-    expect((result?.$expr?.$and as unknown[]).length).toBeGreaterThan(1);
+    const expr = result?.$expr as { $and?: unknown[] } | undefined;
+    expect(expr?.$and).toBeDefined();
+    expect((expr?.$and as unknown[]).length).toBeGreaterThan(1);
   });
 });
