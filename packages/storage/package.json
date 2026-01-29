@@ -1,0 +1,45 @@
+{
+  "name": "@buildbase/storage",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./factory": "./dist/factory.js",
+    "./types": "./dist/types.js",
+    "./config": "./dist/config.js",
+    "./providers/gcs": "./dist/providers/gcs.provider.js",
+    "./providers/s3": "./dist/providers/s3.provider.js",
+    "./providers/local": "./dist/providers/local.provider.js",
+    "./utils": "./dist/utils/index.js"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.16.0",
+    "@aws-sdk/client-s3": "^3.800.0",
+    "@aws-sdk/s3-request-presigner": "^3.800.0",
+    "mime-types": "^2.1.35",
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^22.15.30",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
