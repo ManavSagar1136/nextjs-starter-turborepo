@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/generated/client/index.js",
-    "./user": "./src/user/index.ts"
+    "./user": "./src/user/index.ts",
+    "./assets": "./src/assets/index.ts"
   },
   "scripts": {
     "build": "prisma generate",

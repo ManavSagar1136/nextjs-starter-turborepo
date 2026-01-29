@@ -12,6 +12,11 @@ model User {
   workspaces       WorkspaceMember[]
   currentWorkspace Workspace?        @relation("UserCurrentWorkspace", fields: [currentWorkspaceId], references: [id])
 
+  // Asset relationships
+  assets       Asset[]
+  assetFolders AssetFolder[]
+  mediaTags    MediaTag[]
+
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

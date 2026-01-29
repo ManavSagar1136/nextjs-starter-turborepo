@@ -16,3 +16,6 @@ export * from "./generated/client";
 
 // Export user service functions
 export * from "./user";
+
+// Export asset repository and filters
+export * from "./assets";
