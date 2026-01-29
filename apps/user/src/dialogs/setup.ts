@@ -6,6 +6,7 @@
  */
 
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
+import type { DialogComponentMap } from "@buildbase/dialog-manager";
 
 // Media Library Dialogs
 import {
@@ -26,19 +27,23 @@ import {
  * This function should be called once when the app initializes
  */
 export function setupUserDialogs() {
+  // Type assertion needed because dialog props have required callbacks
+  // that are provided when openDialog is called, not at registration time
+  const dialogs = {
+    // Media Library dialogs
+    [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: CreateFolderDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: EditFolderDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER]: MoveFolderDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG]: CreateTagDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG]: EditTagDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS]: AssignTagsDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
+  } as unknown as DialogComponentMap;
+
   setupAppDialogs({
-    dialogs: {
-      // Media Library dialogs
-      [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: CreateFolderDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: EditFolderDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER]: MoveFolderDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG]: CreateTagDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG]: EditTagDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS]: AssignTagsDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
-      [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
-    },
+    dialogs,
     initializeCommon: true, // Initialize confirmation & alert dialogs
   });
 }
