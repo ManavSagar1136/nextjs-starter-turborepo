@@ -9,8 +9,8 @@ import type {
   SignedUrlOptions,
   ListOptions,
   ListResult,
-  ValidationError,
 } from "../types";
+import { ValidationError } from "../types";
 
 /**
  * Abstract base class for storage providers

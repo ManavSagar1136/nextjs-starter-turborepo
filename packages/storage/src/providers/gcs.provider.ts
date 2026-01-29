@@ -204,7 +204,7 @@ export class GcsStorageProvider extends BaseStorageProvider {
         updatedAt: file.metadata.updated || new Date().toISOString(),
         createdAt: file.metadata.timeCreated,
       })),
-      nextPageToken: apiResponse?.nextPageToken,
+      nextPageToken: (apiResponse as { nextPageToken?: string })?.nextPageToken,
     };
   }
 

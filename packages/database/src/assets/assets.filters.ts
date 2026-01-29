@@ -98,11 +98,11 @@ export function buildAssetFilter(
           .map(type => type.trim())
           .filter(Boolean);
 
-    if (contentTypes.length === 1) {
+    if (contentTypes.length === 1 && contentTypes[0]) {
       const condition = buildContentTypeCondition(contentTypes[0]);
       where.contentType = condition.contentType;
     } else if (contentTypes.length > 1) {
-      contentTypeConditions.push(...contentTypes.map(buildContentTypeCondition));
+      contentTypeConditions.push(...contentTypes.filter((ct): ct is string => !!ct).map(buildContentTypeCondition));
     }
   }
 

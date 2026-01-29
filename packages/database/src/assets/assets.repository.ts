@@ -67,7 +67,7 @@ export class AssetsRepository {
         contentType: params.contentType,
         bucket: params.bucket,
         isPublic: params.isPublic,
-        metadata: params.metadata,
+        metadata: params.metadata as object | undefined,
         workspaceId: params.workspaceId,
         userId: params.userId,
         folderId: params.folderId,
@@ -140,21 +140,25 @@ export class AssetsRepository {
       return null;
     }
 
-    // Format response
-    const folder = asset.folder
+    // Format response - use type assertions for included relations
+    const assetWithRelations = asset as typeof asset & {
+      folder?: { id: string; name: string } | null;
+      assetTags?: Array<{
+        tag: { id: string; name: string; slug: string; color: string | null } | null;
+      }>;
+      workspace?: { id: string; name: string };
+    };
+
+    const folder = assetWithRelations.folder
       ? {
-          id: (asset.folder as { id: string; name: string }).id,
-          name: (asset.folder as { id: string; name: string }).name,
+          id: assetWithRelations.folder.id,
+          name: assetWithRelations.folder.name,
         }
       : null;
 
-    const tags = (
-      asset.assetTags as Array<{
-        tag: { id: string; name: string; slug: string; color: string | null } | null;
-      }>
-    )
+    const tags = (assetWithRelations.assetTags || [])
       .map(at => at.tag)
-      .filter(Boolean);
+      .filter((tag): tag is NonNullable<typeof tag> => tag !== null);
 
     return {
       ...asset,
@@ -190,9 +194,24 @@ export class AssetsRepository {
    * Update an asset
    */
   static async update(id: string, data: UpdateAssetParams) {
+    // Transform the data to match Prisma's expected format
+    const updateData: Parameters<typeof prisma.asset.update>[0]["data"] = {};
+
+    if (data.filename !== undefined) updateData.filename = data.filename;
+    if (data.path !== undefined) updateData.path = data.path;
+    if (data.url !== undefined) updateData.url = data.url;
+    if (data.size !== undefined) updateData.size = data.size;
+    if (data.contentType !== undefined) updateData.contentType = data.contentType;
+    if (data.bucket !== undefined) updateData.bucket = data.bucket;
+    if (data.isPublic !== undefined) updateData.isPublic = data.isPublic;
+    if (data.metadata !== undefined) updateData.metadata = data.metadata as object;
+    if (data.folderId !== undefined) {
+      updateData.folderId = data.folderId;
+    }
+
     return prisma.asset.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 
@@ -280,15 +299,19 @@ export class AssetsRepository {
    * Add tags to asset
    */
   static async addTags(assetId: string, tagIds: string[]) {
-    const data = tagIds.map(tagId => ({
-      assetId,
-      tagId,
-    }));
-
-    return prisma.assetTag.createMany({
-      data,
-      skipDuplicates: true,
-    });
+    // MongoDB doesn't support skipDuplicates, so we use upsert for each tag
+    const results = await Promise.all(
+      tagIds.map(tagId =>
+        prisma.assetTag.upsert({
+          where: {
+            assetId_tagId: { assetId, tagId },
+          },
+          create: { assetId, tagId },
+          update: {}, // No update needed, just ensure it exists
+        })
+      )
+    );
+    return { count: results.length };
   }
 
   /**
