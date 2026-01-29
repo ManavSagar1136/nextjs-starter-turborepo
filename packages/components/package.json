@@ -40,7 +40,9 @@
     "build": "tsc",
     "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
-    "lint": "eslint src --max-warnings 0"
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "react": "^19",
@@ -59,10 +61,15 @@
     "@buildbase/eslint-config": "*",
     "@buildbase/tailwind-config": "*",
     "@buildbase/typescript-config": "*",
+    "@buildbase/testing": "*",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@types/aos": "^3.0.7",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "eslint": "^9.39.1",
-    "typescript": "5.9.2"
+    "jsdom": "^26.1.0",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.3"
   }
 }
