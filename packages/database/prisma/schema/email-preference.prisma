@@ -21,6 +21,5 @@ model EmailPreference {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   
-  @@index([token])
   @@map("email_preferences")
 }

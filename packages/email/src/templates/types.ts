@@ -11,8 +11,10 @@ export type {
   TemplateVariable,
   ListEmailTemplatesOptions as ListTemplatesOptions,
   PaginatedEmailTemplates as PaginatedResult,
-  EmailTemplateCategory,
 } from "@buildbase/database";
+
+// Re-export Prisma's EmailTemplateCategory (from generated client via database)
+export type { EmailTemplateCategory } from "@buildbase/database";
 
 /**
  * Variable type in a template

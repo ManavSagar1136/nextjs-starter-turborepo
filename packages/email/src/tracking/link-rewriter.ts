@@ -90,7 +90,9 @@ export function extractLinks(html: string): string[] {
   let match;
 
   while ((match = linkRegex.exec(html)) !== null) {
-    links.push(match[1]);
+    if (match[1]) {
+      links.push(match[1]);
+    }
   }
 
   return links;

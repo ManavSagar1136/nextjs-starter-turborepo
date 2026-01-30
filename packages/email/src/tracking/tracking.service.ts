@@ -173,7 +173,7 @@ export class TrackingService {
           ipAddress: requestInfo?.ipAddress,
           userAgent: requestInfo?.userAgent,
           linkUrl: extra?.linkUrl,
-          metadata: extra?.metadata,
+          metadata: extra?.metadata as object | undefined,
         },
       });
     } catch (error) {

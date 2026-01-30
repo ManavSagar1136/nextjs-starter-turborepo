@@ -2,9 +2,10 @@
  * @buildbase/database - Email Template Types
  */
 
-import type { EmailTemplate } from "../generated/client";
+import type { EmailTemplate, EmailTemplateCategory as PrismaEmailTemplateCategory } from "../generated/client";
 
-export type EmailTemplateCategory = "TRANSACTIONAL" | "MARKETING" | "NOTIFICATION" | "SYSTEM" | "CUSTOM";
+// Re-export Prisma's EmailTemplateCategory to avoid conflicts
+export type EmailTemplateCategory = PrismaEmailTemplateCategory;
 
 export interface CreateEmailTemplateInput {
   slug?: string;

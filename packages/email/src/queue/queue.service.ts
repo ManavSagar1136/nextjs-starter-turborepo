@@ -209,7 +209,10 @@ export class EmailQueueService {
     const match = delay.match(/^(\d+)(ms|s|m|h|d)$/);
     if (!match) return parseInt(delay, 10) || undefined;
 
-    const [, value, unit] = match;
+    const value = match[1];
+    const unit = match[2];
+    if (!value || !unit) return undefined;
+
     const multipliers: Record<string, number> = {
       ms: 1,
       s: 1000,
@@ -218,7 +221,7 @@ export class EmailQueueService {
       d: 24 * 60 * 60 * 1000,
     };
 
-    return parseInt(value) * multipliers[unit];
+    return parseInt(value, 10) * (multipliers[unit] ?? 1);
   }
 }
 
