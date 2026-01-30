@@ -24,5 +24,5 @@
  */
 
 export { createLogger, createChildLogger } from "./logger.js";
-export type { Logger, LoggerConfig, LogContext, LogLevel } from "./types.js";
+export type { Logger, LoggerConfig, LogContext, LogLevel, NewRelicConfig } from "./types.js";
 export { DEFAULT_REDACT_PATHS } from "./types.js";

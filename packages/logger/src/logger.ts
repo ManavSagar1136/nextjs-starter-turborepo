@@ -10,6 +10,20 @@ const isDevelopment = (): boolean => {
 };
 
 /**
+ * Try to get New Relic linking metadata for log correlation
+ * Returns empty object if New Relic is not available
+ */
+const getNewRelicLinkingMetadata = (): Record<string, string> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const newrelic = require("newrelic");
+    return newrelic.getLinkingMetadata?.() || {};
+  } catch {
+    return {};
+  }
+};
+
+/**
  * Build redaction configuration for Pino
  */
 const buildRedactConfig = (customPaths: string[] = []): { paths: string[] } => {
@@ -135,12 +149,19 @@ const wrapPinoLogger = (pinoLogger: PinoLoggerInstance): Logger => {
  *
  * logger.info('User created', { userId: '123' });
  * logger.error(new Error('Failed'), 'Operation failed');
+ *
+ * // With New Relic integration
+ * const loggerWithNR = createLogger({
+ *   serviceName: 'user-app',
+ *   newRelic: { enabled: true },
+ * });
  * ```
  */
 export const createLogger = (config: LoggerConfig): Logger => {
-  const { serviceName, level = "info", redact = [], prettyPrint = isDevelopment(), base = {} } = config;
+  const { serviceName, level = "info", redact = [], prettyPrint = isDevelopment(), base = {}, newRelic = {} } = config;
 
   const redactConfig = buildRedactConfig(redact);
+  const newRelicEnabled = newRelic.enabled ?? false;
 
   const pinoOptions: pino.LoggerOptions = {
     name: serviceName,
@@ -154,6 +175,11 @@ export const createLogger = (config: LoggerConfig): Logger => {
     formatters: {
       level: label => ({ level: label }),
     },
+    // Add New Relic linking metadata to each log entry when enabled
+    // This adds trace.id and span.id for log correlation
+    ...(newRelicEnabled && {
+      mixin: () => getNewRelicLinkingMetadata(),
+    }),
   };
 
   // Use pino-pretty transport in development
