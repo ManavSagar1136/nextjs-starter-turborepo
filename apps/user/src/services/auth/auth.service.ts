@@ -81,4 +81,17 @@ export class AuthApis extends BaseApiPaginationController<IAuth> {
   async handleWorkspaceEvent(payload: IWorkspaceEventPayload): Promise<IWorkspaceEventResponse> {
     return (await this.post<IWorkspaceEventResponse>(`${this.urlPath}/workspace-event`, {}, {}, payload)).data;
   }
+
+  /**
+   * Change workspace - called when user switches workspaces via SDK's WorkspaceSwitcher
+   * @param workspace - Workspace object from SDK
+   * @param user - User object from SDK
+   * @param role - User's role in the workspace
+   * @returns Response with updated token
+   */
+  async changeWorkspace(workspace: any, user: any, role: string): Promise<IWorkspaceEventResponse> {
+    return (
+      await this.post<IWorkspaceEventResponse>(`${this.urlPath}/workspace-change`, {}, {}, { workspace, user, role })
+    ).data;
+  }
 }
