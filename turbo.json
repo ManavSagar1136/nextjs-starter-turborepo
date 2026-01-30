@@ -35,7 +35,9 @@
     "NEW_RELIC_ENABLED",
     "NEW_RELIC_LICENSE_KEY",
     "NEW_RELIC_APP_NAME",
-    "LOG_LEVEL"
+    "NEW_RELIC_LOG_LEVEL",
+    "LOG_LEVEL",
+    "NEXT_RUNTIME"
   ],
   "globalDependencies": [],
   "tasks": {
