@@ -7,7 +7,7 @@
 
 ## Objective
 
-Implement all email providers (SMTP, Resend, Mailgun, SendGrid, AWS SES) with auto-detection from environment variables.
+Implement all email provider adapters (SMTP, Resend, Mailgun, SendGrid, AWS SES) that receive configuration from the database (not environment variables).
 
 ---
 
@@ -80,30 +80,31 @@ Implement all email providers (SMTP, Resend, Mailgun, SendGrid, AWS SES) with au
 - [ ] Supports explicit credentials
 - [ ] Handles SES-specific errors (sandbox, quotas)
 
-### US-2.6: Provider Auto-Detection
+### US-2.6: Provider Config Validation
 
-**As a** developer  
-**I want** the system to auto-detect the best provider  
-**So that** I don't need to explicitly configure it
-
-**Acceptance Criteria:**
-
-- [ ] Detects provider from available env vars
-- [ ] Priority: explicit > resend > mailgun > sendgrid > smtp > ses > console
-- [ ] Logs which provider was selected
-- [ ] Falls back gracefully
-
-### US-2.7: Provider Registry
-
-**As a** developer  
-**I want** a registry of all available providers  
-**So that** I can list and query providers programmatically
+**As an** admin  
+**I want** provider configs validated before saving  
+**So that** I catch errors early
 
 **Acceptance Criteria:**
 
-- [ ] `getAvailableProviders()` returns list
-- [ ] `isProviderConfigured(name)` checks env
-- [ ] Registry is extensible for custom providers
+- [ ] Each provider has validation schema
+- [ ] Validates required fields per provider type
+- [ ] Validates field formats (email, URL, port ranges)
+- [ ] Returns helpful error messages
+
+### US-2.7: Provider Connection Test
+
+**As an** admin  
+**I want** to test provider connection before saving  
+**So that** I know the config is correct
+
+**Acceptance Criteria:**
+
+- [ ] `testConnection()` method on each provider
+- [ ] SMTP: attempts connection to server
+- [ ] API providers: validates API key with test call
+- [ ] Returns success/failure with detailed error
 
 ### US-2.8: Integration Tests
 
