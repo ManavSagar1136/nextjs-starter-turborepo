@@ -4,9 +4,11 @@
  */
 
 import { randomUUID } from "crypto";
-import type { PrismaClient } from "@buildbase/database/client";
+import type { PrismaClient } from "@buildbase/database";
 import type { SendEmailOptions, SendResult, BulkSendResult } from "../core/types.js";
+import type { SendTemplateOptions } from "../templates/types.js";
 import { EmailFactory } from "../factory/email.factory.js";
+import { TemplateService } from "../templates/template.service.js";
 
 /**
  * Main email service for sending emails
@@ -114,10 +116,88 @@ export class EmailService {
   }
 
   /**
+   * Send email using a template by slug
+   */
+  static async sendTemplate(slug: string, options: SendTemplateOptions): Promise<SendResult & { templateId: string }> {
+    const factory = EmailFactory.getInstance();
+    const prisma = (factory as unknown as { providerService: { prisma: PrismaClient } }).providerService?.prisma;
+
+    if (!prisma) {
+      throw new Error("EmailService not initialized. Call EmailService.initialize(prisma) first.");
+    }
+
+    const templateService = new TemplateService(prisma);
+    const rendered = await templateService.renderBySlug(slug, options.variables);
+
+    const result = await this.send({
+      to: options.to,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+      from: options.from,
+      replyTo: options.replyTo,
+      cc: options.cc,
+      bcc: options.bcc,
+      headers: options.headers,
+      providerId: options.providerId,
+      disableTracking: options.disableTracking,
+    });
+
+    return {
+      ...result,
+      templateId: rendered.templateId,
+    };
+  }
+
+  /**
+   * Send email using a template by ID
+   */
+  static async sendTemplateById(
+    templateId: string,
+    options: SendTemplateOptions
+  ): Promise<SendResult & { templateId: string }> {
+    const factory = EmailFactory.getInstance();
+    const prisma = (factory as unknown as { providerService: { prisma: PrismaClient } }).providerService?.prisma;
+
+    if (!prisma) {
+      throw new Error("EmailService not initialized. Call EmailService.initialize(prisma) first.");
+    }
+
+    const templateService = new TemplateService(prisma);
+    const rendered = await templateService.render(templateId, options.variables);
+
+    const result = await this.send({
+      to: options.to,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+      from: options.from,
+      replyTo: options.replyTo,
+      cc: options.cc,
+      bcc: options.bcc,
+      headers: options.headers,
+      providerId: options.providerId,
+      disableTracking: options.disableTracking,
+    });
+
+    return {
+      ...result,
+      templateId: rendered.templateId,
+    };
+  }
+
+  /**
    * Get the factory instance for advanced usage
    */
   static getFactory(): EmailFactory {
     return EmailFactory.getInstance();
+  }
+
+  /**
+   * Get template service for template management
+   */
+  static getTemplateService(prisma: PrismaClient): TemplateService {
+    return new TemplateService(prisma);
   }
 }
 

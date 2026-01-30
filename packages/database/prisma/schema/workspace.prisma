@@ -15,6 +15,9 @@ model Workspace {
   // Email providers
   emailProviders EmailProvider[]
 
+  // Email templates
+  emailTemplates EmailTemplate[]
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

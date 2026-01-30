@@ -1,0 +1,59 @@
+// Email Template model - stores reusable email templates
+// Supports variable interpolation via Handlebars
+
+enum EmailTemplateCategory {
+  TRANSACTIONAL
+  MARKETING
+  NEWSLETTER
+  NOTIFICATION
+  WELCOME
+  VERIFICATION
+  PASSWORD_RESET
+  INVITATION
+  REMINDER
+  CUSTOM
+}
+
+model EmailTemplate {
+  id          String                @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // Identity
+  slug        String                @unique  // URL-friendly identifier
+  name        String                // Display name
+  description String?
+  
+  // Content
+  subject     String                // Subject line (supports variables)
+  html        String                // HTML content (supports variables)
+  text        String?               // Plain text fallback
+  design      String?               // JSON for visual editor (MJML, React Email)
+  
+  // Categorization
+  category    EmailTemplateCategory @default(TRANSACTIONAL)
+  tags        String[]
+  
+  // Variables (JSON array of {name, type, required, default, description})
+  variables   String                @default("[]")
+  
+  // Versioning
+  version     Int                   @default(1)
+  isActive    Boolean               @default(true)
+  isDefault   Boolean               @default(false)  // Default for category
+  
+  // Multi-tenant
+  workspaceId String?               @db.ObjectId
+  workspace   Workspace?            @relation(fields: [workspaceId], references: [id])
+  
+  // Audit
+  createdById String?               @db.ObjectId
+  createdBy   User?                 @relation("EmailTemplateCreatedBy", fields: [createdById], references: [id])
+  updatedById String?               @db.ObjectId
+  updatedBy   User?                 @relation("EmailTemplateUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  
+  @@index([category])
+  @@index([isActive])
+  @@index([workspaceId])
+  @@map("email_templates")
+}

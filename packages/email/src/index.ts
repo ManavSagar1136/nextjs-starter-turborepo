@@ -39,3 +39,15 @@ export { EmailFactory } from "./factory/email.factory.js";
 // Service exports
 export { EmailService, sendEmail } from "./service/email.service.js";
 export { ProviderService } from "./service/provider.service.js";
+
+// Template exports
+export * from "./templates/types.js";
+export {
+  renderTemplate,
+  extractVariables,
+  validateVariables,
+  applyDefaults,
+  htmlToText,
+  generateSlug,
+} from "./templates/renderer.js";
+export { TemplateService, TemplateNotFoundError, MissingVariablesError } from "./templates/template.service.js";
