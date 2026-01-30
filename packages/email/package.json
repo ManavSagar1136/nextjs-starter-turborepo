@@ -33,10 +33,15 @@
     "./service": {
       "types": "./dist/service/index.d.ts",
       "default": "./dist/service/index.js"
+    },
+    "./queue": {
+      "types": "./dist/queue/index.d.ts",
+      "default": "./dist/queue/index.js"
     }
   },
   "dependencies": {
     "@buildbase/database": "*",
+    "@buildbase/qstash": "*",
     "nodemailer": "^6.9.0",
     "resend": "^4.0.0",
     "mailgun.js": "^10.0.0",

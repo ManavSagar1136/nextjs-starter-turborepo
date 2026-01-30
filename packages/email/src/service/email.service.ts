@@ -7,8 +7,10 @@ import { randomUUID } from "crypto";
 import type { PrismaClient } from "@buildbase/database";
 import type { SendEmailOptions, SendResult, BulkSendResult } from "../core/types.js";
 import type { SendTemplateOptions } from "../templates/types.js";
+import type { SendWithQueueOptions, QueueResult, BulkQueueResult } from "../queue/types.js";
 import { EmailFactory } from "../factory/email.factory.js";
 import { TemplateService } from "../templates/template.service.js";
+import { EmailQueue } from "../queue/queue.service.js";
 
 /**
  * Main email service for sending emails
@@ -18,8 +20,11 @@ export class EmailService {
    * Initialize the email service with Prisma client
    * Must be called before using other methods
    */
-  static initialize(prisma: PrismaClient): void {
+  static async initialize(prisma: PrismaClient): Promise<void> {
     EmailFactory.initialize(prisma);
+
+    // Initialize queue service
+    await EmailQueue.initialize();
   }
 
   /**
@@ -30,9 +35,30 @@ export class EmailService {
   }
 
   /**
-   * Send a single email
+   * Check if queue is configured
    */
-  static async send(options: SendEmailOptions): Promise<SendResult> {
+  static isQueueConfigured(): boolean {
+    return EmailQueue.configured;
+  }
+
+  /**
+   * Send a single email (supports queue options)
+   */
+  static async send(options: SendWithQueueOptions): Promise<SendResult | QueueResult> {
+    // Check if should queue
+    if (options.queue || options.delay || options.scheduledAt) {
+      const { queue, delay, scheduledAt, maxRetries, ...emailOptions } = options;
+      return EmailQueue.enqueue(emailOptions, { delay, scheduledAt, maxRetries });
+    }
+
+    // Direct send
+    return this.sendDirect(options);
+  }
+
+  /**
+   * Send email directly (no queue)
+   */
+  static async sendDirect(options: SendEmailOptions): Promise<SendResult> {
     const factory = EmailFactory.getInstance();
     const provider = await factory.getProvider(options.providerId);
 
@@ -64,16 +90,27 @@ export class EmailService {
   /**
    * Send email using a specific provider
    */
-  static async sendWith(providerId: string, options: Omit<SendEmailOptions, "providerId">): Promise<SendResult> {
+  static async sendWith(
+    providerId: string,
+    options: Omit<SendWithQueueOptions, "providerId">
+  ): Promise<SendResult | QueueResult> {
     return this.send({ ...options, providerId });
   }
 
   /**
-   * Send multiple emails
+   * Send multiple emails (supports queue)
    */
-  static async sendBulk(emails: SendEmailOptions[], providerId?: string): Promise<BulkSendResult> {
+  static async sendBulk(
+    emails: SendEmailOptions[],
+    options?: { providerId?: string; queue?: boolean }
+  ): Promise<BulkSendResult | BulkQueueResult> {
+    // If queue option is set, use bulk queue
+    if (options?.queue && EmailQueue.configured) {
+      return EmailQueue.enqueueBulk(emails);
+    }
+
     const factory = EmailFactory.getInstance();
-    const provider = await factory.getProvider(providerId);
+    const provider = await factory.getProvider(options?.providerId);
 
     // Use provider's bulk send if available
     if (provider.sendBulk) {
@@ -87,9 +124,9 @@ export class EmailService {
     for (const email of emails) {
       const recipientEmail = Array.isArray(email.to) ? (email.to[0] ?? "unknown") : email.to;
       try {
-        const result = await this.send({
+        const result = await this.sendDirect({
           ...email,
-          providerId: providerId ?? email.providerId,
+          providerId: options?.providerId ?? email.providerId,
         });
 
         if (result.success) {
@@ -116,9 +153,26 @@ export class EmailService {
   }
 
   /**
+   * Queue email for delayed sending
+   */
+  static async delay(email: SendEmailOptions, delay: number | string): Promise<QueueResult> {
+    return EmailQueue.delay(email, delay);
+  }
+
+  /**
+   * Schedule email for specific time
+   */
+  static async schedule(email: SendEmailOptions, scheduledAt: Date | string): Promise<QueueResult> {
+    return EmailQueue.schedule(email, scheduledAt);
+  }
+
+  /**
    * Send email using a template by slug
    */
-  static async sendTemplate(slug: string, options: SendTemplateOptions): Promise<SendResult & { templateId: string }> {
+  static async sendTemplate(
+    slug: string,
+    options: SendTemplateOptions & { queue?: boolean; delay?: number | string; scheduledAt?: Date | string }
+  ): Promise<(SendResult | QueueResult) & { templateId: string }> {
     const factory = EmailFactory.getInstance();
     const prisma = (factory as unknown as { providerService: { prisma: PrismaClient } }).providerService?.prisma;
 
@@ -129,7 +183,7 @@ export class EmailService {
     const templateService = new TemplateService(prisma);
     const rendered = await templateService.renderBySlug(slug, options.variables);
 
-    const result = await this.send({
+    const emailOptions: SendEmailOptions = {
       to: options.to,
       subject: rendered.subject,
       html: rendered.html,
@@ -141,12 +195,19 @@ export class EmailService {
       headers: options.headers,
       providerId: options.providerId,
       disableTracking: options.disableTracking,
-    });
-
-    return {
-      ...result,
-      templateId: rendered.templateId,
     };
+
+    // Check if should queue
+    if (options.queue || options.delay || options.scheduledAt) {
+      const result = await EmailQueue.enqueue(emailOptions, {
+        delay: options.delay,
+        scheduledAt: options.scheduledAt,
+      });
+      return { ...result, templateId: rendered.templateId };
+    }
+
+    const result = await this.sendDirect(emailOptions);
+    return { ...result, templateId: rendered.templateId };
   }
 
   /**
@@ -154,8 +215,8 @@ export class EmailService {
    */
   static async sendTemplateById(
     templateId: string,
-    options: SendTemplateOptions
-  ): Promise<SendResult & { templateId: string }> {
+    options: SendTemplateOptions & { queue?: boolean; delay?: number | string; scheduledAt?: Date | string }
+  ): Promise<(SendResult | QueueResult) & { templateId: string }> {
     const factory = EmailFactory.getInstance();
     const prisma = (factory as unknown as { providerService: { prisma: PrismaClient } }).providerService?.prisma;
 
@@ -166,7 +227,7 @@ export class EmailService {
     const templateService = new TemplateService(prisma);
     const rendered = await templateService.render(templateId, options.variables);
 
-    const result = await this.send({
+    const emailOptions: SendEmailOptions = {
       to: options.to,
       subject: rendered.subject,
       html: rendered.html,
@@ -178,12 +239,19 @@ export class EmailService {
       headers: options.headers,
       providerId: options.providerId,
       disableTracking: options.disableTracking,
-    });
-
-    return {
-      ...result,
-      templateId: rendered.templateId,
     };
+
+    // Check if should queue
+    if (options.queue || options.delay || options.scheduledAt) {
+      const result = await EmailQueue.enqueue(emailOptions, {
+        delay: options.delay,
+        scheduledAt: options.scheduledAt,
+      });
+      return { ...result, templateId: rendered.templateId };
+    }
+
+    const result = await this.sendDirect(emailOptions);
+    return { ...result, templateId: rendered.templateId };
   }
 
   /**
@@ -199,11 +267,18 @@ export class EmailService {
   static getTemplateService(prisma: PrismaClient): TemplateService {
     return new TemplateService(prisma);
   }
+
+  /**
+   * Get queue service for queue management
+   */
+  static getQueue(): typeof EmailQueue {
+    return EmailQueue;
+  }
 }
 
 /**
  * Convenience function for sending a single email
  */
-export async function sendEmail(options: SendEmailOptions): Promise<SendResult> {
+export async function sendEmail(options: SendWithQueueOptions): Promise<SendResult | QueueResult> {
   return EmailService.send(options);
 }

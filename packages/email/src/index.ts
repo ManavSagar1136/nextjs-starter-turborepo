@@ -51,3 +51,9 @@ export {
   generateSlug,
 } from "./templates/renderer.js";
 export { TemplateService, TemplateNotFoundError, MissingVariablesError } from "./templates/template.service.js";
+
+// Queue exports
+export * from "./queue/types.js";
+export { EmailQueue, EmailQueueService, getEmailQueue } from "./queue/queue.service.js";
+export { verifyQStashSignature, createQStashMiddleware, processQueuedEmail } from "./queue/verify.js";
+export { QueueNotConfiguredError, QueueOperationError } from "./queue/errors.js";
