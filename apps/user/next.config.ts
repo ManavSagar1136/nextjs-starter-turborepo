@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   // typescript: {
   //   ignoreBuildErrors: true,
   // },
+  // Externalize packages that don't work well with bundlers
+  serverExternalPackages: ["pino", "pino-pretty", "newrelic"],
   transpilePackages: [
     "@buildbase/ui",
     "@buildbase/magicui",
