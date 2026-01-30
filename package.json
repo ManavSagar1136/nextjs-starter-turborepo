@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --concurrency=20",
+    "dev": "turbo run dev --concurrency=25",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint --fix",
     "check-types": "turbo run check-types",
