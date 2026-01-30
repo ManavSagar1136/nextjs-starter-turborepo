@@ -41,6 +41,9 @@ const EmailProvidersPage = () => {
   const handleCreate = () => {
     const props: CommonDialogProps<typeof COMMON_DIALOG_KEYS.EMAIL_PROVIDER> = {
       mode: "create",
+      onSaveProvider: async (data: any) => {
+        return await API.email.providers.create(data);
+      },
       onSuccess: () => {
         setRefreshCounter(prev => prev + 1);
       },
@@ -60,6 +63,28 @@ const EmailProvidersPage = () => {
         fromEmail: provider.fromEmail,
         isDefault: provider.isDefault,
         isActive: provider.isActive,
+      },
+      onFetchProvider: async (id: string) => {
+        const data = await API.email.providers.getById(id, true);
+        return {
+          name: data.name,
+          description: data.description,
+          type: data.type,
+          fromName: data.fromName,
+          fromEmail: data.fromEmail,
+          replyTo: data.replyTo,
+          isDefault: data.isDefault,
+          isActive: data.isActive,
+          config: data.config as Record<string, unknown>,
+        };
+      },
+      onSaveProvider: async (data: any, mode: "create" | "edit", id?: string) => {
+        if (mode === "create") {
+          return await API.email.providers.create(data);
+        } else if (id) {
+          return await API.email.providers.update(id, data);
+        }
+        throw new Error("Provider ID is required for edit mode");
       },
       onSuccess: () => {
         setRefreshCounter(prev => prev + 1);

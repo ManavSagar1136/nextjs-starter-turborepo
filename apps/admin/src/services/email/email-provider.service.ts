@@ -14,6 +14,7 @@ export interface EmailProvider {
   lastUsedAt?: string;
   createdAt: string;
   updatedAt: string;
+  config?: Record<string, unknown> | "[encrypted]";
 }
 
 export interface CreateEmailProviderInput {
@@ -59,9 +60,11 @@ export class EmailProviderApis extends BaseApiController {
   /**
    * Get a single email provider by ID
    * @param id - Provider ID
+   * @param includeConfig - If true, returns decrypted config (for edit mode)
    */
-  async getById(id: string): Promise<EmailProvider> {
-    return (await this.get(`${this.urlPath}/${id}`, {})).data;
+  async getById(id: string, includeConfig: boolean = false): Promise<EmailProvider> {
+    const params = includeConfig ? { includeConfig: "true" } : {};
+    return (await this.get(`${this.urlPath}/${id}`, params)).data;
   }
 
   /**

@@ -98,6 +98,7 @@ export function EmailProviderForm({
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm<EmailProviderFormData>({
     defaultValues: {
@@ -113,6 +114,23 @@ export function EmailProviderForm({
       ...initialData,
     },
   });
+
+  // Reset form when initialData changes (for edit mode)
+  React.useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name || "",
+        description: initialData.description || "",
+        type: initialData.type || "CONSOLE",
+        config: initialData.config || {},
+        fromName: initialData.fromName || "",
+        fromEmail: initialData.fromEmail || "",
+        replyTo: initialData.replyTo || "",
+        isDefault: initialData.isDefault || false,
+        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
+      });
+    }
+  }, [initialData, reset]);
 
   const providerType = watch("type");
   const isDefault = watch("isDefault");

@@ -3,7 +3,7 @@ import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { getEmailProviderById, updateEmailProvider, deleteEmailProvider, setDefaultEmailProvider } from "@buildbase/database";
-import { encryptConfig } from "@buildbase/email";
+import { encryptConfig, decryptConfig } from "@buildbase/email";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -12,16 +12,33 @@ type RouteContext = { params: Promise<{ id: string }> };
  * Get a single email provider by ID
  * Requires: Admin role
  */
-async function handleGET(_request: NextRequest, context: RouteContext) {
+async function handleGET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
+    const { searchParams } = new URL(request.url);
+    const includeConfig = searchParams.get("includeConfig") === "true";
+
     const provider = await getEmailProviderById(prisma, id);
 
     if (!provider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // Don't return decrypted config
+    // Decrypt config if requested (for edit mode)
+    if (includeConfig) {
+      try {
+        const decryptedConfig = decryptConfig<Record<string, unknown>>(provider.config);
+        return NextResponse.json({
+          ...provider,
+          config: decryptedConfig,
+        });
+      } catch (error) {
+        console.error("[API] Failed to decrypt config:", error);
+        return NextResponse.json({ error: "Failed to decrypt provider config" }, { status: 500 });
+      }
+    }
+
+    // Don't return decrypted config by default
     return NextResponse.json({
       ...provider,
       config: "[encrypted]",

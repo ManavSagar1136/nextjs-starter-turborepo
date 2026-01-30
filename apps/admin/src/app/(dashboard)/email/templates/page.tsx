@@ -41,6 +41,9 @@ const EmailTemplatesPage = () => {
   const handleCreate = () => {
     const props: CommonDialogProps<"email-template"> = {
       mode: "create",
+      onSaveTemplate: async (data: any) => {
+        return await API.email.templates.create(data);
+      },
       onSuccess: () => {
         setRefreshCounter(prev => prev + 1);
       },
@@ -58,6 +61,27 @@ const EmailTemplatesPage = () => {
         description: template.description,
         category: template.category,
         isActive: template.isActive,
+      },
+      onFetchTemplate: async (id: string) => {
+        const data = await API.email.templates.getById(id);
+        return {
+          slug: data.slug,
+          name: data.name,
+          description: data.description,
+          subject: data.subject,
+          html: data.html,
+          text: data.text,
+          category: data.category,
+          isActive: data.isActive,
+        };
+      },
+      onSaveTemplate: async (data: any, mode: "create" | "edit", id?: string) => {
+        if (mode === "create") {
+          return await API.email.templates.create(data);
+        } else if (id) {
+          return await API.email.templates.update(id, data);
+        }
+        throw new Error("Template ID is required for edit mode");
       },
       onSuccess: () => {
         setRefreshCounter(prev => prev + 1);

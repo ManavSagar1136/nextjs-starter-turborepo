@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
 import { EmailTemplateForm } from "@buildbase/components";
 import type { DialogOrSheetBaseProps } from "../base-props";
@@ -22,6 +22,23 @@ export interface EmailTemplateDialogProps extends DialogOrSheetBaseProps {
     isActive?: boolean;
   };
   onSuccess?: (template: unknown) => void;
+  /**
+   * Callback to fetch template data (for edit mode)
+   */
+  onFetchTemplate?: (id: string) => Promise<{
+    slug?: string;
+    name: string;
+    description?: string;
+    subject: string;
+    html: string;
+    text?: string;
+    category: string;
+    isActive?: boolean;
+  }>;
+  /**
+   * Callback to save template data
+   */
+  onSaveTemplate: (data: any, mode: "create" | "edit", id?: string) => Promise<any>;
 }
 
 /**
@@ -35,26 +52,37 @@ export function EmailTemplateDialog({
   templateId,
   initialData,
   onSuccess,
+  onFetchTemplate,
+  onSaveTemplate,
 }: EmailTemplateDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState(initialData);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Fetch template data when in edit mode
+  useEffect(() => {
+    if (open && mode === "edit" && templateId && onFetchTemplate && !formData?.html) {
+      setIsLoadingData(true);
+      onFetchTemplate(templateId)
+        .then(data => {
+          setFormData(data);
+        })
+        .catch(error => {
+          console.error("Failed to fetch template:", error);
+        })
+        .finally(() => {
+          setIsLoadingData(false);
+        });
+    } else if (open && mode === "create") {
+      // Reset form data for create mode
+      setFormData(initialData);
+    }
+  }, [open, mode, templateId, initialData, formData?.html, onFetchTemplate]);
 
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
     try {
-      const url = mode === "create" ? "/api/email/templates" : `/api/email/templates/${templateId}`;
-
-      const response = await fetch(url, {
-        method: mode === "create" ? "POST" : "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to save template");
-      }
-
-      const result = await response.json();
+      const result = await onSaveTemplate(data, mode, templateId);
       onSuccess?.(result);
       onOpenChange(false);
     } catch (error) {
@@ -78,13 +106,17 @@ export function EmailTemplateDialog({
         </DialogHeader>
 
         <div className="mt-4">
-          <EmailTemplateForm
-            initialData={initialData}
-            onSubmit={handleSubmit}
-            onCancel={() => onOpenChange(false)}
-            isLoading={isLoading}
-            mode={mode}
-          />
+          {isLoadingData ? (
+            <div className="text-muted-foreground py-8 text-center">Loading template details...</div>
+          ) : (
+            <EmailTemplateForm
+              initialData={formData}
+              onSubmit={handleSubmit}
+              onCancel={() => onOpenChange(false)}
+              isLoading={isLoading}
+              mode={mode}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>

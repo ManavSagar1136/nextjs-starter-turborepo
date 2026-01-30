@@ -33,8 +33,21 @@ export type CommonDialogComponentMap = DialogComponentMap & {
       replyTo?: string;
       isDefault?: boolean;
       isActive?: boolean;
+      config?: Record<string, unknown>;
     };
     onSuccess?: (provider: unknown) => void;
+    onFetchProvider?: (id: string) => Promise<{
+      name: string;
+      description?: string;
+      type: string;
+      fromName: string;
+      fromEmail: string;
+      replyTo?: string;
+      isDefault: boolean;
+      isActive: boolean;
+      config: Record<string, unknown>;
+    }>;
+    onSaveProvider: (data: any, mode: "create" | "edit", id?: string) => Promise<any>;
   }>;
   [COMMON_DIALOG_KEYS.EMAIL_TEMPLATE]: React.ComponentType<{
     open: boolean;
@@ -52,6 +65,17 @@ export type CommonDialogComponentMap = DialogComponentMap & {
       isActive?: boolean;
     };
     onSuccess?: (template: unknown) => void;
+    onFetchTemplate?: (id: string) => Promise<{
+      slug?: string;
+      name: string;
+      description?: string;
+      subject: string;
+      html: string;
+      text?: string;
+      category: string;
+      isActive?: boolean;
+    }>;
+    onSaveTemplate: (data: any, mode: "create" | "edit", id?: string) => Promise<any>;
   }>;
 };
 
