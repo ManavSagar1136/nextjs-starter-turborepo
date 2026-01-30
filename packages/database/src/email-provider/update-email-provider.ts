@@ -6,21 +6,9 @@ import type { PrismaClient, EmailProvider } from "../generated/client";
 import type { UpdateEmailProviderInput } from "./types";
 
 /**
- * Clear default flag on all providers for a workspace
- */
-async function clearDefaults(prisma: PrismaClient, workspaceId?: string | null): Promise<void> {
-  await prisma.emailProvider.updateMany({
-    where: {
-      workspaceId: workspaceId ?? null,
-      isDefault: true,
-    },
-    data: { isDefault: false },
-  });
-}
-
-/**
  * Update an existing email provider
  * Note: If updating config, pass the encrypted config string
+ * Note: Clearing other defaults should be handled at the API layer before calling this function
  */
 export async function updateEmailProvider(
   prisma: PrismaClient,
@@ -32,11 +20,6 @@ export async function updateEmailProvider(
   const existing = await prisma.emailProvider.findUnique({ where: { id } });
   if (!existing) {
     throw new Error(`Email provider not found: ${id}`);
-  }
-
-  // If setting as default, unset other defaults first
-  if (data.isDefault) {
-    await clearDefaults(prisma, existing.workspaceId);
   }
 
   return prisma.emailProvider.update({

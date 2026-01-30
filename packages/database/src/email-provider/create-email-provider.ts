@@ -20,21 +20,9 @@ function validateConfig(type: ProviderType, config: Record<string, unknown>): vo
 }
 
 /**
- * Clear default flag on all providers for a workspace
- */
-async function clearDefaults(prisma: PrismaClient, workspaceId?: string | null): Promise<void> {
-  await prisma.emailProvider.updateMany({
-    where: {
-      workspaceId: workspaceId ?? null,
-      isDefault: true,
-    },
-    data: { isDefault: false },
-  });
-}
-
-/**
  * Create a new email provider
  * Note: Config encryption should be handled at the application layer (email package)
+ * Note: Clearing other defaults should be handled at the API layer before calling this function
  */
 export async function createEmailProvider(
   prisma: PrismaClient,
@@ -44,11 +32,6 @@ export async function createEmailProvider(
 ): Promise<EmailProvider> {
   // Validate config has required fields
   validateConfig(data.type, data.config);
-
-  // If setting as default, unset other defaults first
-  if (data.isDefault) {
-    await clearDefaults(prisma, data.workspaceId);
-  }
 
   return prisma.emailProvider.create({
     data: {

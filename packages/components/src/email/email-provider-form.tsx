@@ -366,7 +366,10 @@ export function EmailProviderForm({
               <Label htmlFor="isDefault" className="cursor-pointer font-medium">
                 Default Provider
               </Label>
-              <p className="text-muted-foreground text-xs">Use this provider by default for all emails</p>
+              <p className="text-muted-foreground text-xs">
+                Use this provider by default for all emails. Setting this as default will automatically unset other
+                providers as default.
+              </p>
             </div>
           </div>
         </div>

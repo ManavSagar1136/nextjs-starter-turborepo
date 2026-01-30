@@ -66,27 +66,58 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ ...provider, config: "[encrypted]" });
     }
 
-    // Encrypt config if provided
+    const existing = await getEmailProviderById(prisma, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
     let encryptedConfig: string | undefined;
     if (body.config) {
       encryptedConfig = encryptConfig(body.config);
     }
 
-    const provider = await updateEmailProvider(
-      prisma,
-      id,
-      {
-        name: body.name,
-        description: body.description,
-        fromName: body.fromName,
-        fromEmail: body.fromEmail,
-        replyTo: body.replyTo,
-        isActive: body.isActive,
-        isDefault: body.isDefault,
-      },
-      encryptedConfig,
-      user?.userId
-    );
+    const isDefault = body.isDefault !== undefined ? Boolean(body.isDefault) : undefined;
+    const workspaceId = existing.workspaceId ?? null;
+
+    const provider = await prisma.$transaction(async tx => {
+      if (isDefault === true) {
+        const existingDefaults = await tx.emailProvider.findMany({
+          where: { isDefault: true },
+          select: { id: true, workspaceId: true },
+        });
+
+        const defaultsToClear = existingDefaults.filter(p => {
+          const pWorkspaceId = p.workspaceId ?? null;
+          return p.id !== id && pWorkspaceId === workspaceId;
+        });
+
+        if (defaultsToClear.length > 0) {
+          const idsToClear = defaultsToClear.map(p => p.id);
+          await tx.emailProvider.updateMany({
+            where: {
+              id: { in: idsToClear },
+              isDefault: true,
+            },
+            data: { isDefault: false },
+          });
+        }
+      }
+
+      return await tx.emailProvider.update({
+        where: { id },
+        data: {
+          ...(body.name && { name: body.name }),
+          ...(body.description !== undefined && { description: body.description }),
+          ...(encryptedConfig && { config: encryptedConfig }),
+          ...(body.fromName && { fromName: body.fromName }),
+          ...(body.fromEmail && { fromEmail: body.fromEmail }),
+          ...(body.replyTo !== undefined && { replyTo: body.replyTo }),
+          ...(body.isActive !== undefined && { isActive: body.isActive }),
+          ...(isDefault !== undefined && { isDefault: isDefault }),
+          updatedById: user?.userId,
+        },
+      });
+    });
 
     return NextResponse.json({ ...provider, config: "[encrypted]" });
   } catch (error) {

@@ -17,7 +17,6 @@ async function handleGET(request: NextRequest) {
 
     const providers = await listEmailProviders(prisma, workspaceId);
 
-    // Don't return decrypted config in list
     const safeProviders = providers.map(p => ({
       ...p,
       config: "[encrypted]",
@@ -45,27 +44,64 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields: name, type, fromName, fromEmail" }, { status: 400 });
     }
 
-    // Encrypt the configuration
     const encryptedConfig = encryptConfig(body.config || {});
 
-    const provider = await createEmailProvider(
-      prisma,
-      {
-        name: body.name,
-        description: body.description,
-        type: body.type,
-        config: body.config || {},
-        fromName: body.fromName,
-        fromEmail: body.fromEmail,
-        replyTo: body.replyTo,
-        isDefault: body.isDefault || false,
-        workspaceId: body.workspaceId,
-      },
-      encryptedConfig,
-      user?.userId
-    );
+    const isDefault = Boolean(body.isDefault);
+    const workspaceId = body.workspaceId ?? null;
 
-    // Don't return config in response
+    const provider = await prisma.$transaction(async tx => {
+      if (isDefault) {
+        const existingDefaults = await tx.emailProvider.findMany({
+          where: { isDefault: true },
+          select: { id: true, workspaceId: true },
+        });
+
+        const defaultsToClear = existingDefaults.filter(p => {
+          const pWorkspaceId = p.workspaceId ?? null;
+          return pWorkspaceId === workspaceId;
+        });
+
+        if (defaultsToClear.length > 0) {
+          const idsToClear = defaultsToClear.map(p => p.id);
+          await tx.emailProvider.updateMany({
+            where: {
+              id: { in: idsToClear },
+              isDefault: true,
+            },
+            data: { isDefault: false },
+          });
+        }
+      }
+
+      const { PROVIDER_REQUIRED_FIELDS } = await import("@buildbase/database");
+      const requiredFields = PROVIDER_REQUIRED_FIELDS[body.type as keyof typeof PROVIDER_REQUIRED_FIELDS] ?? [];
+      for (const field of requiredFields) {
+        if (
+          !body.config ||
+          body.config[field] === undefined ||
+          body.config[field] === null ||
+          body.config[field] === ""
+        ) {
+          throw new Error(`Missing required field for ${body.type} provider: ${field}`);
+        }
+      }
+
+      return await tx.emailProvider.create({
+        data: {
+          name: body.name,
+          description: body.description,
+          type: body.type,
+          config: encryptedConfig,
+          fromName: body.fromName,
+          fromEmail: body.fromEmail,
+          replyTo: body.replyTo,
+          isDefault: isDefault,
+          workspaceId: body.workspaceId,
+          createdById: user?.userId,
+        },
+      });
+    });
+
     return NextResponse.json({ ...provider, config: "[encrypted]" }, { status: 201 });
   } catch (error) {
     console.error("[API] Failed to create email provider:", error);
