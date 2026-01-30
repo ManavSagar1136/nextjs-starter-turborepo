@@ -11,6 +11,7 @@ import type { SendWithQueueOptions, QueueResult, BulkQueueResult } from "../queu
 import { EmailFactory } from "../factory/email.factory.js";
 import { TemplateService } from "../templates/template.service.js";
 import { EmailQueue } from "../queue/queue.service.js";
+import { getTrackingService } from "../tracking/tracking.service.js";
 
 /**
  * Main email service for sending emails
@@ -61,22 +62,46 @@ export class EmailService {
   static async sendDirect(options: SendEmailOptions): Promise<SendResult> {
     const factory = EmailFactory.getInstance();
     const provider = await factory.getProvider(options.providerId);
+    const prisma = factory.getPrisma();
 
     // Generate tracking ID if not provided and tracking not disabled
     const trackingId = options.disableTracking
       ? `notrack_${randomUUID()}`
       : (options.trackingId ?? `trk_${randomUUID().replace(/-/g, "")}`);
 
-    // TODO: Add tracking pixel and link rewriting in Phase 5
-    // For now, just pass through
+    // Prepare email options with tracking
+    let html = options.html;
+    const trackingEnabled = !options.disableTracking && html;
+
+    // Add tracking pixel and link rewriting if tracking is enabled
+    if (trackingEnabled) {
+      const trackingService = getTrackingService(prisma);
+      const recipientEmail = Array.isArray(options.to) ? options.to[0] : options.to;
+      html = trackingService.addTracking(html!, {
+        trackingId,
+        email: recipientEmail ?? "",
+      });
+    }
 
     const result = await provider.send({
       ...options,
+      html,
       trackingId,
     });
 
-    // Update provider stats
+    // Record SENT event and update provider stats
     if (result.success) {
+      // Record tracking event
+      if (trackingEnabled) {
+        try {
+          const trackingService = getTrackingService(prisma);
+          await trackingService.recordSent(trackingId);
+        } catch {
+          // Non-critical - don't fail the send
+        }
+      }
+
+      // Update provider stats
       try {
         await factory.getProviderService().incrementEmailsSent(provider.id);
       } catch {
@@ -111,13 +136,44 @@ export class EmailService {
 
     const factory = EmailFactory.getInstance();
     const provider = await factory.getProvider(options?.providerId);
+    const prisma = factory.getPrisma();
+    const trackingService = getTrackingService(prisma);
 
     // Use provider's bulk send if available
     if (provider.sendBulk) {
-      return provider.sendBulk(emails);
+      // Pre-process emails to add tracking
+      const processedEmails: SendEmailOptions[] = emails.map(email => {
+        if (email.disableTracking || !email.html) {
+          return email;
+        }
+
+        const trackingId = email.trackingId ?? `trk_${randomUUID().replace(/-/g, "")}`;
+        const recipientEmail = Array.isArray(email.to) ? email.to[0] : email.to;
+        const html = trackingService.addTracking(email.html, {
+          trackingId,
+          email: recipientEmail ?? "",
+        });
+
+        return { ...email, html, trackingId };
+      });
+
+      const result = await provider.sendBulk(processedEmails);
+
+      // Record SENT events for successful emails
+      for (const success of result.successful) {
+        if (success.trackingId && !success.trackingId.startsWith("notrack_")) {
+          try {
+            await trackingService.recordSent(success.trackingId);
+          } catch {
+            // Non-critical - don't fail the operation
+          }
+        }
+      }
+
+      return result;
     }
 
-    // Fallback: send sequentially
+    // Fallback: send sequentially (uses sendDirect which has tracking)
     const successful: SendResult[] = [];
     const failed: Array<{ email: string; error: string }> = [];
 

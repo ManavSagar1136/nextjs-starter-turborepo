@@ -30,8 +30,10 @@ export class EmailFactory {
   private static instance: EmailFactory | null = null;
   private providerCache = new Map<string, EmailProviderInstance>();
   private providerService: ProviderService;
+  private prisma: PrismaClient;
 
   private constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
     this.providerService = new ProviderService(prisma);
   }
 
@@ -244,5 +246,12 @@ export class EmailFactory {
    */
   getProviderService(): ProviderService {
     return this.providerService;
+  }
+
+  /**
+   * Get the Prisma client for tracking and other operations
+   */
+  getPrisma(): PrismaClient {
+    return this.prisma;
   }
 }

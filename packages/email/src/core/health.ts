@@ -181,6 +181,7 @@ export function quickHealthCheck(): {
 
 /**
  * Send a test email to verify configuration
+ * Note: Test emails have tracking disabled to avoid polluting metrics
  */
 export async function sendTestEmail(
   to: string,
@@ -194,6 +195,8 @@ export async function sendTestEmail(
     const factory = EmailFactory.getInstance();
     const provider = await factory.getProvider(providerId);
 
+    // Use provider.send directly with disableTracking for test emails
+    // This avoids polluting tracking metrics with test data
     const result = await provider.send({
       to,
       subject: "Test Email from @buildbase/email",
@@ -208,6 +211,7 @@ export async function sendTestEmail(
         </div>
       `,
       text: `Email Test Successful\n\nThis is a test email from your @buildbase/email package.\n\nSent at: ${new Date().toISOString()}\nProvider: ${provider.name} (${provider.type})`,
+      disableTracking: true, // Don't track test emails
     });
 
     return {
