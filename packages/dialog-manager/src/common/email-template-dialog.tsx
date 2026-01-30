@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
+import { EmailTemplateForm } from "@buildbase/components";
 import type { DialogOrSheetBaseProps } from "../base-props";
 
 /**
@@ -24,8 +25,8 @@ export interface EmailTemplateDialogProps extends DialogOrSheetBaseProps {
 }
 
 /**
- * Dialog/Sheet for creating and editing email templates
- * Uses Sheet for more space for HTML editing
+ * Dialog for creating and editing email templates
+ * Uses Dialog with max-width for comfortable HTML editing
  */
 export function EmailTemplateDialog({
   open,
@@ -37,7 +38,7 @@ export function EmailTemplateDialog({
 }: EmailTemplateDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
+  const handleSubmit = async (data: any) => {
     setIsLoading(true);
     try {
       const url = mode === "create" ? "/api/email/templates" : `/api/email/templates/${templateId}`;
@@ -65,23 +66,19 @@ export function EmailTemplateDialog({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
-        <SheetHeader>
-          <SheetTitle>{mode === "create" ? "Create Email Template" : "Edit Email Template"}</SheetTitle>
-          <SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{mode === "create" ? "Create Email Template" : "Edit Email Template"}</DialogTitle>
+          <DialogDescription>
             {mode === "create"
               ? "Create a new email template with variables support"
               : "Update the email template details"}
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="mt-6">
-          {/* 
-            EmailTemplateForm will be rendered here by the app
-            that registers this dialog, passing the form component
-          */}
-          <EmailTemplateFormPlaceholder
+        <div className="mt-4">
+          <EmailTemplateForm
             initialData={initialData}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
@@ -89,81 +86,8 @@ export function EmailTemplateDialog({
             mode={mode}
           />
         </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-/**
- * Placeholder form - apps should replace this with actual form
- */
-function EmailTemplateFormPlaceholder({
-  initialData,
-  onSubmit,
-  onCancel,
-  isLoading,
-  mode,
-}: {
-  initialData?: Record<string, unknown>;
-  onSubmit: (data: Record<string, unknown>) => Promise<void>;
-  onCancel: () => void;
-  isLoading: boolean;
-  mode: "create" | "edit";
-}) {
-  const [formData, setFormData] = useState({
-    name: "",
-    subject: "",
-    html: "",
-    category: "TRANSACTIONAL",
-    ...initialData,
-  });
-
-  return (
-    <form
-      onSubmit={async e => {
-        e.preventDefault();
-        await onSubmit(formData);
-      }}
-      className="space-y-4"
-    >
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Name</label>
-        <input
-          type="text"
-          value={formData.name as string}
-          onChange={e => setFormData({ ...formData, name: e.target.value })}
-          className="w-full rounded-md border px-3 py-2"
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Subject</label>
-        <input
-          type="text"
-          value={formData.subject as string}
-          onChange={e => setFormData({ ...formData, subject: e.target.value })}
-          className="w-full rounded-md border px-3 py-2"
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium">HTML Content</label>
-        <textarea
-          value={formData.html as string}
-          onChange={e => setFormData({ ...formData, html: e.target.value })}
-          className="min-h-[200px] w-full rounded-md border px-3 py-2 font-mono text-sm"
-          required
-        />
-      </div>
-      <div className="flex justify-end gap-3 pt-4">
-        <button type="button" onClick={onCancel} className="rounded-md border px-4 py-2">
-          Cancel
-        </button>
-        <button type="submit" disabled={isLoading} className="bg-primary text-primary-foreground rounded-md px-4 py-2">
-          {isLoading ? "Saving..." : mode === "create" ? "Create" : "Save"}
-        </button>
-      </div>
-    </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

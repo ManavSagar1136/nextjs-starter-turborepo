@@ -128,165 +128,250 @@ export function EmailProviderForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Basic Info */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Provider Name *</Label>
-          <Input id="name" placeholder="Production Resend" {...register("name", { required: "Name is required" })} />
-          {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+      {/* Basic Info Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-3 text-sm font-semibold">Basic Information</h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="name">
+                Provider Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="name"
+                placeholder="e.g., Production SMTP"
+                {...register("name", { required: "Name is required" })}
+                className="w-full"
+              />
+              {errors.name && <p className="text-destructive mt-1 text-xs">{errors.name.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="type">
+                Provider Type <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={providerType}
+                onValueChange={(value: string) => {
+                  setValue("type", value);
+                  setValue("config", {}); // Reset config when type changes
+                }}
+                disabled={mode === "edit"}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select provider type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROVIDER_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {mode === "edit" && (
+                <p className="text-muted-foreground mt-1 text-xs">Provider type cannot be changed after creation</p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="type">Provider Type *</Label>
-          <Select
-            value={providerType}
-            onValueChange={(value: string) => {
-              setValue("type", value);
-              setValue("config", {}); // Reset config when type changes
-            }}
-            disabled={mode === "edit"}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select provider type" />
-            </SelectTrigger>
-            <SelectContent>
-              {PROVIDER_TYPES.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="description">Description</Label>
+          <Input
+            id="description"
+            placeholder="Optional: Add a description for this provider"
+            {...register("description")}
+            className="w-full"
+          />
+          <p className="text-muted-foreground text-xs">Helpful for identifying this provider in your list</p>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Input id="description" placeholder="Primary email provider for production" {...register("description")} />
       </div>
 
       {/* Provider Configuration */}
       {fields.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{selectedProvider?.label} Configuration</CardTitle>
-            <CardDescription className="text-xs">Enter your provider credentials</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {fields.map(field => (
-              <div key={field.name} className="space-y-2">
-                <Label htmlFor={field.name}>
-                  {field.label} {field.required && "*"}
-                </Label>
-                {field.type === "boolean" ? (
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={field.name}
-                      checked={!!config[field.name]}
-                      onCheckedChange={checked => handleConfigChange(field.name, checked === true)}
-                    />
-                    <Label htmlFor={field.name} className="cursor-pointer text-sm">
-                      Enable
+        <div className="space-y-4">
+          <div>
+            <h3 className="mb-1 text-sm font-semibold">{selectedProvider?.label} Configuration</h3>
+            <p className="text-muted-foreground text-xs">Enter your provider credentials to connect</p>
+          </div>
+          <Card className="border-2">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {fields.map(field => (
+                  <div key={field.name} className={`space-y-2 ${field.type === "boolean" ? "md:col-span-2" : ""}`}>
+                    <Label htmlFor={field.name} className="text-sm font-medium">
+                      {field.label} {field.required && <span className="text-destructive">*</span>}
                     </Label>
+                    {field.type === "boolean" ? (
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id={field.name}
+                          checked={!!config[field.name]}
+                          onCheckedChange={checked => handleConfigChange(field.name, checked === true)}
+                        />
+                        <Label htmlFor={field.name} className="cursor-pointer text-sm font-normal">
+                          Enable {field.label}
+                        </Label>
+                      </div>
+                    ) : field.type === "select" && field.options ? (
+                      <Select
+                        value={(config[field.name] as string) || ""}
+                        onValueChange={(value: string) => handleConfigChange(field.name, value)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={`Select ${field.label}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {field.options.map(opt => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt.toUpperCase()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id={field.name}
+                        type={field.type}
+                        value={(config[field.name] as string) || ""}
+                        onChange={e =>
+                          handleConfigChange(
+                            field.name,
+                            field.type === "number" ? parseInt(e.target.value, 10) : e.target.value
+                          )
+                        }
+                        placeholder={
+                          field.type === "password"
+                            ? "Enter your " + field.label.toLowerCase()
+                            : `Enter ${field.label.toLowerCase()}`
+                        }
+                        className="w-full"
+                      />
+                    )}
                   </div>
-                ) : field.type === "select" && field.options ? (
-                  <Select
-                    value={(config[field.name] as string) || ""}
-                    onValueChange={(value: string) => handleConfigChange(field.name, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={`Select ${field.label}`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {field.options.map(opt => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt.toUpperCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    id={field.name}
-                    type={field.type}
-                    value={(config[field.name] as string) || ""}
-                    onChange={e =>
-                      handleConfigChange(
-                        field.name,
-                        field.type === "number" ? parseInt(e.target.value, 10) : e.target.value
-                      )
-                    }
-                  />
-                )}
+                ))}
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
-      {/* From Address */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="fromName">From Name *</Label>
-          <Input
-            id="fromName"
-            placeholder="Your App"
-            {...register("fromName", { required: "From name is required" })}
-          />
-          {errors.fromName && <p className="text-destructive text-sm">{errors.fromName.message}</p>}
+      {/* From Address Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-1 text-sm font-semibold">Sender Information</h3>
+          <p className="text-muted-foreground text-xs">
+            Configure the default sender for emails sent through this provider
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="fromName">
+              From Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="fromName"
+              placeholder="e.g., Your App Name"
+              {...register("fromName", { required: "From name is required" })}
+              className="w-full"
+            />
+            {errors.fromName && <p className="text-destructive mt-1 text-xs">{errors.fromName.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fromEmail">
+              From Email <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="fromEmail"
+              type="email"
+              placeholder="e.g., noreply@yourapp.com"
+              {...register("fromEmail", {
+                required: "From email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address",
+                },
+              })}
+              className="w-full"
+            />
+            {errors.fromEmail && <p className="text-destructive mt-1 text-xs">{errors.fromEmail.message}</p>}
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="fromEmail">From Email *</Label>
+          <Label htmlFor="replyTo">Reply-To Email</Label>
           <Input
-            id="fromEmail"
+            id="replyTo"
             type="email"
-            placeholder="noreply@yourapp.com"
-            {...register("fromEmail", { required: "From email is required" })}
+            placeholder="e.g., support@yourapp.com"
+            {...register("replyTo", {
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: "Invalid email address",
+              },
+            })}
+            className="w-full"
           />
-          {errors.fromEmail && <p className="text-destructive text-sm">{errors.fromEmail.message}</p>}
+          <p className="text-muted-foreground text-xs">Optional: Where replies should be sent</p>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="replyTo">Reply-To Email</Label>
-        <Input id="replyTo" type="email" placeholder="support@yourapp.com" {...register("replyTo")} />
-      </div>
-
-      {/* Status */}
-      <div className="flex gap-6">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="isActive"
-            checked={isActive}
-            onCheckedChange={checked => setValue("isActive", checked === true)}
-          />
-          <Label htmlFor="isActive" className="cursor-pointer">
-            Active
-          </Label>
+      {/* Status Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-1 text-sm font-semibold">Provider Settings</h3>
         </div>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="bg-muted/50 flex items-center space-x-2 rounded-md border p-3">
+            <Checkbox
+              id="isActive"
+              checked={isActive}
+              onCheckedChange={checked => setValue("isActive", checked === true)}
+            />
+            <div className="flex-1">
+              <Label htmlFor="isActive" className="cursor-pointer font-medium">
+                Active
+              </Label>
+              <p className="text-muted-foreground text-xs">Enable this provider to send emails</p>
+            </div>
+          </div>
 
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="isDefault"
-            checked={isDefault}
-            onCheckedChange={checked => setValue("isDefault", checked === true)}
-          />
-          <Label htmlFor="isDefault" className="cursor-pointer">
-            Set as Default Provider
-          </Label>
+          <div className="bg-muted/50 flex items-center space-x-2 rounded-md border p-3">
+            <Checkbox
+              id="isDefault"
+              checked={isDefault}
+              onCheckedChange={checked => setValue("isDefault", checked === true)}
+            />
+            <div className="flex-1">
+              <Label htmlFor="isDefault" className="cursor-pointer font-medium">
+                Default Provider
+              </Label>
+              <p className="text-muted-foreground text-xs">Use this provider by default for all emails</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-3 border-t pt-4">
+      <div className="mt-6 flex justify-end gap-3 border-t pt-6">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Saving..." : mode === "create" ? "Create Provider" : "Save Changes"}
+        <Button type="submit" disabled={isLoading} className="min-w-[120px]">
+          {isLoading ? (
+            <>
+              <span className="mr-2">⏳</span>
+              Saving...
+            </>
+          ) : mode === "create" ? (
+            "Create Provider"
+          ) : (
+            "Save Changes"
+          )}
         </Button>
       </div>
     </form>

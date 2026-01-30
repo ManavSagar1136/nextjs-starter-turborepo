@@ -1,5 +1,6 @@
 import React from "react";
 import type { DialogOrSheetBaseProps, DialogOrSheetComponent } from "./base-props";
+import { COMMON_DIALOG_KEYS } from "./config";
 
 /**
  * Base type for dialog component map.
@@ -9,6 +10,50 @@ import type { DialogOrSheetBaseProps, DialogOrSheetComponent } from "./base-prop
  * Apps extend this with their own dialog/sheet components.
  */
 export type DialogComponentMap = Record<string, DialogOrSheetComponent<DialogOrSheetBaseProps>>;
+
+/**
+ * Common dialogs component map that includes email dialogs with their proper types.
+ * This ensures type safety when using openDialog with email dialogs.
+ *
+ * Note: This type is defined here to avoid circular dependencies.
+ * The actual components are imported where needed.
+ */
+export type CommonDialogComponentMap = DialogComponentMap & {
+  [COMMON_DIALOG_KEYS.EMAIL_PROVIDER]: React.ComponentType<{
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    mode: "create" | "edit";
+    providerId?: string;
+    initialData?: {
+      name?: string;
+      description?: string;
+      type?: string;
+      fromName?: string;
+      fromEmail?: string;
+      replyTo?: string;
+      isDefault?: boolean;
+      isActive?: boolean;
+    };
+    onSuccess?: (provider: unknown) => void;
+  }>;
+  [COMMON_DIALOG_KEYS.EMAIL_TEMPLATE]: React.ComponentType<{
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    mode: "create" | "edit";
+    templateId?: string;
+    initialData?: {
+      slug?: string;
+      name?: string;
+      description?: string;
+      subject?: string;
+      html?: string;
+      text?: string;
+      category?: string;
+      isActive?: boolean;
+    };
+    onSuccess?: (template: unknown) => void;
+  }>;
+};
 
 /**
  * A helper type that, for each dialog key, returns the props of the matching
@@ -77,3 +122,12 @@ export interface DialogRegistryOptions {
    */
   override?: boolean;
 }
+
+/**
+ * Helper type to extract props for a specific dialog key from CommonDialogComponentMap.
+ * This ensures proper type inference for email dialogs.
+ */
+export type CommonDialogProps<K extends keyof CommonDialogComponentMap> = Omit<
+  React.ComponentProps<CommonDialogComponentMap[K]>,
+  "open" | "onOpenChange"
+>;

@@ -1,0 +1,171 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@buildbase/ui/components/ui/button";
+import { FileText, Plus, Edit, Trash2 } from "lucide-react";
+import { useDialogManager, type CommonDialogProps, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
+import { Badge } from "@buildbase/ui/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@buildbase/ui/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { API } from "@/services";
+import type { EmailTemplate } from "@/services/email";
+
+const EmailTemplatesPage = () => {
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const { openDialog } = useDialogManager();
+
+  const fetchTemplates = async () => {
+    try {
+      setIsLoading(true);
+      const data = await API.email.templates.list();
+      setTemplates(data.docs || []);
+    } catch (error) {
+      console.error("Failed to fetch templates:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [refreshCounter]);
+
+  const handleCreate = () => {
+    const props: CommonDialogProps<"email-template"> = {
+      mode: "create",
+      onSuccess: () => {
+        setRefreshCounter(prev => prev + 1);
+      },
+    };
+    openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE, props);
+  };
+
+  const handleEdit = (template: EmailTemplate) => {
+    const props: CommonDialogProps<"email-template"> = {
+      mode: "edit",
+      templateId: template.id,
+      initialData: {
+        slug: template.slug,
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        isActive: template.isActive,
+      },
+      onSuccess: () => {
+        setRefreshCounter(prev => prev + 1);
+      },
+    };
+    openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE, props);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this template?")) return;
+
+    try {
+      await API.email.templates.remove(id);
+      setRefreshCounter(prev => prev + 1);
+    } catch (error) {
+      console.error("Failed to delete template:", error);
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold">
+              <FileText className="h-5 w-5" />
+              Email Templates
+            </h1>
+            <p className="text-muted-foreground mt-1">Manage email templates and their content</p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Template
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="text-muted-foreground py-8 text-center">Loading templates...</div>
+        ) : templates.length === 0 ? (
+          <div className="text-muted-foreground py-8 text-center">
+            No templates found. Create your first template to get started.
+          </div>
+        ) : (
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {templates.map(template => (
+                  <TableRow key={template.id}>
+                    <TableCell className="font-medium">
+                      {template.name}
+                      {template.isDefault && (
+                        <Badge variant="secondary" className="ml-2">
+                          Default
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <code className="text-xs">{template.slug}</code>
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">{template.subject}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{template.category}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={template.isActive ? "default" : "secondary"}>
+                        {template.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>v{template.version}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(template)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(template.id)} className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default EmailTemplatesPage;

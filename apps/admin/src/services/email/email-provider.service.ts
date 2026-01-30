@@ -1,0 +1,99 @@
+import { BaseApiController } from "../base";
+
+export interface EmailProvider {
+  id: string;
+  name: string;
+  description?: string;
+  type: string;
+  fromName: string;
+  fromEmail: string;
+  replyTo?: string;
+  isActive: boolean;
+  isDefault: boolean;
+  emailsSent: number;
+  lastUsedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEmailProviderInput {
+  name: string;
+  description?: string;
+  type: string;
+  config: Record<string, unknown>;
+  fromName: string;
+  fromEmail: string;
+  replyTo?: string;
+  isDefault?: boolean;
+  workspaceId?: string;
+}
+
+export interface UpdateEmailProviderInput {
+  name?: string;
+  description?: string;
+  fromName?: string;
+  fromEmail?: string;
+  replyTo?: string;
+  isDefault?: boolean;
+  isActive?: boolean;
+  config?: Record<string, unknown>;
+}
+
+export interface TestProviderResponse {
+  success: boolean;
+  error?: string;
+}
+
+export class EmailProviderApis extends BaseApiController {
+  protected urlPath: string = "/email/providers";
+
+  /**
+   * List all email providers
+   * @param workspaceId - Optional workspace ID filter
+   */
+  async list(workspaceId?: string): Promise<EmailProvider[]> {
+    const params = workspaceId ? { workspaceId } : {};
+    return (await this.get(this.urlPath, params)).data;
+  }
+
+  /**
+   * Get a single email provider by ID
+   * @param id - Provider ID
+   */
+  async getById(id: string): Promise<EmailProvider> {
+    return (await this.get(`${this.urlPath}/${id}`, {})).data;
+  }
+
+  /**
+   * Create a new email provider
+   * @param data - Provider data
+   */
+  async create(data: CreateEmailProviderInput): Promise<EmailProvider> {
+    return (await this.post<EmailProvider>(this.urlPath, {}, {}, data)).data;
+  }
+
+  /**
+   * Update an email provider
+   * @param id - Provider ID
+   * @param data - Updated provider data
+   */
+  async update(id: string, data: UpdateEmailProviderInput): Promise<EmailProvider> {
+    return (await this.patch(`${this.urlPath}/${id}`, {}, {}, data)).data;
+  }
+
+  /**
+   * Delete an email provider
+   * @param id - Provider ID
+   */
+  async remove(id: string): Promise<{ success: boolean }> {
+    return (await this.delete(`${this.urlPath}/${id}`, {}, {}, {})).data;
+  }
+
+  /**
+   * Test provider connection
+   * @param id - Provider ID
+   */
+  async testConnection(id: string): Promise<TestProviderResponse> {
+    return (await this.post<TestProviderResponse>(`${this.urlPath}/${id}`, { action: "test" }, {}, {})).data;
+  }
+}

@@ -79,107 +79,184 @@ export function EmailTemplateForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Basic Info */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Template Name *</Label>
-          <Input id="name" placeholder="Welcome Email" {...register("name", { required: "Name is required" })} />
-          {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+      {/* Basic Information Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-3 text-sm font-semibold">Basic Information</h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="name">
+                Template Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="name"
+                placeholder="e.g., Welcome Email"
+                {...register("name", { required: "Name is required" })}
+                className="w-full"
+              />
+              {errors.name && <p className="text-destructive mt-1 text-xs">{errors.name.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                placeholder="welcome-email (auto-generated if empty)"
+                {...register("slug")}
+                disabled={mode === "edit"}
+                className="w-full"
+              />
+              {mode === "edit" && (
+                <p className="text-muted-foreground mt-1 text-xs">Slug cannot be changed after creation</p>
+              )}
+              {mode === "create" && (
+                <p className="text-muted-foreground mt-1 text-xs">Leave empty to auto-generate from name</p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug</Label>
+          <Label htmlFor="description">Description</Label>
           <Input
-            id="slug"
-            placeholder="welcome-email (auto-generated if empty)"
-            {...register("slug")}
-            disabled={mode === "edit"}
+            id="description"
+            placeholder="e.g., Email sent to new users after signup"
+            {...register("description")}
+            className="w-full"
           />
+          <p className="text-muted-foreground text-xs">Optional: Add a description for this template</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={category} onValueChange={(value: string) => setValue("category", value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {TEMPLATE_CATEGORIES.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">Organize templates by purpose</p>
+          </div>
+
+          <div className="flex items-center space-x-2 pt-6">
+            <div className="bg-muted/50 flex w-full items-center space-x-2 rounded-md border p-3">
+              <Checkbox
+                id="isActive"
+                checked={isActive}
+                onCheckedChange={checked => setValue("isActive", checked === true)}
+              />
+              <div className="flex-1">
+                <Label htmlFor="isActive" className="cursor-pointer font-medium">
+                  Active
+                </Label>
+                <p className="text-muted-foreground text-xs">Enable this template for use</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Input id="description" placeholder="Email sent to new users after signup" {...register("description")} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+      {/* Subject Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-1 text-sm font-semibold">Email Subject</h3>
+          <p className="text-muted-foreground text-xs">The subject line that appears in the recipient's inbox</p>
+        </div>
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={(value: string) => setValue("category", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {TEMPLATE_CATEGORIES.map(cat => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center space-x-2 pt-6">
-          <Checkbox
-            id="isActive"
-            checked={isActive}
-            onCheckedChange={checked => setValue("isActive", checked === true)}
-          />
-          <Label htmlFor="isActive" className="cursor-pointer">
-            Active
+          <Label htmlFor="subject">
+            Subject Line <span className="text-destructive">*</span>
           </Label>
+          <Input
+            id="subject"
+            placeholder="e.g., Welcome to {{appName}}, {{userName}}!"
+            {...register("subject", { required: "Subject is required" })}
+            className="w-full"
+          />
+          {errors.subject && <p className="text-destructive mt-1 text-xs">{errors.subject.message}</p>}
+          <div className="bg-muted/50 rounded-md p-3">
+            <p className="text-muted-foreground text-xs">
+              <strong>Tip:</strong> Use <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code>{" "}
+              for dynamic content
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Subject */}
-      <div className="space-y-2">
-        <Label htmlFor="subject">Subject Line *</Label>
-        <Input
-          id="subject"
-          placeholder="Welcome to {{appName}}, {{userName}}!"
-          {...register("subject", { required: "Subject is required" })}
-        />
-        {errors.subject && <p className="text-destructive text-sm">{errors.subject.message}</p>}
-        <p className="text-muted-foreground text-xs">Use {"{{variableName}}"} for dynamic content</p>
-      </div>
-
-      {/* Content Tabs */}
-      <div className="space-y-2">
-        <Label>Email Content *</Label>
+      {/* Content Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="mb-1 text-sm font-semibold">Email Content</h3>
+          <p className="text-muted-foreground text-xs">
+            Create your email template with HTML and optional plain text version
+          </p>
+        </div>
         <Tabs defaultValue="html" className="w-full">
-          <TabsList>
-            <TabsTrigger value="html">HTML</TabsTrigger>
-            <TabsTrigger value="text">Plain Text</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="html">
+              HTML Content <span className="text-destructive ml-1">*</span>
+            </TabsTrigger>
+            <TabsTrigger value="text">Plain Text (Optional)</TabsTrigger>
           </TabsList>
-          <TabsContent value="html" className="mt-2">
+          <TabsContent value="html" className="mt-4 space-y-2">
+            <Label htmlFor="html">HTML Content</Label>
             <Textarea
-              placeholder="<h1>Welcome, {{userName}}!</h1>..."
-              className="min-h-[300px] font-mono text-sm"
+              id="html"
+              placeholder="<h1>Welcome, {{userName}}!</h1><p>Thank you for joining {{appName}}.</p>..."
+              className="min-h-[350px] font-mono text-sm"
               {...register("html", { required: "HTML content is required" })}
             />
-            {errors.html && <p className="text-destructive text-sm">{errors.html.message}</p>}
+            {errors.html && <p className="text-destructive text-xs">{errors.html.message}</p>}
+            <div className="bg-muted/50 rounded-md p-3">
+              <p className="text-muted-foreground text-xs">
+                <strong>Variables:</strong> Use{" "}
+                <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> to insert dynamic
+                content
+              </p>
+            </div>
           </TabsContent>
-          <TabsContent value="text" className="mt-2">
+          <TabsContent value="text" className="mt-4 space-y-2">
+            <Label htmlFor="text">Plain Text Content</Label>
             <Textarea
-              placeholder="Welcome, {{userName}}!..."
-              className="min-h-[300px] font-mono text-sm"
+              id="text"
+              placeholder="Welcome, {{userName}}! Thank you for joining {{appName}}..."
+              className="min-h-[350px] font-mono text-sm"
               {...register("text")}
             />
-            <p className="text-muted-foreground mt-1 text-xs">Optional. Auto-generated from HTML if not provided.</p>
+            <div className="bg-muted/50 rounded-md p-3">
+              <p className="text-muted-foreground text-xs">
+                <strong>Optional:</strong> Plain text version for email clients that don't support HTML. Auto-generated
+                from HTML if not provided.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-3 border-t pt-4">
+      <div className="mt-6 flex justify-end gap-3 border-t pt-6">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Saving..." : mode === "create" ? "Create Template" : "Save Changes"}
+        <Button type="submit" disabled={isLoading} className="min-w-[120px]">
+          {isLoading ? (
+            <>
+              <span className="mr-2">⏳</span>
+              Saving...
+            </>
+          ) : mode === "create" ? (
+            "Create Template"
+          ) : (
+            "Save Changes"
+          )}
         </Button>
       </div>
     </form>
