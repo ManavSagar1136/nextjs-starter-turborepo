@@ -1,18 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@buildbase/database";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { getEmailTemplateById, updateEmailTemplate, deleteEmailTemplate, duplicateEmailTemplate } from "@buildbase/database";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
+type RouteContext = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/email/templates/[id]
  * Get a single email template by ID
+ * Requires: Admin role
  */
-export async function GET(_request: Request, { params }: RouteParams) {
+async function handleGET(_request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const template = await getEmailTemplateById(prisma, id);
 
     if (!template) {
@@ -29,11 +30,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
 /**
  * PATCH /api/email/templates/[id]
  * Update an email template
+ * Requires: Admin role
  */
-export async function PATCH(request: Request, { params }: RouteParams) {
+async function handlePATCH(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const body = await request.json();
+    const user = (request as any).authenticatedUser;
 
     const template = await updateEmailTemplate(
       prisma,
@@ -50,7 +53,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         variables: body.variables,
         isActive: body.isActive,
       },
-      body.userId
+      user?.userId
     );
 
     return NextResponse.json(template);
@@ -68,10 +71,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 /**
  * DELETE /api/email/templates/[id]
  * Delete an email template
+ * Requires: Admin role
  */
-export async function DELETE(_request: Request, { params }: RouteParams) {
+async function handleDELETE(_request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     await deleteEmailTemplate(prisma, id);
 
     return NextResponse.json({ success: true });
@@ -87,14 +91,16 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 }
 
 /**
- * POST /api/email/templates/[id]
- * Duplicate an email template (with action=duplicate query param)
+ * POST /api/email/templates/[id]?action=duplicate
+ * Duplicate an email template
+ * Requires: Admin role
  */
-export async function POST(request: Request, { params }: RouteParams) {
+async function handlePOST(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
+    const user = (request as any).authenticatedUser;
 
     if (action !== "duplicate") {
       return NextResponse.json({ error: "Invalid action. Use action=duplicate" }, { status: 400 });
@@ -105,7 +111,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "newSlug is required for duplication" }, { status: 400 });
     }
 
-    const template = await duplicateEmailTemplate(prisma, id, body.newSlug, body.userId);
+    const template = await duplicateEmailTemplate(prisma, id, body.newSlug, user?.userId);
 
     return NextResponse.json(template, { status: 201 });
   } catch (error) {
@@ -123,3 +129,9 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Failed to duplicate template" }, { status: 500 });
   }
 }
+
+// Export with auth middleware - Admin only
+export const GET = withAuth(handleGET, [APP_ROLES.ADMIN]);
+export const PATCH = withAuth(handlePATCH, [APP_ROLES.ADMIN]);
+export const DELETE = withAuth(handleDELETE, [APP_ROLES.ADMIN]);
+export const POST = withAuth(handlePOST, [APP_ROLES.ADMIN]);

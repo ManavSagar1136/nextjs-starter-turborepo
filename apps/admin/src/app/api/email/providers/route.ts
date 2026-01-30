@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@buildbase/database";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { createEmailProvider, listEmailProviders } from "@buildbase/database";
 import { encryptConfig } from "@buildbase/email";
 
 /**
  * GET /api/email/providers
  * List all email providers
+ * Requires: Admin role
  */
-export async function GET(request: Request) {
+async function handleGET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get("workspaceId") || undefined;
-    const activeOnly = searchParams.get("activeOnly") === "true";
 
-    const providers = activeOnly
-      ? await listEmailProviders(prisma, workspaceId)
-      : await listEmailProviders(prisma, workspaceId);
+    const providers = await listEmailProviders(prisma, workspaceId);
 
     // Don't return decrypted config in list
     const safeProviders = providers.map(p => ({
@@ -33,10 +33,12 @@ export async function GET(request: Request) {
 /**
  * POST /api/email/providers
  * Create a new email provider
+ * Requires: Admin role
  */
-export async function POST(request: Request) {
+async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
+    const user = (request as any).authenticatedUser;
 
     // Validate required fields
     if (!body.name || !body.type || !body.fromName || !body.fromEmail) {
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
         workspaceId: body.workspaceId,
       },
       encryptedConfig,
-      body.userId
+      user?.userId
     );
 
     // Don't return config in response
@@ -75,3 +77,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create provider" }, { status: 500 });
   }
 }
+
+// Export with auth middleware - Admin only
+export const GET = withAuth(handleGET, [APP_ROLES.ADMIN]);
+export const POST = withAuth(handlePOST, [APP_ROLES.ADMIN]);

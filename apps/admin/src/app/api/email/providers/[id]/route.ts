@@ -1,19 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@buildbase/database";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { getEmailProviderById, updateEmailProvider, deleteEmailProvider, setDefaultEmailProvider } from "@buildbase/database";
 import { encryptConfig } from "@buildbase/email";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
+type RouteContext = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/email/providers/[id]
  * Get a single email provider by ID
+ * Requires: Admin role
  */
-export async function GET(_request: Request, { params }: RouteParams) {
+async function handleGET(_request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const provider = await getEmailProviderById(prisma, id);
 
     if (!provider) {
@@ -34,11 +35,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
 /**
  * PATCH /api/email/providers/[id]
  * Update an email provider
+ * Requires: Admin role
  */
-export async function PATCH(request: Request, { params }: RouteParams) {
+async function handlePATCH(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const body = await request.json();
+    const user = (request as any).authenticatedUser;
 
     // Handle special action for setting default
     if (body.action === "setDefault") {
@@ -65,7 +68,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         isDefault: body.isDefault,
       },
       encryptedConfig,
-      body.userId
+      user?.userId
     );
 
     return NextResponse.json({ ...provider, config: "[encrypted]" });
@@ -83,10 +86,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 /**
  * DELETE /api/email/providers/[id]
  * Delete an email provider
+ * Requires: Admin role
  */
-export async function DELETE(_request: Request, { params }: RouteParams) {
+async function handleDELETE(_request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     await deleteEmailProvider(prisma, id);
 
     return NextResponse.json({ success: true });
@@ -102,12 +106,13 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 }
 
 /**
- * POST /api/email/providers/[id]
- * Special actions (test connection)
+ * POST /api/email/providers/[id]?action=test
+ * Test provider connection
+ * Requires: Admin role
  */
-export async function POST(request: Request, { params }: RouteParams) {
+async function handlePOST(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
 
@@ -141,3 +146,9 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 }
+
+// Export with auth middleware - Admin only
+export const GET = withAuth(handleGET, [APP_ROLES.ADMIN]);
+export const PATCH = withAuth(handlePATCH, [APP_ROLES.ADMIN]);
+export const DELETE = withAuth(handleDELETE, [APP_ROLES.ADMIN]);
+export const POST = withAuth(handlePOST, [APP_ROLES.ADMIN]);

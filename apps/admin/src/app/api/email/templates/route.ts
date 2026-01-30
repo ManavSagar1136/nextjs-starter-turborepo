@@ -1,12 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@buildbase/database";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { createEmailTemplate, listEmailTemplates, type CreateEmailTemplateInput } from "@buildbase/database";
 
 /**
  * GET /api/email/templates
  * List all email templates with optional filters
+ * Requires: Admin role
  */
-export async function GET(request: Request) {
+async function handleGET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -33,10 +36,12 @@ export async function GET(request: Request) {
 /**
  * POST /api/email/templates
  * Create a new email template
+ * Requires: Admin role
  */
-export async function POST(request: Request) {
+async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
+    const user = (request as any).authenticatedUser;
 
     // Validate required fields
     if (!body.name || !body.subject || !body.html) {
@@ -58,7 +63,7 @@ export async function POST(request: Request) {
         variables: body.variables,
         workspaceId: body.workspaceId,
       },
-      body.userId
+      user?.userId
     );
 
     return NextResponse.json(template, { status: 201 });
@@ -72,3 +77,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create template" }, { status: 500 });
   }
 }
+
+// Export with auth middleware - Admin only
+export const GET = withAuth(handleGET, [APP_ROLES.ADMIN]);
+export const POST = withAuth(handlePOST, [APP_ROLES.ADMIN]);
