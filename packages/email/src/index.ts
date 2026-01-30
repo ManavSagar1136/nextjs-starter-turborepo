@@ -57,3 +57,24 @@ export * from "./queue/types.js";
 export { EmailQueue, EmailQueueService, getEmailQueue } from "./queue/queue.service.js";
 export { verifyQStashSignature, createQStashMiddleware, processQueuedEmail } from "./queue/verify.js";
 export { QueueNotConfiguredError, QueueOperationError } from "./queue/errors.js";
+
+// Tracking exports
+export * from "./tracking/types.js";
+export {
+  createTrackingPixel,
+  insertTrackingPixel,
+  removeTrackingPixel,
+  getTransparentPixel,
+} from "./tracking/pixel.js";
+export { createClickTrackingUrl, rewriteLinks, restoreOriginalLinks, extractLinks } from "./tracking/link-rewriter.js";
+export { TrackingService, getTrackingService } from "./tracking/tracking.service.js";
+
+// Compliance exports
+export * from "./compliance/types.js";
+export {
+  generateMessageId,
+  addComplianceHeaders,
+  generateUnsubscribeUrl,
+  generateOneClickUnsubscribeUrl,
+} from "./compliance/headers.js";
+export { generateUnsubscribeToken, UnsubscribeService, getUnsubscribeService } from "./compliance/unsubscribe.js";
