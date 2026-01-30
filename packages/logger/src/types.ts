@@ -6,6 +6,16 @@ import type { Logger as PinoLogger, Level } from "pino";
 export type LogLevel = Level;
 
 /**
+ * New Relic configuration options
+ */
+export interface NewRelicConfig {
+  /** Enable New Relic log enrichment (default: false) */
+  enabled?: boolean;
+  /** New Relic application name (falls back to serviceName) */
+  appName?: string;
+}
+
+/**
  * Configuration for creating a logger instance
  */
 export interface LoggerConfig {
@@ -19,6 +29,8 @@ export interface LoggerConfig {
   prettyPrint?: boolean;
   /** Additional base context to include in all logs */
   base?: Record<string, unknown>;
+  /** New Relic integration options */
+  newRelic?: NewRelicConfig;
 }
 
 /**

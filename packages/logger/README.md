@@ -1,14 +1,16 @@
 # @buildbase/logger
 
-Structured logging with [Pino](https://github.com/pinojs/pino) for backend services. Fast, JSON-native, with built-in redaction for sensitive data.
+Structured logging with [Pino](https://github.com/pinojs/pino) for backend services. Fast, JSON-native, with built-in redaction and New Relic integration.
 
 ## Features
 
 - ⚡ **Fast** - Pino is ~5x faster than alternatives
 - 🔒 **Secure** - Built-in redaction for passwords, tokens, and sensitive fields
-- 📊 **Structured** - JSON output ready for log aggregation (New Relic, Datadog, etc.)
+- 📊 **Structured** - JSON output ready for log aggregation
 - 🎨 **Pretty print** - Colorized output in development
 - 👶 **Child loggers** - Add request context without pollution
+- 🔗 **New Relic** - Automatic log correlation with traces
+- 🆔 **Request tracking** - Built-in request ID middleware
 - 📝 **TypeScript** - Full type safety
 
 ## Installation
@@ -17,9 +19,7 @@ Structured logging with [Pino](https://github.com/pinojs/pino) for backend servi
 yarn add @buildbase/logger
 ```
 
-## Usage
-
-### Basic Logger
+## Basic Usage
 
 ```typescript
 import { createLogger } from "@buildbase/logger";
@@ -39,11 +39,135 @@ logger.info({ userId: "123", action: "login" }, "User logged in");
 // Or context second
 logger.info("User logged in", { userId: "123" });
 
-// Errors
+// Errors with stack traces
 logger.error(new Error("Something broke"), "Operation failed");
 ```
 
-### Child Loggers
+## New Relic Integration
+
+### Enable Log Correlation
+
+```typescript
+import { createLogger } from "@buildbase/logger";
+
+const logger = createLogger({
+  serviceName: "user-app",
+  newRelic: { enabled: true },
+});
+
+// Logs will include trace.id and span.id for correlation
+logger.info("This log will link to APM traces");
+```
+
+### New Relic Utilities
+
+```typescript
+import {
+  isNewRelicEnabled,
+  addTransactionAttribute,
+  noticeError,
+  recordCustomEvent,
+  startBackgroundTransaction,
+  generateNewRelicConfig,
+} from "@buildbase/logger/newrelic";
+
+// Check if New Relic is enabled
+if (isNewRelicEnabled()) {
+  // Add custom attribute to current transaction
+  addTransactionAttribute("userId", "123");
+
+  // Record custom event
+  recordCustomEvent("UserSignup", {
+    plan: "pro",
+    source: "web",
+  });
+}
+
+// Report errors to New Relic
+try {
+  await riskyOperation();
+} catch (error) {
+  noticeError(error, { operation: "riskyOperation" });
+  throw error;
+}
+
+// Background transactions for cron jobs
+await startBackgroundTransaction("daily-cleanup", "cron", async () => {
+  await cleanupOldRecords();
+});
+```
+
+### Generate newrelic.js Config
+
+```typescript
+import { generateNewRelicConfig } from "@buildbase/logger/newrelic";
+
+// Generate config for newrelic.js file
+const config = generateNewRelicConfig({
+  appName: "my-app",
+  licenseKey: process.env.NEW_RELIC_LICENSE_KEY,
+  distributedTracing: true,
+  logForwarding: true,
+});
+```
+
+## Request ID Tracking
+
+### Next.js Middleware
+
+```typescript
+// middleware.ts
+import { NextResponse } from "next/server";
+import { withRequestId } from "@buildbase/logger/middleware";
+
+export function middleware(request: NextRequest) {
+  const { requestId, headers } = withRequestId(request);
+
+  const response = NextResponse.next({
+    request: { headers: request.headers },
+  });
+
+  // Add request ID to response headers
+  headers.forEach((value, key) => {
+    response.headers.set(key, value);
+  });
+
+  return response;
+}
+```
+
+### Request-Scoped Logging
+
+```typescript
+import { createLogger } from "@buildbase/logger";
+import {
+  extractRequestContext,
+  createRequestLogger,
+  runWithRequestContext,
+  getCurrentRequestId,
+} from "@buildbase/logger/middleware";
+
+const logger = createLogger({ serviceName: "api" });
+
+export async function handleRequest(request: Request) {
+  const context = extractRequestContext(request);
+  const reqLogger = createRequestLogger(logger, context);
+
+  // Use AsyncLocalStorage for deep access
+  return runWithRequestContext(context, async () => {
+    reqLogger.info("Request started");
+
+    // Anywhere in your code:
+    const requestId = getCurrentRequestId();
+
+    await processRequest();
+
+    reqLogger.info("Request completed");
+  });
+}
+```
+
+## Child Loggers
 
 Add request-specific context:
 
@@ -57,7 +181,7 @@ requestLogger.info("Processing request");
 // Output includes requestId and userId in every log
 ```
 
-### Configuration
+## Configuration
 
 ```typescript
 interface LoggerConfig {
@@ -66,10 +190,14 @@ interface LoggerConfig {
   redact?: string[]; // Additional fields to redact
   prettyPrint?: boolean; // Auto-enabled in development
   base?: Record<string, unknown>; // Base context for all logs
+  newRelic?: {
+    enabled?: boolean; // Enable New Relic log correlation
+    appName?: string; // Override app name
+  };
 }
 ```
 
-### Default Redacted Fields
+## Default Redacted Fields
 
 These fields are automatically redacted:
 
@@ -82,24 +210,17 @@ These fields are automatically redacted:
 - `req.headers.cookie`
 - `res.headers.set-cookie`
 
-Add custom fields via the `redact` option.
-
-### Log Levels
-
-| Level   | When to use                       |
-| ------- | --------------------------------- |
-| `trace` | Fine-grained debugging            |
-| `debug` | Debugging information             |
-| `info`  | General information (default)     |
-| `warn`  | Something unexpected, but handled |
-| `error` | Error conditions                  |
-| `fatal` | System is unusable                |
-
-### Environment Variables
+## Environment Variables
 
 ```bash
-LOG_LEVEL=info          # Set log level
-NODE_ENV=development    # Enables pretty print
+# Logging
+LOG_LEVEL=info              # Set log level
+NODE_ENV=development        # Enables pretty print
+
+# New Relic
+NEW_RELIC_ENABLED=true
+NEW_RELIC_LICENSE_KEY=xxx
+NEW_RELIC_APP_NAME=my-app
 ```
 
 ## Output Examples
@@ -125,21 +246,53 @@ NODE_ENV=development    # Enables pretty print
 }
 ```
 
+### With New Relic (JSON)
+
+```json
+{
+  "level": "info",
+  "time": "2026-01-30T10:30:45.123Z",
+  "service": "user-app",
+  "trace.id": "abc123",
+  "span.id": "def456",
+  "userId": "123",
+  "msg": "User logged in"
+}
+```
+
 ## API Reference
 
-### `createLogger(config: LoggerConfig): Logger`
+### Main Exports (`@buildbase/logger`)
 
-Creates a new logger instance.
+| Export                                | Description                     |
+| ------------------------------------- | ------------------------------- |
+| `createLogger(config)`                | Create a new logger instance    |
+| `createChildLogger(parent, bindings)` | Create a child logger           |
+| `DEFAULT_REDACT_PATHS`                | Array of default redacted paths |
 
-### `createChildLogger(parent: Logger, bindings: LogContext): Logger`
+### Middleware Exports (`@buildbase/logger/middleware`)
 
-Creates a child logger with additional context.
+| Export                                 | Description                          |
+| -------------------------------------- | ------------------------------------ |
+| `withRequestId(request)`               | Add request ID to request/response   |
+| `extractRequestContext(request)`       | Extract logging context from request |
+| `createRequestLogger(logger, context)` | Create request-scoped logger         |
+| `runWithRequestContext(context, fn)`   | Run with AsyncLocalStorage context   |
+| `getRequestContext()`                  | Get current request context          |
+| `getCurrentRequestId()`                | Get current request ID               |
+| `REQUEST_ID_HEADER`                    | Header name: `x-request-id`          |
+| `CORRELATION_ID_HEADER`                | Header name: `x-correlation-id`      |
 
-### `DEFAULT_REDACT_PATHS`
+### New Relic Exports (`@buildbase/logger/newrelic`)
 
-Array of default paths that are redacted.
-
-## Next Steps
-
-- Phase 2: New Relic integration for log forwarding
-- Phase 3: Request ID tracking middleware
+| Export                                        | Description                        |
+| --------------------------------------------- | ---------------------------------- |
+| `isNewRelicEnabled()`                         | Check if New Relic is configured   |
+| `getLinkingMetadata()`                        | Get trace/span IDs for correlation |
+| `addTransactionAttribute(key, value)`         | Add custom attribute               |
+| `addTransactionAttributes(attrs)`             | Add multiple attributes            |
+| `noticeError(error, attrs?)`                  | Report error to New Relic          |
+| `recordCustomEvent(type, attrs)`              | Record custom event                |
+| `setTransactionName(name)`                    | Set transaction name               |
+| `startBackgroundTransaction(name, group, fn)` | Wrap background job                |
+| `generateNewRelicConfig(config)`              | Generate newrelic.js config        |

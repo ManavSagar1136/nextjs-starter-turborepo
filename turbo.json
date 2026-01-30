@@ -30,7 +30,12 @@
     "QSTASH_CURRENT_SIGNING_KEY",
     "QSTASH_NEXT_SIGNING_KEY",
 
-    "CRON_SECRET"
+    "CRON_SECRET",
+
+    "NEW_RELIC_ENABLED",
+    "NEW_RELIC_LICENSE_KEY",
+    "NEW_RELIC_APP_NAME",
+    "LOG_LEVEL"
   ],
   "globalDependencies": [],
   "tasks": {
