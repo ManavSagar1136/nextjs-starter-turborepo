@@ -1,0 +1,41 @@
+{
+  "name": "@buildbase/logger",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "description": "Structured logging with Pino for backend services - fast, JSON-native, with built-in redaction",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    }
+  },
+  "dependencies": {
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/node": "^22.15.30",
+    "eslint": "^9.39.1",
+    "typescript": "5.9.2",
+    "vitest": "^2.1.8"
+  }
+}
