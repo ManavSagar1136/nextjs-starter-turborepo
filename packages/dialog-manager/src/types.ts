@@ -77,6 +77,23 @@ export type CommonDialogComponentMap = DialogComponentMap & {
     }>;
     onSaveTemplate: (data: any, mode: "create" | "edit", id?: string) => Promise<any>;
   }>;
+  [COMMON_DIALOG_KEYS.TEST_EMAIL]: React.ComponentType<{
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    providerId: string;
+    providerName?: string;
+    onTestEmail: (
+      providerId: string,
+      email: string
+    ) => Promise<{
+      success: boolean;
+      connectionValid?: boolean;
+      emailSent?: boolean;
+      messageId?: string;
+      error?: string;
+    }>;
+    onSuccess?: (result: { messageId?: string; email: string }) => void;
+  }>;
 };
 
 /**

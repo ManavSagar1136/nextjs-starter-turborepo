@@ -20,6 +20,7 @@ export const COMMON_DIALOG_KEYS = {
   ALERT: "alert",
   EMAIL_PROVIDER: "email-provider",
   EMAIL_TEMPLATE: "email-template",
+  TEST_EMAIL: "test-email",
 } as const;
 
 /**
@@ -36,4 +37,5 @@ export const DIALOG_URL_BLACKLIST: readonly CommonDialogKey[] = [
   COMMON_DIALOG_KEYS.ALERT,
   COMMON_DIALOG_KEYS.EMAIL_PROVIDER,
   COMMON_DIALOG_KEYS.EMAIL_TEMPLATE,
+  COMMON_DIALOG_KEYS.TEST_EMAIL,
 ] as const;

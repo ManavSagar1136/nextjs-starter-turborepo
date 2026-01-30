@@ -165,8 +165,8 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
     const action = searchParams.get("action");
 
     if (action === "test") {
-      // Import dynamically to avoid circular deps
       const { EmailFactory } = await import("@buildbase/email");
+      const { sendTestEmail } = await import("@buildbase/email");
 
       if (!EmailFactory.isInitialized()) {
         const { prisma: dbPrisma } = await import("@buildbase/database");
@@ -176,9 +176,49 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
 
       const factory = EmailFactory.getInstance();
       const provider = await factory.getProvider(id);
-      const testResult = await provider.testConnection();
 
-      return NextResponse.json(testResult);
+      // First, validate credentials
+      const connectionTest = await provider.testConnection();
+      if (!connectionTest.success) {
+        return NextResponse.json({
+          success: false,
+          error: connectionTest.error || "Connection test failed",
+          connectionValid: false,
+        });
+      }
+
+      // If email is provided, send a real test email
+      const body = await request.json().catch(() => ({}));
+      const testEmail = body.email;
+
+      if (testEmail) {
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(testEmail)) {
+          return NextResponse.json({
+            success: false,
+            error: "Invalid email address format",
+            connectionValid: true,
+          });
+        }
+
+        // Send real test email
+        const emailResult = await sendTestEmail(testEmail, id);
+        return NextResponse.json({
+          success: emailResult.success,
+          messageId: emailResult.messageId,
+          error: emailResult.error,
+          connectionValid: true,
+          emailSent: emailResult.success,
+        });
+      }
+
+      // If no email provided, just return connection test result
+      return NextResponse.json({
+        success: true,
+        connectionValid: true,
+        message: "Connection test successful. Provide an email address to send a test email.",
+      });
     }
 
     return NextResponse.json({ error: "Invalid action. Use action=test" }, { status: 400 });

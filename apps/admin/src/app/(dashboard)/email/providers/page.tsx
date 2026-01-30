@@ -104,18 +104,20 @@ const EmailProvidersPage = () => {
     }
   };
 
-  const handleTest = async (id: string) => {
-    try {
-      const result = await API.email.providers.testConnection(id);
-      if (result.success) {
-        alert("Provider test successful!");
-      } else {
-        alert(`Provider test failed: ${result.error || "Unknown error"}`);
-      }
-    } catch (error) {
-      console.error("Failed to test provider:", error);
-      alert("Failed to test provider");
-    }
+  const handleTest = (provider: EmailProvider) => {
+    const props: CommonDialogProps<typeof COMMON_DIALOG_KEYS.TEST_EMAIL> = {
+      providerId: provider.id,
+      providerName: provider.name,
+      onTestEmail: async (providerId: string, email: string) => {
+        return await API.email.providers.testConnection(providerId, email);
+      },
+      onSuccess: result => {
+        alert(
+          `✅ Test email sent successfully!\n\nMessage ID: ${result.messageId || "N/A"}\n\nPlease check your inbox at ${result.email}`
+        );
+      },
+    };
+    openDialog(COMMON_DIALOG_KEYS.TEST_EMAIL, props);
   };
 
   return (
@@ -183,7 +185,7 @@ const EmailProvidersPage = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleTest(provider.id)}>
+                          <DropdownMenuItem onClick={() => handleTest(provider)}>
                             <TestTube className="mr-2 h-4 w-4" />
                             Test Connection
                           </DropdownMenuItem>

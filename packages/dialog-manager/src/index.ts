@@ -40,6 +40,7 @@ export {
   ALERT_DIALOG_VARIANTS,
   EmailTemplateDialog,
   EmailProviderDialog,
+  TestEmailDialog,
 } from "./common";
 export type {
   ConfirmationDialogProps,
@@ -48,6 +49,7 @@ export type {
   AlertDialogVariant,
   EmailTemplateDialogProps,
   EmailProviderDialogProps,
+  TestEmailDialogProps,
 } from "./common";
 
 // Initialize

@@ -9,3 +9,6 @@ export type { EmailTemplateDialogProps } from "./email-template-dialog";
 
 export { EmailProviderDialog } from "./email-provider-dialog";
 export type { EmailProviderDialogProps } from "./email-provider-dialog";
+
+export { TestEmailDialog } from "./test-email-dialog";
+export type { TestEmailDialogProps } from "./test-email-dialog";

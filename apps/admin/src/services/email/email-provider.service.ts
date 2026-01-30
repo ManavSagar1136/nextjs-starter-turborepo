@@ -95,8 +95,19 @@ export class EmailProviderApis extends BaseApiController {
   /**
    * Test provider connection
    * @param id - Provider ID
+   * @param email - Optional email address to send a real test email
    */
-  async testConnection(id: string): Promise<TestProviderResponse> {
-    return (await this.post<TestProviderResponse>(`${this.urlPath}/${id}`, { action: "test" }, {}, {})).data;
+  async testConnection(
+    id: string,
+    email?: string
+  ): Promise<TestProviderResponse & { connectionValid?: boolean; emailSent?: boolean; messageId?: string }> {
+    return (
+      await this.post<TestProviderResponse & { connectionValid?: boolean; emailSent?: boolean; messageId?: string }>(
+        `${this.urlPath}/${id}`,
+        { action: "test" },
+        {},
+        email ? { email } : {}
+      )
+    ).data;
   }
 }
