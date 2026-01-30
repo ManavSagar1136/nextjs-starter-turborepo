@@ -1,13 +1,22 @@
 /**
  * @buildbase/email - Core Types
  * All TypeScript interfaces and types for the email package
+ *
+ * Re-exports CRUD types from @buildbase/database and defines email-specific types
  */
 
-// =============================================================================
-// Provider Types
-// =============================================================================
+// Re-export CRUD types from database package
+export type {
+  CreateEmailProviderInput as CreateProviderInput,
+  UpdateEmailProviderInput as UpdateProviderInput,
+  ProviderType,
+} from "@buildbase/database";
 
-export type ProviderType = "CONSOLE" | "SMTP" | "RESEND" | "MAILGUN" | "SENDGRID" | "SES";
+export { PROVIDER_REQUIRED_FIELDS as PROVIDER_CONFIG_SCHEMA } from "@buildbase/database";
+
+// =============================================================================
+// Provider Config Types (email-specific)
+// =============================================================================
 
 /**
  * SMTP configuration stored in database (encrypted)
@@ -165,6 +174,8 @@ export interface BulkSendResult {
 // Provider Instance Interface
 // =============================================================================
 
+import type { ProviderType } from "@buildbase/database";
+
 /**
  * Interface that all provider implementations must satisfy
  */
@@ -195,61 +206,3 @@ export interface EmailProviderInstance {
    */
   testConnection(): Promise<{ success: boolean; error?: string }>;
 }
-
-// =============================================================================
-// CRUD Types
-// =============================================================================
-
-/**
- * Input for creating a new email provider
- */
-export interface CreateProviderInput {
-  /** Display name for this provider */
-  name: string;
-  /** Optional description */
-  description?: string;
-  /** Provider type */
-  type: ProviderType;
-  /** Provider-specific configuration (will be encrypted) */
-  config: Record<string, unknown>;
-  /** Default sender name */
-  fromName: string;
-  /** Default sender email */
-  fromEmail: string;
-  /** Reply-to address */
-  replyTo?: string;
-  /** Set as default provider */
-  isDefault?: boolean;
-  /** Organization ID for multi-tenant */
-  workspaceId?: string;
-}
-
-/**
- * Input for updating an email provider
- */
-export interface UpdateProviderInput {
-  name?: string;
-  description?: string;
-  config?: Record<string, unknown>;
-  fromName?: string;
-  fromEmail?: string;
-  replyTo?: string;
-  isActive?: boolean;
-  isDefault?: boolean;
-}
-
-// =============================================================================
-// Configuration Schema
-// =============================================================================
-
-/**
- * Required fields for each provider type
- */
-export const PROVIDER_CONFIG_SCHEMA: Record<ProviderType, string[]> = {
-  CONSOLE: [],
-  SMTP: ["host", "port", "username", "password"],
-  RESEND: ["apiKey"],
-  MAILGUN: ["apiKey", "domain"],
-  SENDGRID: ["apiKey"],
-  SES: ["region", "accessKeyId", "secretAccessKey"],
-};

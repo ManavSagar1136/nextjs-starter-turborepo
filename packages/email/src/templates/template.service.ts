@@ -1,28 +1,27 @@
 /**
  * @buildbase/email - Template Service
- * CRUD operations for email templates
+ * Rendering and template operations (uses @buildbase/database for CRUD)
  */
 
 import type { PrismaClient, EmailTemplate } from "@buildbase/database";
-import type {
-  CreateTemplateInput,
-  UpdateTemplateInput,
-  RenderedEmail,
-  TemplateVariable,
-  VariableValidationResult,
-  ListTemplatesOptions,
-  PaginatedResult,
-  EmailTemplateCategory,
-} from "./types.js";
 import {
-  renderTemplate,
-  extractVariables,
-  validateVariables,
-  applyDefaults,
-  htmlToText,
-  generateSlug,
-} from "./renderer.js";
-import { ValidationError } from "../core/errors.js";
+  createEmailTemplate,
+  updateEmailTemplate,
+  deleteEmailTemplate,
+  getEmailTemplateById,
+  getEmailTemplateBySlug,
+  listEmailTemplates,
+  listEmailTemplatesByCategory,
+  duplicateEmailTemplate,
+  type CreateEmailTemplateInput,
+  type UpdateEmailTemplateInput,
+  type ListEmailTemplatesOptions,
+  type PaginatedEmailTemplates,
+  type TemplateVariable,
+  type EmailTemplateCategory,
+} from "@buildbase/database";
+import type { RenderedEmail, VariableValidationResult } from "./types.js";
+import { renderTemplate, extractVariables, validateVariables, applyDefaults, htmlToText } from "./renderer.js";
 
 /**
  * Error thrown when template is not found
@@ -45,199 +44,81 @@ export class MissingVariablesError extends Error {
 }
 
 /**
- * Service for managing email templates
+ * Service for managing and rendering email templates
  */
 export class TemplateService {
   constructor(private readonly prisma: PrismaClient) {}
 
+  // ===== CRUD Operations (delegated to @buildbase/database) =====
+
   /**
    * Create a new template
    */
-  async create(data: CreateTemplateInput, userId?: string): Promise<EmailTemplate> {
-    // Generate slug if not provided
-    const slug = data.slug || generateSlug(data.name);
-
-    // Check if slug already exists
-    const existing = await this.findBySlug(slug);
-    if (existing) {
-      throw new ValidationError(`Template with slug "${slug}" already exists`, "slug", slug);
-    }
-
+  async create(data: CreateEmailTemplateInput, userId?: string): Promise<EmailTemplate> {
     // Extract variables from HTML if not provided
     const variables = data.variables || this.extractAllVariables(data.subject, data.html);
-
-    return this.prisma.emailTemplate.create({
-      data: {
-        slug,
-        name: data.name,
-        description: data.description,
-        subject: data.subject,
-        html: data.html,
-        text: data.text,
-        design: data.design,
-        category: data.category ?? "TRANSACTIONAL",
-        tags: data.tags ?? [],
-        variables: JSON.stringify(variables),
-        workspaceId: data.workspaceId,
-        createdById: userId,
-      },
-    });
+    return createEmailTemplate(this.prisma, { ...data, variables }, userId);
   }
 
   /**
    * Update a template
    */
-  async update(id: string, data: UpdateTemplateInput, userId?: string): Promise<EmailTemplate> {
-    const existing = await this.findById(id);
-    if (!existing) {
-      throw new TemplateNotFoundError(id);
-    }
-
+  async update(id: string, data: UpdateEmailTemplateInput, userId?: string): Promise<EmailTemplate> {
     // Re-extract variables if HTML or subject changed
-    let variables: TemplateVariable[] | undefined;
-    if (data.html || data.subject) {
-      const subject = data.subject ?? existing.subject;
-      const html = data.html ?? existing.html;
-      variables = data.variables || this.extractAllVariables(subject, html);
+    if ((data.html || data.subject) && !data.variables) {
+      const existing = await this.findById(id);
+      if (existing) {
+        const subject = data.subject ?? existing.subject;
+        const html = data.html ?? existing.html;
+        data.variables = this.extractAllVariables(subject, html);
+      }
     }
-
-    return this.prisma.emailTemplate.update({
-      where: { id },
-      data: {
-        ...(data.name && { name: data.name }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(data.subject && { subject: data.subject }),
-        ...(data.html && { html: data.html }),
-        ...(data.text !== undefined && { text: data.text }),
-        ...(data.design !== undefined && { design: data.design }),
-        ...(data.category && { category: data.category }),
-        ...(data.tags && { tags: data.tags }),
-        ...(variables && { variables: JSON.stringify(variables) }),
-        ...(data.isActive !== undefined && { isActive: data.isActive }),
-        version: { increment: 1 },
-        updatedById: userId,
-      },
-    });
+    return updateEmailTemplate(this.prisma, id, data, userId);
   }
 
   /**
    * Delete a template
    */
   async delete(id: string): Promise<void> {
-    const existing = await this.findById(id);
-    if (!existing) {
-      throw new TemplateNotFoundError(id);
-    }
-
-    await this.prisma.emailTemplate.delete({ where: { id } });
+    return deleteEmailTemplate(this.prisma, id);
   }
 
   /**
    * Find template by ID
    */
   async findById(id: string): Promise<EmailTemplate | null> {
-    return this.prisma.emailTemplate.findUnique({ where: { id } });
+    return getEmailTemplateById(this.prisma, id);
   }
 
   /**
    * Find template by slug
    */
   async findBySlug(slug: string): Promise<EmailTemplate | null> {
-    return this.prisma.emailTemplate.findUnique({ where: { slug } });
+    return getEmailTemplateBySlug(this.prisma, slug);
   }
 
   /**
    * List templates with pagination and filters
    */
-  async list(options: ListTemplatesOptions = {}): Promise<PaginatedResult<EmailTemplate>> {
-    const { workspaceId, category, isActive, search, page = 1, limit = 20 } = options;
-
-    const where: Record<string, unknown> = {
-      workspaceId: workspaceId ?? null,
-    };
-
-    if (category) {
-      where.category = category;
-    }
-
-    if (isActive !== undefined) {
-      where.isActive = isActive;
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { slug: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    const [data, total] = await Promise.all([
-      this.prisma.emailTemplate.findMany({
-        where,
-        orderBy: [{ isDefault: "desc" }, { name: "asc" }],
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      this.prisma.emailTemplate.count({ where }),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+  async list(options: ListEmailTemplatesOptions = {}): Promise<PaginatedEmailTemplates> {
+    return listEmailTemplates(this.prisma, options);
   }
 
   /**
    * List templates by category
    */
   async listByCategory(category: EmailTemplateCategory, workspaceId?: string): Promise<EmailTemplate[]> {
-    return this.prisma.emailTemplate.findMany({
-      where: {
-        category,
-        workspaceId: workspaceId ?? null,
-        isActive: true,
-      },
-      orderBy: [{ isDefault: "desc" }, { name: "asc" }],
-    });
+    return listEmailTemplatesByCategory(this.prisma, category, workspaceId);
   }
 
   /**
    * Duplicate a template
    */
   async duplicate(id: string, newSlug: string, userId?: string): Promise<EmailTemplate> {
-    const existing = await this.findById(id);
-    if (!existing) {
-      throw new TemplateNotFoundError(id);
-    }
-
-    // Check if new slug already exists
-    const slugExists = await this.findBySlug(newSlug);
-    if (slugExists) {
-      throw new ValidationError(`Template with slug "${newSlug}" already exists`, "slug", newSlug);
-    }
-
-    return this.prisma.emailTemplate.create({
-      data: {
-        slug: newSlug,
-        name: `${existing.name} (Copy)`,
-        description: existing.description,
-        subject: existing.subject,
-        html: existing.html,
-        text: existing.text,
-        design: existing.design,
-        category: existing.category,
-        tags: existing.tags,
-        variables: existing.variables,
-        workspaceId: existing.workspaceId,
-        createdById: userId,
-        version: 1,
-      },
-    });
+    return duplicateEmailTemplate(this.prisma, id, newSlug, userId);
   }
+
+  // ===== Rendering Operations (email package logic) =====
 
   /**
    * Render a template with variables
@@ -306,7 +187,7 @@ export class TemplateService {
     return this.parseVariables(template);
   }
 
-  // --- Private methods ---
+  // ===== Private Methods =====
 
   /**
    * Render a template entity

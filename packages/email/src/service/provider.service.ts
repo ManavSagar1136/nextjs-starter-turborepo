@@ -1,232 +1,132 @@
 /**
  * @buildbase/email - Provider Service
- * CRUD operations for email provider management
+ * Provider management with encryption (uses @buildbase/database for CRUD)
  */
 
 import type { PrismaClient, EmailProvider } from "@buildbase/database";
-import type { CreateProviderInput, UpdateProviderInput, ProviderType, PROVIDER_CONFIG_SCHEMA } from "../core/types.js";
+import {
+  createEmailProvider,
+  updateEmailProvider,
+  deleteEmailProvider,
+  getEmailProviderById,
+  getDefaultEmailProvider,
+  getFirstActiveEmailProvider,
+  listEmailProviders,
+  listActiveEmailProviders,
+  setDefaultEmailProvider,
+  incrementEmailsSent as dbIncrementEmailsSent,
+  type CreateEmailProviderInput,
+  type UpdateEmailProviderInput,
+  type ProviderType,
+} from "@buildbase/database";
 import { encryptConfig, decryptConfig } from "../core/encryption.js";
-import { ProviderNotFoundError, ValidationError } from "../core/errors.js";
 
 /**
- * Service for managing email providers in the database
+ * Error thrown when provider is not found
+ */
+export class ProviderNotFoundError extends Error {
+  constructor(id: string) {
+    super(`Email provider not found: ${id}`);
+    this.name = "ProviderNotFoundError";
+  }
+}
+
+/**
+ * Service for managing email providers
  */
 export class ProviderService {
   constructor(private readonly prisma: PrismaClient) {}
 
+  // ===== CRUD Operations (delegated to @buildbase/database with encryption) =====
+
   /**
    * Create a new email provider
    */
-  async create(data: CreateProviderInput, userId?: string): Promise<EmailProvider> {
-    // Validate config based on type
-    this.validateConfig(data.type, data.config);
-
-    // Encrypt sensitive config
+  async create(data: CreateEmailProviderInput, userId?: string): Promise<EmailProvider> {
     const encryptedConfig = encryptConfig(data.config);
-
-    // If setting as default, unset other defaults first
-    if (data.isDefault) {
-      await this.clearDefaults(data.workspaceId);
-    }
-
-    return this.prisma.emailProvider.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        type: data.type,
-        config: encryptedConfig,
-        fromName: data.fromName,
-        fromEmail: data.fromEmail,
-        replyTo: data.replyTo,
-        isDefault: data.isDefault ?? false,
-        workspaceId: data.workspaceId,
-        createdById: userId,
-      },
-    });
+    return createEmailProvider(this.prisma, data, encryptedConfig, userId);
   }
 
   /**
    * Update an existing provider
    */
-  async update(id: string, data: UpdateProviderInput, userId?: string): Promise<EmailProvider> {
+  async update(id: string, data: UpdateEmailProviderInput, userId?: string): Promise<EmailProvider> {
+    // Get existing to validate type if updating config
     const existing = await this.findById(id);
     if (!existing) {
       throw new ProviderNotFoundError(id);
     }
 
-    // If updating config, validate and encrypt
     let encryptedConfig: string | undefined;
     if (data.config) {
-      this.validateConfig(existing.type as ProviderType, data.config);
       encryptedConfig = encryptConfig(data.config);
     }
 
-    // If setting as default, unset other defaults first
-    if (data.isDefault) {
-      await this.clearDefaults(existing.workspaceId);
-    }
-
-    return this.prisma.emailProvider.update({
-      where: { id },
-      data: {
-        ...(data.name && { name: data.name }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(encryptedConfig && { config: encryptedConfig }),
-        ...(data.fromName && { fromName: data.fromName }),
-        ...(data.fromEmail && { fromEmail: data.fromEmail }),
-        ...(data.replyTo !== undefined && { replyTo: data.replyTo }),
-        ...(data.isActive !== undefined && { isActive: data.isActive }),
-        ...(data.isDefault !== undefined && { isDefault: data.isDefault }),
-        updatedById: userId,
-      },
-    });
+    return updateEmailProvider(this.prisma, id, data, encryptedConfig, userId);
   }
 
   /**
    * Delete a provider
    */
   async delete(id: string): Promise<void> {
-    const existing = await this.findById(id);
-    if (!existing) {
-      throw new ProviderNotFoundError(id);
-    }
-
-    await this.prisma.emailProvider.delete({ where: { id } });
+    return deleteEmailProvider(this.prisma, id);
   }
 
   /**
    * Find a provider by ID
    */
   async findById(id: string): Promise<EmailProvider | null> {
-    return this.prisma.emailProvider.findUnique({ where: { id } });
+    return getEmailProviderById(this.prisma, id);
   }
 
   /**
    * Find the default provider for a workspace
    */
   async findDefault(workspaceId?: string): Promise<EmailProvider | null> {
-    return this.prisma.emailProvider.findFirst({
-      where: {
-        isDefault: true,
-        isActive: true,
-        workspaceId: workspaceId ?? null,
-      },
-    });
+    return getDefaultEmailProvider(this.prisma, workspaceId);
   }
 
   /**
    * Find the first active provider (fallback when no default)
    */
   async findFirstActive(workspaceId?: string): Promise<EmailProvider | null> {
-    return this.prisma.emailProvider.findFirst({
-      where: {
-        isActive: true,
-        workspaceId: workspaceId ?? null,
-      },
-      orderBy: { createdAt: "asc" },
-    });
+    return getFirstActiveEmailProvider(this.prisma, workspaceId);
   }
 
   /**
    * List all providers for a workspace
    */
   async list(workspaceId?: string): Promise<EmailProvider[]> {
-    return this.prisma.emailProvider.findMany({
-      where: { workspaceId: workspaceId ?? null },
-      orderBy: [{ isDefault: "desc" }, { name: "asc" }],
-    });
+    return listEmailProviders(this.prisma, workspaceId);
   }
 
   /**
    * List active providers only
    */
   async listActive(workspaceId?: string): Promise<EmailProvider[]> {
-    return this.prisma.emailProvider.findMany({
-      where: {
-        workspaceId: workspaceId ?? null,
-        isActive: true,
-      },
-      orderBy: [{ isDefault: "desc" }, { name: "asc" }],
-    });
+    return listActiveEmailProviders(this.prisma, workspaceId);
   }
 
   /**
    * Set a provider as the default
    */
   async setDefault(id: string): Promise<EmailProvider> {
-    const provider = await this.findById(id);
-    if (!provider) {
-      throw new ProviderNotFoundError(id);
-    }
-
-    // Clear other defaults
-    await this.clearDefaults(provider.workspaceId);
-
-    // Set this one as default
-    return this.prisma.emailProvider.update({
-      where: { id },
-      data: { isDefault: true },
-    });
+    return setDefaultEmailProvider(this.prisma, id);
   }
 
   /**
    * Increment the emails sent counter
    */
   async incrementEmailsSent(id: string): Promise<void> {
-    await this.prisma.emailProvider.update({
-      where: { id },
-      data: {
-        emailsSent: { increment: 1 },
-        lastUsedAt: new Date(),
-      },
-    });
+    return dbIncrementEmailsSent(this.prisma, id);
   }
+
+  // ===== Encryption Operations (email package logic) =====
 
   /**
    * Get decrypted config for a provider
    */
   getDecryptedConfig<T extends Record<string, unknown>>(provider: EmailProvider): T {
     return decryptConfig<T>(provider.config);
-  }
-
-  /**
-   * Validate provider config against schema
-   */
-  private validateConfig(type: ProviderType, config: Record<string, unknown>): void {
-    const requiredFields = this.getRequiredFields(type);
-
-    for (const field of requiredFields) {
-      if (config[field] === undefined || config[field] === null || config[field] === "") {
-        throw new ValidationError(`Missing required field for ${type} provider: ${field}`, field);
-      }
-    }
-  }
-
-  /**
-   * Get required fields for a provider type
-   */
-  private getRequiredFields(type: ProviderType): string[] {
-    const schema: Record<ProviderType, string[]> = {
-      CONSOLE: [],
-      SMTP: ["host", "port", "username", "password"],
-      RESEND: ["apiKey"],
-      MAILGUN: ["apiKey", "domain"],
-      SENDGRID: ["apiKey"],
-      SES: ["region", "accessKeyId", "secretAccessKey"],
-    };
-    return schema[type] ?? [];
-  }
-
-  /**
-   * Clear default flag on all providers for a workspace
-   */
-  private async clearDefaults(workspaceId?: string | null): Promise<void> {
-    await this.prisma.emailProvider.updateMany({
-      where: {
-        workspaceId: workspaceId ?? null,
-        isDefault: true,
-      },
-      data: { isDefault: false },
-    });
   }
 }

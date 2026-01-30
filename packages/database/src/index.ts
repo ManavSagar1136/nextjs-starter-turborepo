@@ -16,3 +16,9 @@ export * from "./generated/client";
 
 // Export user service functions
 export * from "./user";
+
+// Export email template service functions
+export * from "./email-template";
+
+// Export email provider service functions
+export * from "./email-provider";
