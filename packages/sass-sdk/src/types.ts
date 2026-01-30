@@ -27,4 +27,13 @@ export interface SaaSProviderProps {
    * @returns void or Promise<void>
    */
   handleEvent?: (eventType: string, data: any) => void | Promise<void>;
+
+  /**
+   * Called when workspace is changed
+   * @param workspace - Workspace object
+   * @param user - User object
+   * @param role - Role object
+   * @returns void or Promise<void>
+   */
+  onWorkspaceChange?: (workspace: any, user: any, role: any) => void | Promise<void>;
 }

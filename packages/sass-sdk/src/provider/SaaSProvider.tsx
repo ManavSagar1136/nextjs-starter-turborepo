@@ -17,6 +17,7 @@ export const SaaSProvider: React.FC<SaaSProviderProps> = ({
   onSignOut,
   handleAuthentication,
   handleEvent,
+  onWorkspaceChange,
 }) => {
   const serverUrl = env.NEXT_PUBLIC_SAAS_SERVER_URL || "http://localhost:3000";
   const version = ApiVersion.V1;
@@ -44,6 +45,7 @@ export const SaaSProvider: React.FC<SaaSProviderProps> = ({
           onSignOut,
           handleAuthentication,
           handleEvent,
+          onWorkspaceChange,
         } as any,
       }}
     >

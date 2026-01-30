@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AuthenticatedUser, withAuth } from "@buildbase/helpers/auth";
-import {
-  syncWorkspace,
-  syncUser,
-  addUserToWorkspace,
-  updateUserCurrentWorkspace,
-  DEFAULT_ROLE,
-  WORKSPACE_ROLES,
-} from "@buildbase/database/user";
+import { syncWorkspace, syncUser, addUserToWorkspace, DEFAULT_ROLE, WORKSPACE_ROLES } from "@buildbase/database/user";
 import { createResponseWithAuthToken } from "@buildbase/helpers/auth";
 import { prisma } from "@buildbase/database";
 
@@ -42,7 +35,6 @@ async function postHandler(request: NextRequest) {
 
     if (
       eventType !== "workspace:created" &&
-      eventType !== "workspace:changed" &&
       eventType !== "workspace:updated" &&
       eventType !== "workspace:deleted" &&
       eventType !== "workspace:user-added" &&
@@ -52,7 +44,7 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Invalid eventType. Must be 'workspace:created', 'workspace:changed', 'workspace:updated', 'workspace:deleted', 'workspace:user-added', 'workspace:user-removed', or 'workspace:user-role-changed'",
+            "Invalid eventType. Must be 'workspace:created', 'workspace:updated', 'workspace:deleted', 'workspace:user-added', 'workspace:user-removed', or 'workspace:user-role-changed'. Note: 'workspace:changed' is handled by /api/auth/workspace-change",
         },
         { status: 400 }
       );
@@ -348,8 +340,8 @@ async function postHandler(request: NextRequest) {
       }
     }
 
-    // For workspace:changed and workspace:updated, check if we need to update token
-    if (eventType === "workspace:changed" || eventType === "workspace:updated") {
+    // For workspace:updated, check if we need to update token
+    if (eventType === "workspace:updated") {
       // Find current user's role in this workspace
       let currentUserRole = userData.role || DEFAULT_ROLE;
 
@@ -369,24 +361,16 @@ async function postHandler(request: NextRequest) {
         if (!membershipResult.success) {
           console.error("Failed to add user to workspace:", membershipResult.error);
         }
-
-        // For workspace:changed, update user's current workspace preference
-        if (eventType === "workspace:changed") {
-          await updateUserCurrentWorkspace(userData.sdkUserId, workspaceId);
-        }
       }
 
       // Check if this is the current user's active workspace
       const isCurrentWorkspace = userData.workspaceId === workspaceId;
 
-      // Recreate token if:
-      // 1. It's workspace:changed (always update token)
-      // 2. It's workspace:updated AND it's the current workspace (workspace name/role might have changed)
-      if (eventType === "workspace:changed" || (eventType === "workspace:updated" && isCurrentWorkspace)) {
+      // Recreate token if it's the current workspace (workspace name/role might have changed)
+      if (isCurrentWorkspace) {
         // Create response with updated token
         const updatedUserData = {
           ...userData,
-          workspaceId: eventType === "workspace:changed" ? workspaceId : userData.workspaceId,
           workspaceName: workspace.name || userData.workspaceName,
           role: currentUserRole,
         };
@@ -396,10 +380,7 @@ async function postHandler(request: NextRequest) {
             success: true,
             user: updatedUserData,
             workspace: finalWorkspace || workspaceSyncResult.workspace || undefined,
-            message:
-              eventType === "workspace:changed"
-                ? "Workspace changed and token updated successfully"
-                : "Workspace updated and token refreshed successfully",
+            message: "Workspace updated and token refreshed successfully",
           },
           updatedUserData
         );
