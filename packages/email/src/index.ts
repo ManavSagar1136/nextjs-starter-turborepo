@@ -23,6 +23,14 @@ export * from "./core/types.js";
 export * from "./core/errors.js";
 export * from "./core/constants.js";
 export { encrypt, decrypt, encryptConfig, decryptConfig, generateEncryptionKey } from "./core/encryption.js";
+export * from "./core/validation.js";
+export {
+  healthCheck,
+  quickHealthCheck,
+  sendTestEmail,
+  type HealthCheckResult,
+  type ComponentHealth,
+} from "./core/health.js";
 
 // Provider exports
 export { BaseProvider, type DbEmailProvider } from "./providers/base.provider.js";
