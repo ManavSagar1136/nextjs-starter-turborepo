@@ -1,62 +1,28 @@
 /**
  * Next.js Instrumentation
  *
- * This file is loaded before Next.js starts and is used to initialize
- * monitoring tools like New Relic APM.
+ * Note: New Relic initialization is handled via NODE_OPTIONS or
+ * by importing newrelic at the top of server entry points.
+ *
+ * For New Relic APM in production:
+ * 1. Set NEW_RELIC_ENABLED=true
+ * 2. Set NEW_RELIC_LICENSE_KEY=your-key
+ * 3. Set NODE_OPTIONS='-r newrelic' in your deployment
  *
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
 export async function register() {
-  // Only initialize New Relic on the Node.js runtime (not Edge)
+  // Instrumentation runs in both Node.js and Edge runtimes
+  // New Relic only works in Node.js and requires native modules,
+  // so we don't initialize it here to avoid bundler issues.
+
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    // Check if New Relic should be enabled
-    if (process.env.NEW_RELIC_ENABLED === "true" && process.env.NEW_RELIC_LICENSE_KEY) {
-      try {
-        // Dynamic import to avoid loading in Edge runtime
-        await import("newrelic");
-        console.log("✅ New Relic APM initialized");
-      } catch (error) {
-        console.warn("⚠️ Failed to initialize New Relic:", error);
-      }
-    }
+    // Node.js specific initialization can go here
+    // (but not newrelic - use NODE_OPTIONS instead)
   }
-}
 
-/**
- * Optional: Handle uncaught errors
- * This is called when an error is thrown that isn't caught
- */
-export function onRequestError(
-  error: Error,
-  request: { path: string; method: string },
-  context: { routerKind: string; routePath: string; routeType: string }
-) {
-  // Log the error
-  console.error("Unhandled request error:", {
-    error: error.message,
-    stack: error.stack,
-    path: request.path,
-    method: request.method,
-    routerKind: context.routerKind,
-    routePath: context.routePath,
-    routeType: context.routeType,
-  });
-
-  // Report to New Relic if available
-  if (process.env.NEW_RELIC_ENABLED === "true") {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const newrelic = require("newrelic");
-      newrelic.noticeError(error, {
-        path: request.path,
-        method: request.method,
-        routerKind: context.routerKind,
-        routePath: context.routePath,
-        routeType: context.routeType,
-      });
-    } catch {
-      // New Relic not available
-    }
+  if (process.env.NEXT_RUNTIME === "edge") {
+    // Edge runtime initialization can go here
   }
 }
