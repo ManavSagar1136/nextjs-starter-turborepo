@@ -17,6 +17,11 @@ import { decryptConfig } from "../core/encryption.js";
 import { NoDefaultProviderError, ProviderNotFoundError } from "../core/errors.js";
 import { ProviderService } from "../service/provider.service.js";
 import { ConsoleProvider } from "../providers/console.provider.js";
+import { NodemailerProvider } from "../providers/nodemailer.provider.js";
+import { ResendProvider } from "../providers/resend.provider.js";
+import { MailgunProvider } from "../providers/mailgun.provider.js";
+import { SendGridProvider } from "../providers/sendgrid.provider.js";
+import { SesProvider } from "../providers/ses.provider.js";
 
 /**
  * Factory for creating and caching email provider instances
@@ -139,69 +144,77 @@ export class EmailFactory {
 
       case "SMTP": {
         const config = decryptConfig<SmtpConfig>(dbProvider.config);
-        // NodemailerProvider will be implemented in Phase 2
-        // For now, fall through to console with warning
-        console.warn(`SMTP provider "${dbProvider.name}" not yet implemented. Using Console.`);
-        return new ConsoleProvider({
-          id: dbProvider.id,
-          name: dbProvider.name,
-          type: "CONSOLE",
-          fromName: dbProvider.fromName,
-          fromEmail: dbProvider.fromEmail,
-          replyTo: dbProvider.replyTo,
-        });
+        return new NodemailerProvider(
+          {
+            id: dbProvider.id,
+            name: dbProvider.name,
+            type: "SMTP",
+            fromName: dbProvider.fromName,
+            fromEmail: dbProvider.fromEmail,
+            replyTo: dbProvider.replyTo,
+          },
+          config
+        );
       }
 
       case "RESEND": {
         const config = decryptConfig<ResendConfig>(dbProvider.config);
-        console.warn(`Resend provider "${dbProvider.name}" not yet implemented. Using Console.`);
-        return new ConsoleProvider({
-          id: dbProvider.id,
-          name: dbProvider.name,
-          type: "CONSOLE",
-          fromName: dbProvider.fromName,
-          fromEmail: dbProvider.fromEmail,
-          replyTo: dbProvider.replyTo,
-        });
+        return new ResendProvider(
+          {
+            id: dbProvider.id,
+            name: dbProvider.name,
+            type: "RESEND",
+            fromName: dbProvider.fromName,
+            fromEmail: dbProvider.fromEmail,
+            replyTo: dbProvider.replyTo,
+          },
+          config
+        );
       }
 
       case "MAILGUN": {
         const config = decryptConfig<MailgunConfig>(dbProvider.config);
-        console.warn(`Mailgun provider "${dbProvider.name}" not yet implemented. Using Console.`);
-        return new ConsoleProvider({
-          id: dbProvider.id,
-          name: dbProvider.name,
-          type: "CONSOLE",
-          fromName: dbProvider.fromName,
-          fromEmail: dbProvider.fromEmail,
-          replyTo: dbProvider.replyTo,
-        });
+        return new MailgunProvider(
+          {
+            id: dbProvider.id,
+            name: dbProvider.name,
+            type: "MAILGUN",
+            fromName: dbProvider.fromName,
+            fromEmail: dbProvider.fromEmail,
+            replyTo: dbProvider.replyTo,
+          },
+          config
+        );
       }
 
       case "SENDGRID": {
         const config = decryptConfig<SendGridConfig>(dbProvider.config);
-        console.warn(`SendGrid provider "${dbProvider.name}" not yet implemented. Using Console.`);
-        return new ConsoleProvider({
-          id: dbProvider.id,
-          name: dbProvider.name,
-          type: "CONSOLE",
-          fromName: dbProvider.fromName,
-          fromEmail: dbProvider.fromEmail,
-          replyTo: dbProvider.replyTo,
-        });
+        return new SendGridProvider(
+          {
+            id: dbProvider.id,
+            name: dbProvider.name,
+            type: "SENDGRID",
+            fromName: dbProvider.fromName,
+            fromEmail: dbProvider.fromEmail,
+            replyTo: dbProvider.replyTo,
+          },
+          config
+        );
       }
 
       case "SES": {
         const config = decryptConfig<SesConfig>(dbProvider.config);
-        console.warn(`SES provider "${dbProvider.name}" not yet implemented. Using Console.`);
-        return new ConsoleProvider({
-          id: dbProvider.id,
-          name: dbProvider.name,
-          type: "CONSOLE",
-          fromName: dbProvider.fromName,
-          fromEmail: dbProvider.fromEmail,
-          replyTo: dbProvider.replyTo,
-        });
+        return new SesProvider(
+          {
+            id: dbProvider.id,
+            name: dbProvider.name,
+            type: "SES",
+            fromName: dbProvider.fromName,
+            fromEmail: dbProvider.fromEmail,
+            replyTo: dbProvider.replyTo,
+          },
+          config
+        );
       }
 
       default:

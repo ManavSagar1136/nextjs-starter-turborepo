@@ -27,6 +27,11 @@ export { encrypt, decrypt, encryptConfig, decryptConfig, generateEncryptionKey }
 // Provider exports
 export { BaseProvider, type DbEmailProvider } from "./providers/base.provider.js";
 export { ConsoleProvider, createConsoleProvider } from "./providers/console.provider.js";
+export { NodemailerProvider } from "./providers/nodemailer.provider.js";
+export { ResendProvider } from "./providers/resend.provider.js";
+export { MailgunProvider } from "./providers/mailgun.provider.js";
+export { SendGridProvider } from "./providers/sendgrid.provider.js";
+export { SesProvider } from "./providers/ses.provider.js";
 
 // Factory exports
 export { EmailFactory } from "./factory/email.factory.js";
