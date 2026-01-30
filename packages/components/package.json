@@ -29,6 +29,10 @@
     "./dashboard": {
       "types": "./dist/dashboard/index.d.ts",
       "default": "./dist/dashboard/index.js"
+    },
+    "./email": {
+      "types": "./dist/email/index.d.ts",
+      "default": "./dist/email/index.js"
     }
   },
   "license": "MIT",
@@ -49,6 +53,7 @@
     "aos": "^2.3.4",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.469.0",
+    "react-hook-form": "^7.54.0",
     "react-icons": "^5.0.0"
   },
   "devDependencies": {

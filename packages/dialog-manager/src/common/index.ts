@@ -3,3 +3,9 @@ export type { ConfirmationDialogProps, ConfirmationDialogVariant } from "./confi
 
 export { AlertDialog, ALERT_DIALOG_VARIANTS } from "./alert-dialog";
 export type { AlertDialogProps, AlertDialogVariant } from "./alert-dialog";
+
+export { EmailTemplateDialog } from "./email-template-dialog";
+export type { EmailTemplateDialogProps } from "./email-template-dialog";
+
+export { EmailProviderDialog } from "./email-provider-dialog";
+export type { EmailProviderDialogProps } from "./email-provider-dialog";

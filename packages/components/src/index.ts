@@ -34,3 +34,9 @@ export { NavUser } from "./dashboard/nav-user";
 export { DashboardBreadcrumb } from "./dashboard/dashboard-breadcrumb";
 export type { MenuItem, DashboardLayoutProps } from "./dashboard/types";
 export type { NavUserProps } from "./dashboard/nav-user";
+
+// Email components
+export { EmailTemplateForm } from "./email/email-template-form";
+export type { EmailTemplateFormProps, EmailTemplateFormData } from "./email/email-template-form";
+export { EmailProviderForm } from "./email/email-provider-form";
+export type { EmailProviderFormProps, EmailProviderFormData } from "./email/email-provider-form";
