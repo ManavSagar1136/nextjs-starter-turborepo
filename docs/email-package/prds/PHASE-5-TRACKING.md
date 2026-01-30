@@ -54,18 +54,20 @@ Implement email tracking (opens, clicks) and compliance features (unsubscribe, p
 - [ ] Redirects to original URL
 - [ ] Preserves link attributes (target, rel)
 
-### US-5.4: Tracking Toggle
+### US-5.4: Tracking Default ON (All Emails)
 
 **As a** developer  
-**I want** to enable/disable tracking per email  
-**So that** I can respect privacy preferences
+**I want** tracking enabled by default for ALL emails  
+**So that** I have complete visibility into email engagement
 
 **Acceptance Criteria:**
 
-- [ ] `trackOpens: boolean` option
-- [ ] `trackClicks: boolean` option
-- [ ] Global config default
-- [ ] Per-email override
+- [ ] Tracking enabled by default (no config needed)
+- [ ] Every email gets a unique `trackingId` (auto-generated)
+- [ ] Open pixel automatically inserted in ALL emails
+- [ ] Links automatically rewritten for click tracking in ALL emails
+- [ ] `disableTracking: true` option to opt-out per email (rare)
+- [ ] `EMAIL_TRACKING_DISABLED=true` env to disable globally (rare)
 
 ### US-5.5: Email Metrics
 
@@ -227,11 +229,23 @@ model EmailPreference {
 // src/tracking/types.ts
 
 export interface TrackingConfig {
-  enabled: boolean;
-  trackOpens: boolean;
-  trackClicks: boolean;
+  /** Tracking is ON by default - set false to disable globally */
+  enabled: boolean; // default: true
+  /** Track opens via pixel - default ON */
+  trackOpens: boolean; // default: true
+  /** Track clicks via link rewriting - default ON */
+  trackClicks: boolean; // default: true
+  /** Base URL for tracking endpoints */
   baseUrl: string;
 }
+
+// Default config - tracking ON for everything
+export const DEFAULT_TRACKING_CONFIG: TrackingConfig = {
+  enabled: true,
+  trackOpens: true,
+  trackClicks: true,
+  baseUrl: process.env.APP_URL || "",
+};
 
 export interface TrackingContext {
   trackingId: string;

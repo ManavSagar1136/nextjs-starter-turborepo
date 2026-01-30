@@ -9,7 +9,7 @@ Enterprise-grade email package with multi-provider support, template management,
 | **Multi-Provider** | Factory pattern with 6 providers (Console, SMTP, Resend, Mailgun, SendGrid, AWS SES) |
 | **Templates**      | Full CRUD with Handlebars rendering and variable interpolation                       |
 | **Queue**          | QStash integration for delayed/scheduled sends                                       |
-| **Tracking**       | Open/click tracking with analytics                                                   |
+| **Tracking**       | **ON by default** — Every email tracked (opens via pixel, clicks via link rewriting) |
 | **Compliance**     | CAN-SPAM, GDPR, one-click unsubscribe                                                |
 
 ## Development Phases

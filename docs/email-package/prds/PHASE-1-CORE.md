@@ -181,6 +181,10 @@ export interface SendEmailOptions {
   headers?: Record<string, string>;
   tags?: string[];
   metadata?: Record<string, unknown>;
+
+  // Tracking (enabled by default)
+  trackingId?: string; // Auto-generated if not provided
+  disableTracking?: boolean; // Set true to disable (default: false)
 }
 
 export interface SendResult {
@@ -188,6 +192,7 @@ export interface SendResult {
   messageId: string;
   provider: string;
   timestamp: Date;
+  trackingId: string; // Always returned for tracking
   errors?: string[];
 }
 
