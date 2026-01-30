@@ -5,6 +5,7 @@
 
 import { randomUUID } from "crypto";
 import type { PrismaClient } from "@buildbase/database";
+import { createSentEmail, updateSentEmailByTrackingId } from "@buildbase/database";
 import type { SendEmailOptions, SendResult, BulkSendResult } from "../core/types.js";
 import type { SendTemplateOptions } from "../templates/types.js";
 import type { SendWithQueueOptions, QueueResult, BulkQueueResult } from "../queue/types.js";
@@ -89,6 +90,36 @@ export class EmailService {
       trackingId,
     });
 
+    // Store sent email record
+    try {
+      const toArray = Array.isArray(options.to) ? options.to : [options.to];
+      const ccArray = options.cc ? (Array.isArray(options.cc) ? options.cc : [options.cc]) : [];
+      const bccArray = options.bcc ? (Array.isArray(options.bcc) ? options.bcc : [options.bcc]) : [];
+      const fromAddress = options.from?.email ?? provider.fromEmail;
+
+      await createSentEmail(prisma, {
+        trackingId,
+        to: toArray,
+        cc: ccArray,
+        bcc: bccArray,
+        from: fromAddress,
+        replyTo: options.replyTo,
+        subject: options.subject,
+        html: options.html, // Store original HTML without tracking
+        text: options.text,
+        providerId: provider.id,
+        providerName: provider.name,
+        messageId: result.messageId,
+        status: result.success ? "SENT" : "FAILED",
+        error: result.errors?.join(", "),
+        sentAt: result.success ? new Date() : undefined,
+        metadata: options.headers as Record<string, unknown> | undefined,
+      });
+    } catch {
+      // Non-critical - don't fail the send if logging fails
+      console.error("[EmailService] Failed to store sent email record");
+    }
+
     // Record SENT event and update provider stats
     if (result.success) {
       // Record tracking event
@@ -141,31 +172,79 @@ export class EmailService {
 
     // Use provider's bulk send if available
     if (provider.sendBulk) {
-      // Pre-process emails to add tracking
-      const processedEmails: SendEmailOptions[] = emails.map(email => {
-        if (email.disableTracking || !email.html) {
-          return email;
+      // Pre-process emails to add tracking and generate trackingIds
+      const processedEmails: (SendEmailOptions & { _originalEmail: SendEmailOptions })[] = emails.map(email => {
+        const trackingId = email.disableTracking
+          ? `notrack_${randomUUID()}`
+          : (email.trackingId ?? `trk_${randomUUID().replace(/-/g, "")}`);
+
+        let html = email.html;
+        if (!email.disableTracking && html) {
+          const recipientEmail = Array.isArray(email.to) ? email.to[0] : email.to;
+          html = trackingService.addTracking(html, {
+            trackingId,
+            email: recipientEmail ?? "",
+          });
         }
 
-        const trackingId = email.trackingId ?? `trk_${randomUUID().replace(/-/g, "")}`;
-        const recipientEmail = Array.isArray(email.to) ? email.to[0] : email.to;
-        const html = trackingService.addTracking(email.html, {
-          trackingId,
-          email: recipientEmail ?? "",
-        });
-
-        return { ...email, html, trackingId };
+        return { ...email, html, trackingId, _originalEmail: email };
       });
 
       const result = await provider.sendBulk(processedEmails);
 
-      // Record SENT events for successful emails
+      // Store sent email records and record SENT events
       for (const success of result.successful) {
-        if (success.trackingId && !success.trackingId.startsWith("notrack_")) {
+        if (!success?.trackingId) continue;
+
+        const originalEmail = processedEmails.find(e => e.trackingId === success.trackingId)?._originalEmail;
+
+        if (success.trackingId) {
+          // Store sent email record
           try {
-            await trackingService.recordSent(success.trackingId);
+            const toArray = originalEmail
+              ? Array.isArray(originalEmail.to)
+                ? originalEmail.to
+                : [originalEmail.to]
+              : [];
+            const ccArray = originalEmail?.cc
+              ? Array.isArray(originalEmail.cc)
+                ? originalEmail.cc
+                : [originalEmail.cc]
+              : [];
+            const bccArray = originalEmail?.bcc
+              ? Array.isArray(originalEmail.bcc)
+                ? originalEmail.bcc
+                : [originalEmail.bcc]
+              : [];
+            const fromAddress = originalEmail?.from?.email ?? provider.fromEmail;
+
+            await createSentEmail(prisma, {
+              trackingId: success.trackingId,
+              to: toArray,
+              cc: ccArray,
+              bcc: bccArray,
+              from: fromAddress,
+              replyTo: originalEmail?.replyTo,
+              subject: originalEmail?.subject ?? "",
+              html: originalEmail?.html,
+              text: originalEmail?.text,
+              providerId: provider.id,
+              providerName: provider.name,
+              messageId: success.messageId,
+              status: "SENT",
+              sentAt: new Date(),
+            });
           } catch {
             // Non-critical - don't fail the operation
+          }
+
+          // Record tracking event
+          if (!success.trackingId.startsWith("notrack_")) {
+            try {
+              await trackingService.recordSent(success.trackingId);
+            } catch {
+              // Non-critical - don't fail the operation
+            }
           }
         }
       }

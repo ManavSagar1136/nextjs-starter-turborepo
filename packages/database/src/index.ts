@@ -22,3 +22,6 @@ export * from "./email-template";
 
 // Export email provider service functions
 export * from "./email-provider";
+
+// Export sent email service functions
+export * from "./sent-email";
