@@ -45,10 +45,10 @@ export interface DashboardLayoutProps {
    */
   showTeamSwitcher?: boolean;
   /**
-   * Optional custom team switcher component
-   * If provided, this will be rendered instead of the default team switcher
+   * Optional callback when workspace is changed
+   * If not provided, the component will handle workspace switching with default behavior
    */
-  teamSwitcherComponent?: React.ReactNode;
+  onWorkspaceChange?: (workspace: any) => Promise<void> | void;
   /**
    * Brand configuration for sidebar header
    * If not provided, no brand will be shown

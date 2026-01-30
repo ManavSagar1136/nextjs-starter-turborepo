@@ -20,6 +20,7 @@ import { NavUser } from "./nav-user";
 import { DashboardBreadcrumb } from "./dashboard-breadcrumb";
 import { AppIcon } from "../common/AppIcon";
 import { ThemeToggle } from "@buildbase/ui/components/ui/theme-toggle";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 import type { DashboardLayoutProps } from "./types";
 
 export interface DashboardLayoutComponentProps extends DashboardLayoutProps {
@@ -69,7 +70,6 @@ export function DashboardLayout({
   menuItems,
   breadcrumbExcludeSegments = [],
   showTeamSwitcher = false,
-  teamSwitcherComponent,
   brand,
   children,
   className,
@@ -96,12 +96,16 @@ export function DashboardLayout({
               </SidebarMenu>
             )}
             <div className="flex items-center gap-2">
-              {showTeamSwitcher && teamSwitcherComponent && teamSwitcherComponent}
               <ThemeToggle />
             </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
+          {showTeamSwitcher && (
+            <div className="border-b px-2 py-2">
+              <WorkspaceSwitcher />
+            </div>
+          )}
           <NavMain items={menuItems} />
         </SidebarContent>
         <SidebarFooter>
