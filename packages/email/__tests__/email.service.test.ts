@@ -18,30 +18,20 @@ vi.mock("../src/factory/email.factory.js", () => ({
   },
 }));
 
-// Mock the queue
+// Mock the queue - define mock functions that persist
+const mockEnqueue = vi.fn();
+const mockEnqueueBulk = vi.fn();
+const mockDelay = vi.fn();
+const mockSchedule = vi.fn();
+
 vi.mock("../src/queue/queue.service.js", () => ({
   EmailQueue: {
     initialize: vi.fn().mockResolvedValue(undefined),
     configured: false,
-    enqueue: vi.fn().mockResolvedValue({
-      messageId: "queue_msg_123",
-      status: "queued",
-    }),
-    enqueueBulk: vi.fn().mockResolvedValue({
-      total: 2,
-      queued: 2,
-      failed: 0,
-      messageIds: ["msg_1", "msg_2"],
-      errors: [],
-    }),
-    delay: vi.fn().mockResolvedValue({
-      messageId: "delayed_msg_123",
-      status: "scheduled",
-    }),
-    schedule: vi.fn().mockResolvedValue({
-      messageId: "scheduled_msg_123",
-      status: "scheduled",
-    }),
+    enqueue: mockEnqueue,
+    enqueueBulk: mockEnqueueBulk,
+    delay: mockDelay,
+    schedule: mockSchedule,
   },
 }));
 
@@ -58,6 +48,8 @@ describe("EmailService", () => {
     incrementEmailsSent: vi.fn().mockResolvedValue(undefined),
   };
 
+  const mockPrisma = {};
+
   const testEmail: SendEmailOptions = {
     to: "user@example.com",
     subject: "Test Subject",
@@ -65,16 +57,46 @@ describe("EmailService", () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+
+    // Reset and setup queue mocks
+    mockEnqueue.mockReset();
+    mockEnqueue.mockResolvedValue({
+      messageId: "queue_msg_123",
+      status: "queued",
+    });
+
+    mockEnqueueBulk.mockReset();
+    mockEnqueueBulk.mockResolvedValue({
+      total: 2,
+      queued: 2,
+      failed: 0,
+      messageIds: ["msg_1", "msg_2"],
+      errors: [],
+    });
+
+    mockDelay.mockReset();
+    mockDelay.mockResolvedValue({
+      messageId: "delayed_msg_123",
+      status: "scheduled",
+    });
+
+    mockSchedule.mockReset();
+    mockSchedule.mockResolvedValue({
+      messageId: "scheduled_msg_123",
+      status: "scheduled",
+    });
 
     // Setup factory mock
     (EmailFactory.getInstance as ReturnType<typeof vi.fn>).mockReturnValue({
       getProvider: vi.fn().mockResolvedValue(mockProvider),
       getProviderService: vi.fn().mockReturnValue(mockProviderService),
-      getPrisma: vi.fn().mockReturnValue({}),
+      getPrisma: vi.fn().mockReturnValue(mockPrisma),
     });
+
+    // Reset provider service mock
+    mockProviderService.incrementEmailsSent.mockClear();
   });
 
   afterEach(() => {
@@ -123,21 +145,21 @@ describe("EmailService", () => {
     it("should queue email when queue option is true", async () => {
       const result = await EmailService.send({ ...testEmail, queue: true });
 
-      expect(EmailQueue.enqueue).toHaveBeenCalled();
+      expect(mockEnqueue).toHaveBeenCalled();
       expect(result).toHaveProperty("messageId");
     });
 
     it("should queue email when delay is specified", async () => {
       const result = await EmailService.send({ ...testEmail, delay: 5000 });
 
-      expect(EmailQueue.enqueue).toHaveBeenCalled();
+      expect(mockEnqueue).toHaveBeenCalled();
     });
 
     it("should queue email when scheduledAt is specified", async () => {
       const futureDate = new Date(Date.now() + 3600000);
       const result = await EmailService.send({ ...testEmail, scheduledAt: futureDate });
 
-      expect(EmailQueue.enqueue).toHaveBeenCalled();
+      expect(mockEnqueue).toHaveBeenCalled();
     });
   });
 
@@ -198,7 +220,7 @@ describe("EmailService", () => {
     it("should support queue options", async () => {
       await EmailService.sendWith("specific-provider", { ...testEmail, queue: true });
 
-      expect(EmailQueue.enqueue).toHaveBeenCalled();
+      expect(mockEnqueue).toHaveBeenCalled();
     });
   });
 
@@ -221,7 +243,7 @@ describe("EmailService", () => {
 
       const result = await EmailService.sendBulk(bulkEmails, { queue: true });
 
-      expect(EmailQueue.enqueueBulk).toHaveBeenCalled();
+      expect(mockEnqueueBulk).toHaveBeenCalled();
 
       (EmailQueue as unknown as { configured: boolean }).configured = false;
     });
@@ -258,6 +280,7 @@ describe("EmailService", () => {
       (EmailFactory.getInstance as ReturnType<typeof vi.fn>).mockReturnValue({
         getProvider: vi.fn().mockResolvedValue(failingProvider),
         getProviderService: vi.fn().mockReturnValue(mockProviderService),
+        getPrisma: vi.fn().mockReturnValue(mockPrisma),
       });
 
       const result = await EmailService.sendBulk(bulkEmails);
@@ -271,14 +294,14 @@ describe("EmailService", () => {
     it("should delay email sending", async () => {
       const result = await EmailService.delay(testEmail, 5000);
 
-      expect(EmailQueue.delay).toHaveBeenCalledWith(testEmail, 5000);
+      expect(mockDelay).toHaveBeenCalledWith(testEmail, 5000);
       expect(result.messageId).toBe("delayed_msg_123");
     });
 
     it("should accept string delay", async () => {
       await EmailService.delay(testEmail, "5m");
 
-      expect(EmailQueue.delay).toHaveBeenCalledWith(testEmail, "5m");
+      expect(mockDelay).toHaveBeenCalledWith(testEmail, "5m");
     });
   });
 
@@ -288,7 +311,7 @@ describe("EmailService", () => {
 
       const result = await EmailService.schedule(testEmail, futureDate);
 
-      expect(EmailQueue.schedule).toHaveBeenCalledWith(testEmail, futureDate);
+      expect(mockSchedule).toHaveBeenCalledWith(testEmail, futureDate);
       expect(result.messageId).toBe("scheduled_msg_123");
     });
 
@@ -297,7 +320,7 @@ describe("EmailService", () => {
 
       await EmailService.schedule(testEmail, futureDate);
 
-      expect(EmailQueue.schedule).toHaveBeenCalledWith(testEmail, futureDate);
+      expect(mockSchedule).toHaveBeenCalledWith(testEmail, futureDate);
     });
   });
 
@@ -319,8 +342,9 @@ describe("EmailService", () => {
 });
 
 describe("sendEmail convenience function", () => {
+  const mockPrisma = {};
+
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -331,7 +355,7 @@ describe("sendEmail convenience function", () => {
       getProviderService: vi.fn().mockReturnValue({
         incrementEmailsSent: vi.fn(),
       }),
-      getPrisma: vi.fn().mockReturnValue({}),
+      getPrisma: vi.fn().mockReturnValue(mockPrisma),
     });
   });
 
