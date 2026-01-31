@@ -15,9 +15,13 @@ export async function listEmailTemplates(
 ): Promise<PaginatedEmailTemplates> {
   const { workspaceId, category, isActive, search, page = 1, limit = DEFAULT_PAGE_SIZE } = options;
 
-  const where: Record<string, unknown> = {
-    workspaceId: workspaceId ?? null,
-  };
+  const where: Record<string, unknown> = {};
+
+  // Only filter by workspaceId if explicitly provided
+  // If undefined, don't filter (show all templates regardless of workspaceId)
+  if (workspaceId !== undefined) {
+    where.workspaceId = workspaceId ?? null;
+  }
 
   if (category) {
     where.category = category;
@@ -37,12 +41,14 @@ export async function listEmailTemplates(
 
   const [data, total] = await Promise.all([
     prisma.emailTemplate.findMany({
-      where,
+      where: Object.keys(where).length > 0 ? where : undefined,
       orderBy: [{ isDefault: "desc" }, { name: "asc" }],
       skip: (page - 1) * limit,
       take: limit,
     }),
-    prisma.emailTemplate.count({ where }),
+    prisma.emailTemplate.count({
+      where: Object.keys(where).length > 0 ? where : undefined,
+    }),
   ]);
 
   return {

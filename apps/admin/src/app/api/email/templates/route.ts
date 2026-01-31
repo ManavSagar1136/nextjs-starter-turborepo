@@ -32,7 +32,14 @@ async function handleGET(request: NextRequest) {
       isActive: isActive ? isActive === "true" : undefined,
     });
 
-    return NextResponse.json(result);
+    // Transform response to match frontend expectations
+    return NextResponse.json({
+      docs: result.data,
+      totalDocs: result.total,
+      totalPages: result.totalPages,
+      page: result.page,
+      limit: result.limit,
+    });
   } catch (error) {
     console.error("[API] Failed to list email templates:", error);
     return NextResponse.json({ error: "Failed to fetch templates" }, { status: 500 });
