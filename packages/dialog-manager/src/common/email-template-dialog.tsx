@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
 import { EmailTemplateForm } from "@buildbase/components";
 import { EmailTemplateType } from "@buildbase/database";
+import { useDialogManager, COMMON_DIALOG_KEYS } from "../index";
 import type { DialogOrSheetBaseProps } from "../base-props";
 
 /**
@@ -60,6 +61,7 @@ export function EmailTemplateDialog({
   onFetchTemplate,
   onSaveTemplate,
 }: EmailTemplateDialogProps) {
+  const { openDialog } = useDialogManager();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState(initialData);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -136,6 +138,23 @@ export function EmailTemplateDialog({
               onCancel={() => onOpenChange(false)}
               isLoading={isLoading}
               mode={mode}
+              onOpenEditor={(options: {
+                templateType: EmailTemplateType;
+                initialDesign?: string;
+                initialHtml?: string;
+                initialText?: string;
+                onSave: (data: {
+                  design?: string;
+                  html?: string;
+                  text?: string;
+                  templateType: EmailTemplateType;
+                }) => void;
+                isLoading?: boolean;
+              }) => {
+                openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET, {
+                  ...options,
+                });
+              }}
             />
           )}
         </div>

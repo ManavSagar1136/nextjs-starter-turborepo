@@ -9,7 +9,7 @@ import { FileCode, Type, Palette } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@buildbase/ui/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@buildbase/ui/components/ui/radio-group";
 import { Checkbox } from "@buildbase/ui/components/ui/checkbox";
-import { useDialogManager, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
+// Dialog manager functions passed as props to avoid circular dependency
 
 /**
  * Email template categories
@@ -48,6 +48,18 @@ export interface EmailTemplateFormProps {
   onCancel?: () => void;
   isLoading?: boolean;
   mode?: "create" | "edit";
+  /**
+   * Function to open the editor sheet/dialog
+   * Passed from parent to avoid circular dependency with @buildbase/dialog-manager
+   */
+  onOpenEditor?: (options: {
+    templateType: EmailTemplateType;
+    initialDesign?: string;
+    initialHtml?: string;
+    initialText?: string;
+    onSave: (data: { design?: string; html?: string; text?: string; templateType: EmailTemplateType }) => void;
+    isLoading?: boolean;
+  }) => void;
 }
 
 /**
@@ -59,6 +71,7 @@ export function EmailTemplateForm({
   onCancel,
   isLoading = false,
   mode = "create",
+  onOpenEditor,
 }: EmailTemplateFormProps) {
   // Determine initial template type from initialData
   const getInitialTemplateType = (): EmailTemplateType => {
@@ -90,7 +103,6 @@ export function EmailTemplateForm({
     },
   });
 
-  const { openDialog } = useDialogManager();
   const category = watch("category");
   const isActive = watch("isActive");
   const templateType = watch("templateType");
@@ -98,10 +110,10 @@ export function EmailTemplateForm({
   const text = watch("text");
   const design = watch("design");
 
-  // Open editor sheet using dialog manager
+  // Open editor sheet using provided callback
   const handleOpenEditor = () => {
-    if (templateType) {
-      openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET, {
+    if (templateType && onOpenEditor) {
+      onOpenEditor({
         templateType,
         initialDesign: design || undefined,
         initialHtml: html || undefined,
@@ -408,7 +420,7 @@ export function EmailTemplateForm({
         </div>
 
         {/* Editor Button and Preview - Only shown in edit mode */}
-        {templateType && mode === "edit" && (
+        {templateType && mode === "edit" && onOpenEditor && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
