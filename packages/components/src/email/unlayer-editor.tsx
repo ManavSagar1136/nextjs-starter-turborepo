@@ -106,8 +106,8 @@ export function UnlayerEditor({
   };
 
   return (
-    <div className="flex h-full flex-col space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between pb-4">
         <div className="flex gap-2">
           <Button
             type="button"
@@ -134,7 +134,7 @@ export function UnlayerEditor({
         </Button>
       </div>
 
-      <div className="relative w-full overflow-hidden" style={{ minHeight, maxHeight: "70vh" }}>
+      <div className="relative w-full flex-1 overflow-hidden">
         {!isEditorReady && (
           <div className="bg-muted/50 absolute inset-0 flex items-center justify-center">
             <div className="text-center">

@@ -35,8 +35,7 @@ model EmailTemplate {
   // Variables (JSON array of {name, type, required, default, description})
   variables String @default("[]")
 
-  // Versioning
-  version   Int     @default(1)
+  // Status
   isActive  Boolean @default(true)
   isDefault Boolean @default(false) // Default for category
 

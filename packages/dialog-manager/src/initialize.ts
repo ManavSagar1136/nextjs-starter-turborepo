@@ -8,6 +8,8 @@ import { ConfirmationDialog } from "./common/confirmation-dialog";
 import { AlertDialog } from "./common/alert-dialog";
 import { EmailProviderDialog } from "./common/email-provider-dialog";
 import { EmailTemplateDialog } from "./common/email-template-dialog";
+import { EmailTemplateDesignEditorDialog } from "./common/email-template-design-editor-dialog";
+import { EmailTemplateEditorSheet } from "./common/email-template-editor-sheet";
 import { TestEmailDialog } from "./common/test-email-dialog";
 import type { DialogOrSheetComponent } from "./base-props";
 
@@ -26,6 +28,20 @@ export function initializeCommonDialogs() {
   dialogRegistry.register(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE, EmailTemplateDialog as DialogOrSheetComponent, {
     override: true,
   });
+  dialogRegistry.register(
+    COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_DESIGN_EDITOR,
+    EmailTemplateDesignEditorDialog as DialogOrSheetComponent,
+    {
+      override: true,
+    }
+  );
+  dialogRegistry.register(
+    COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET,
+    EmailTemplateEditorSheet as DialogOrSheetComponent,
+    {
+      override: true,
+    }
+  );
   dialogRegistry.register(COMMON_DIALOG_KEYS.TEST_EMAIL, TestEmailDialog as DialogOrSheetComponent, {
     override: true,
   });

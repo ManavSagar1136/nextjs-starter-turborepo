@@ -32,7 +32,6 @@ export async function updateEmailTemplate(
       ...(data.tags && { tags: data.tags }),
       ...(data.variables && { variables: JSON.stringify(data.variables) }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
-      version: { increment: 1 },
       updatedById: userId,
     },
   });

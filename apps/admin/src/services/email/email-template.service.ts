@@ -13,7 +13,6 @@ export interface EmailTemplate {
   tags: string[];
   isActive: boolean;
   isDefault: boolean;
-  version: number;
   createdAt: string;
   updatedAt: string;
 }

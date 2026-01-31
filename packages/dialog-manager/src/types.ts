@@ -79,6 +79,31 @@ export type CommonDialogComponentMap = DialogComponentMap & {
     }>;
     onSaveTemplate: (data: any, mode: "create" | "edit", id?: string) => Promise<any>;
   }>;
+  [COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_DESIGN_EDITOR]: React.ComponentType<{
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    templateId: string;
+    templateName?: string;
+    initialDesign?: string;
+    initialHtml?: string;
+    onSaveDesign: (templateId: string, design: string, html: string) => Promise<void>;
+    onSuccess?: () => void;
+  }>;
+  [COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET]: React.ComponentType<{
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    templateType: import("@buildbase/database").EmailTemplateType;
+    initialDesign?: string;
+    initialHtml?: string;
+    initialText?: string;
+    onSave: (data: {
+      design?: string;
+      html?: string;
+      text?: string;
+      templateType: import("@buildbase/database").EmailTemplateType;
+    }) => void;
+    isLoading?: boolean;
+  }>;
   [COMMON_DIALOG_KEYS.TEST_EMAIL]: React.ComponentType<{
     open: boolean;
     onOpenChange: (open: boolean) => void;

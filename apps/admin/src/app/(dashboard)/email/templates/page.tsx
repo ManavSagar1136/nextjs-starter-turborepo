@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@buildbase/ui/components/ui/button";
-import { FileText, Plus, Edit, Trash2 } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, Eye, Palette } from "lucide-react";
 import { useDialogManager, type CommonDialogProps, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
 import { Badge } from "@buildbase/ui/components/ui/badge";
@@ -12,14 +12,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@buildbase/ui/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
 import { MoreHorizontal } from "lucide-react";
 import { API } from "@/services";
 import type { EmailTemplate } from "@/services/email";
+import { EmailTemplateType } from "@buildbase/database";
 
 const EmailTemplatesPage = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { openDialog } = useDialogManager();
 
   const fetchTemplates = async () => {
@@ -102,6 +106,49 @@ const EmailTemplatesPage = () => {
     }
   };
 
+  const handlePreview = async (template: EmailTemplate) => {
+    try {
+      // Fetch full template data including content
+      const fullTemplate = await API.email.templates.getById(template.id);
+      setPreviewTemplate(fullTemplate);
+      setIsPreviewOpen(true);
+    } catch (error) {
+      console.error("Failed to fetch template for preview:", error);
+    }
+  };
+
+  const handleEditDesign = async (template: EmailTemplate) => {
+    try {
+      // Fetch full template data including design
+      const fullTemplate = await API.email.templates.getById(template.id);
+
+      openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_DESIGN_EDITOR, {
+        templateId: template.id,
+        templateName: template.name,
+        initialDesign: fullTemplate.design,
+        initialHtml: fullTemplate.html,
+        onSaveDesign: async (templateId: string, design: string, html: string) => {
+          await API.email.templates.update(templateId, {
+            design,
+            html,
+          });
+        },
+        onSuccess: () => {
+          setRefreshCounter(prev => prev + 1);
+        },
+      });
+    } catch (error) {
+      console.error("Failed to fetch template for design editing:", error);
+    }
+  };
+
+  const getTemplateType = (template: EmailTemplate): EmailTemplateType => {
+    if (template.design) return EmailTemplateType.UNLAYER;
+    if (template.html && template.html.trim()) return EmailTemplateType.HTML;
+    if (template.text && template.text.trim()) return EmailTemplateType.TEXT;
+    return EmailTemplateType.HTML; // Default
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
@@ -135,7 +182,6 @@ const EmailTemplatesPage = () => {
                   <TableHead>Subject</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Version</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -162,7 +208,6 @@ const EmailTemplatesPage = () => {
                         {template.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
-                    <TableCell>v{template.version}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -171,6 +216,16 @@ const EmailTemplatesPage = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handlePreview(template)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Preview
+                          </DropdownMenuItem>
+                          {template.design && (
+                            <DropdownMenuItem onClick={() => handleEditDesign(template)}>
+                              <Palette className="mr-2 h-4 w-4" />
+                              Edit Design
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => handleEdit(template)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
@@ -189,6 +244,72 @@ const EmailTemplatesPage = () => {
           </div>
         )}
       </div>
+
+      {/* Preview Sheet */}
+      <Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl lg:max-w-4xl">
+          <SheetHeader>
+            <SheetTitle>{previewTemplate?.name || "Email Template Preview"}</SheetTitle>
+            <SheetDescription>{previewTemplate?.subject && `Subject: ${previewTemplate.subject}`}</SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-4">
+            {previewTemplate && (
+              <>
+                {(getTemplateType(previewTemplate) === EmailTemplateType.UNLAYER ||
+                  getTemplateType(previewTemplate) === EmailTemplateType.HTML) &&
+                  previewTemplate.html && (
+                    <div className="space-y-2">
+                      <div className="bg-muted/50 rounded-md border p-4">
+                        <div className="mb-4 flex items-center justify-between">
+                          <div className="text-sm font-medium">
+                            {getTemplateType(previewTemplate) === EmailTemplateType.UNLAYER
+                              ? "Unlayer Design Preview"
+                              : "HTML Preview"}
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {getTemplateType(previewTemplate) === EmailTemplateType.UNLAYER ? "Design" : "HTML"}
+                          </Badge>
+                        </div>
+                        <div className="rounded border bg-white p-4 shadow-sm">
+                          <div
+                            className="email-preview-container max-w-full overflow-auto"
+                            style={{ maxHeight: "70vh" }}
+                            dangerouslySetInnerHTML={{ __html: previewTemplate.html }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {getTemplateType(previewTemplate) === EmailTemplateType.TEXT && previewTemplate.text && (
+                  <div className="space-y-2">
+                    <div className="bg-muted/50 rounded-md border p-4">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="text-sm font-medium">Plain Text Preview</div>
+                        <Badge variant="outline" className="text-xs">
+                          Text
+                        </Badge>
+                      </div>
+                      <div className="rounded border bg-white p-4 shadow-sm">
+                        <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                          {previewTemplate.text}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!previewTemplate.html && !previewTemplate.text && !previewTemplate.design && (
+                  <div className="text-muted-foreground py-8 text-center">
+                    No content available for preview. Please edit the template to add content.
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

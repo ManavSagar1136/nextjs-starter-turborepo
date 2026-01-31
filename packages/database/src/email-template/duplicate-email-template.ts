@@ -38,7 +38,6 @@ export async function duplicateEmailTemplate(
       variables: existing.variables,
       workspaceId: existing.workspaceId,
       createdById: userId,
-      version: 1,
     },
   });
 }

@@ -4,14 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@buildbase/ui/input";
 import { Button } from "@buildbase/ui/button";
-import { Textarea } from "@buildbase/ui/textarea";
 import { Label } from "@buildbase/ui/components/ui/label";
+import { FileCode, Type, Palette } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@buildbase/ui/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@buildbase/ui/components/ui/radio-group";
 import { Checkbox } from "@buildbase/ui/components/ui/checkbox";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@buildbase/ui/components/ui/sheet";
-import { UnlayerEditor } from "./unlayer-editor";
-import { FileCode, Type, Palette } from "lucide-react";
+import { useDialogManager, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 
 /**
  * Email template categories
@@ -92,7 +90,7 @@ export function EmailTemplateForm({
     },
   });
 
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { openDialog } = useDialogManager();
   const category = watch("category");
   const isActive = watch("isActive");
   const templateType = watch("templateType");
@@ -100,10 +98,30 @@ export function EmailTemplateForm({
   const text = watch("text");
   const design = watch("design");
 
-  // Open sheet when template type is selected
+  // Open editor sheet using dialog manager
   const handleOpenEditor = () => {
     if (templateType) {
-      setIsSheetOpen(true);
+      openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET, {
+        templateType,
+        initialDesign: design || undefined,
+        initialHtml: html || undefined,
+        initialText: text || undefined,
+        onSave: data => {
+          if (data.design) {
+            setValue("design", data.design, { shouldValidate: true });
+          }
+          if (data.html) {
+            setValue("html", data.html, { shouldValidate: true });
+          }
+          if (data.text) {
+            setValue("text", data.text, { shouldValidate: true });
+          }
+          if (data.templateType) {
+            setValue("templateType", data.templateType, { shouldValidate: true });
+          }
+        },
+        isLoading,
+      });
     }
   };
 
@@ -471,116 +489,6 @@ export function EmailTemplateForm({
               </div>
             </div>
           </div>
-        )}
-
-        {/* Sheet for Editor - Only available in edit mode */}
-        {mode === "edit" && (
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl lg:max-w-4xl">
-              <SheetHeader>
-                <SheetTitle>
-                  {(() => {
-                    const { label } = getTemplateTypeInfo(templateType);
-                    return `${label} Editor`;
-                  })()}
-                </SheetTitle>
-                <SheetDescription>
-                  {(() => {
-                    const { description } = getTemplateTypeInfo(templateType);
-                    return description;
-                  })()}
-                </SheetDescription>
-              </SheetHeader>
-
-              <div className="mt-6">
-                {templateType === EmailTemplateType.UNLAYER && (
-                  <div className="space-y-4">
-                    <UnlayerEditor
-                      initialDesign={design || undefined}
-                      initialHtml={html || undefined}
-                      onSave={(designJson, htmlContent) => {
-                        setValue("design", designJson, { shouldValidate: true });
-                        setValue("html", htmlContent, { shouldValidate: true });
-                        setValue("templateType", EmailTemplateType.UNLAYER, { shouldValidate: true });
-                        setIsSheetOpen(false);
-                      }}
-                      isLoading={isLoading}
-                      minHeight="600px"
-                    />
-                  </div>
-                )}
-
-                {templateType === EmailTemplateType.HTML && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="html-sheet">HTML Content</Label>
-                      <Textarea
-                        id="html-sheet"
-                        placeholder="<h1>Welcome, {{userName}}!</h1><p>Thank you for joining {{appName}}.</p>..."
-                        className="min-h-[500px] font-mono text-sm"
-                        {...register("html", {
-                          validate: value => {
-                            if (templateType === EmailTemplateType.HTML && !value?.trim()) {
-                              return "HTML content is required when using HTML template type";
-                            }
-                            return true;
-                          },
-                        })}
-                      />
-                      {errors.html && <p className="text-destructive text-xs">{errors.html.message}</p>}
-                      <div className="bg-muted/50 rounded-md p-3">
-                        <p className="text-muted-foreground text-xs">
-                          <strong>Variables:</strong> Use{" "}
-                          <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> to insert
-                          dynamic content
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2 border-t pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsSheetOpen(false)}>
-                        Close
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {templateType === EmailTemplateType.TEXT && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="text-sheet">Plain Text Content</Label>
-                      <Textarea
-                        id="text-sheet"
-                        placeholder="Welcome, {{userName}}! Thank you for joining {{appName}}..."
-                        className="min-h-[500px] font-mono text-sm"
-                        {...register("text", {
-                          validate: value => {
-                            if (templateType === EmailTemplateType.TEXT && !value?.trim()) {
-                              return "Plain text content is required when using Plain Text template type";
-                            }
-                            return true;
-                          },
-                        })}
-                      />
-                      {errors.text && <p className="text-destructive text-xs">{errors.text.message}</p>}
-                      <div className="bg-muted/50 rounded-md p-3">
-                        <p className="text-muted-foreground text-xs">
-                          <strong>Variables:</strong> Use{" "}
-                          <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> to insert
-                          dynamic content. Plain text emails are simpler and have better compatibility across email
-                          clients.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2 border-t pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsSheetOpen(false)}>
-                        Close
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
         )}
       </div>
 

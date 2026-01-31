@@ -39,6 +39,8 @@ export {
   AlertDialog,
   ALERT_DIALOG_VARIANTS,
   EmailTemplateDialog,
+  EmailTemplateDesignEditorDialog,
+  EmailTemplateEditorSheet,
   EmailProviderDialog,
   TestEmailDialog,
 } from "./common";
@@ -48,6 +50,8 @@ export type {
   AlertDialogProps,
   AlertDialogVariant,
   EmailTemplateDialogProps,
+  EmailTemplateDesignEditorDialogProps,
+  EmailTemplateEditorSheetProps,
   EmailProviderDialogProps,
   TestEmailDialogProps,
 } from "./common";
