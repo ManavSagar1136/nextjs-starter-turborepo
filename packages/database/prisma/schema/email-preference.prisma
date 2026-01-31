@@ -1,0 +1,25 @@
+// Email Preference model - manages email subscriptions
+// Allows users to opt-out of specific categories
+
+model EmailPreference {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Identity
+  email String @unique
+  token String @unique // Secure token for unsubscribe links
+
+  // Category preferences
+  marketing     Boolean @default(true)
+  transactional Boolean @default(true)
+  newsletter    Boolean @default(true)
+  notifications Boolean @default(true)
+
+  // Global opt-out
+  unsubscribedAll Boolean @default(false)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_preferences")
+}

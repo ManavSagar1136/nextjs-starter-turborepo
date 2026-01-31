@@ -18,6 +18,11 @@ export const DIALOG_URL_PARAMS = {
 export const COMMON_DIALOG_KEYS = {
   CONFIRMATION: "confirmation",
   ALERT: "alert",
+  EMAIL_PROVIDER: "email-provider",
+  EMAIL_TEMPLATE: "email-template",
+  EMAIL_TEMPLATE_DESIGN_EDITOR: "email-template-design-editor",
+  EMAIL_TEMPLATE_EDITOR_SHEET: "email-template-editor-sheet",
+  TEST_EMAIL: "test-email",
 } as const;
 
 /**
@@ -32,4 +37,9 @@ export type CommonDialogKey = (typeof COMMON_DIALOG_KEYS)[keyof typeof COMMON_DI
 export const DIALOG_URL_BLACKLIST: readonly CommonDialogKey[] = [
   COMMON_DIALOG_KEYS.CONFIRMATION,
   COMMON_DIALOG_KEYS.ALERT,
+  COMMON_DIALOG_KEYS.EMAIL_PROVIDER,
+  COMMON_DIALOG_KEYS.EMAIL_TEMPLATE,
+  COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_DESIGN_EDITOR,
+  COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET,
+  COMMON_DIALOG_KEYS.TEST_EMAIL,
 ] as const;

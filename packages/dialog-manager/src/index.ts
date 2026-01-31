@@ -9,6 +9,8 @@ export type { DialogOrSheetBaseProps, DialogOrSheetComponent, DialogOrSheetCusto
 // Types
 export type {
   DialogComponentMap,
+  CommonDialogComponentMap,
+  CommonDialogProps,
   DialogPropsMap,
   DialogKey,
   DialogInstance,
@@ -31,12 +33,27 @@ export type { DialogProviderProps } from "./provider";
 export { dialogRegistry, DialogRegistryController, createDialogRegistry } from "./registry";
 
 // Common Dialogs
-export { ConfirmationDialog, CONFIRMATION_DIALOG_VARIANTS, AlertDialog, ALERT_DIALOG_VARIANTS } from "./common";
+export {
+  ConfirmationDialog,
+  CONFIRMATION_DIALOG_VARIANTS,
+  AlertDialog,
+  ALERT_DIALOG_VARIANTS,
+  EmailTemplateDialog,
+  EmailTemplateDesignEditorDialog,
+  EmailTemplateEditorSheet,
+  EmailProviderDialog,
+  TestEmailDialog,
+} from "./common";
 export type {
   ConfirmationDialogProps,
   ConfirmationDialogVariant,
   AlertDialogProps,
   AlertDialogVariant,
+  EmailTemplateDialogProps,
+  EmailTemplateDesignEditorDialogProps,
+  EmailTemplateEditorSheetProps,
+  EmailProviderDialogProps,
+  TestEmailDialogProps,
 } from "./common";
 
 // Initialize

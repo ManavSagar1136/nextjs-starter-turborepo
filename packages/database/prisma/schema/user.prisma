@@ -12,6 +12,14 @@ model User {
   workspaces       WorkspaceMember[]
   currentWorkspace Workspace?        @relation("UserCurrentWorkspace", fields: [currentWorkspaceId], references: [id])
 
+  // Email provider audit
+  emailProvidersCreated EmailProvider[] @relation("EmailProviderCreatedBy")
+  emailProvidersUpdated EmailProvider[] @relation("EmailProviderUpdatedBy")
+
+  // Email template audit
+  emailTemplatesCreated EmailTemplate[] @relation("EmailTemplateCreatedBy")
+  emailTemplatesUpdated EmailTemplate[] @relation("EmailTemplateUpdatedBy")
+
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
