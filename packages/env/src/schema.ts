@@ -51,6 +51,14 @@ export const env = createEnv({
 
     // Cron Jobs (Vercel Cron)
     CRON_SECRET: z.string().min(1).optional(),
+
+    // Logging & Monitoring
+    LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).optional(),
+
+    // New Relic APM
+    NEW_RELIC_ENABLED: z.enum(["true", "false"]).optional(),
+    NEW_RELIC_LICENSE_KEY: z.string().min(1).optional(),
+    NEW_RELIC_APP_NAME: z.string().min(1).optional(),
   },
 
   /**
@@ -120,6 +128,14 @@ export const env = createEnv({
 
     // Product Launch Status
     NEXT_PUBLIC_PRODUCT_LAUNCHED: process.env.NEXT_PUBLIC_PRODUCT_LAUNCHED,
+
+    // Logging & Monitoring
+    LOG_LEVEL: process.env.LOG_LEVEL,
+
+    // New Relic APM
+    NEW_RELIC_ENABLED: process.env.NEW_RELIC_ENABLED,
+    NEW_RELIC_LICENSE_KEY: process.env.NEW_RELIC_LICENSE_KEY,
+    NEW_RELIC_APP_NAME: process.env.NEW_RELIC_APP_NAME,
   },
 
   /**

@@ -32,7 +32,14 @@
 
     "CRON_SECRET",
 
-    "NEXT_PUBLIC_PRODUCT_LAUNCHED"
+    "NEXT_PUBLIC_PRODUCT_LAUNCHED",
+
+    "NEW_RELIC_ENABLED",
+    "NEW_RELIC_LICENSE_KEY",
+    "NEW_RELIC_APP_NAME",
+    "NEW_RELIC_LOG_LEVEL",
+    "LOG_LEVEL",
+    "NEXT_RUNTIME"
   ],
   "globalDependencies": [],
   "tasks": {

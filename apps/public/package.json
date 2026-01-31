@@ -24,6 +24,7 @@
     "@buildbase/dialog-manager": "*",
     "@buildbase/email": "*",
     "@buildbase/database": "*",
+    "@buildbase/logger": "*",
     "aos": "^2.3.4",
     "date-fns": "^3.0.0",
     "next": "16.0.10",

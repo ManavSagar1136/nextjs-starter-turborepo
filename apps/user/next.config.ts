@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   // typescript: {
   //   ignoreBuildErrors: true,
   // },
+  // Externalize packages that don't work well with bundlers
+  // These have native modules or test files that break Turbopack
+  serverExternalPackages: ["pino", "pino-pretty", "newrelic", "@newrelic/security-agent", "thread-stream"],
   transpilePackages: [
     "@buildbase/ui",
     "@buildbase/magicui",
