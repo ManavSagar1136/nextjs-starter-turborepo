@@ -11,41 +11,41 @@ enum EmailProviderType {
 }
 
 model EmailProvider {
-  id          String            @id @default(auto()) @map("_id") @db.ObjectId
-  
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
   // Identity
-  name        String            // Display name: "Main SMTP", "Marketing Resend"
+  name        String // Display name: "Main SMTP", "Marketing Resend"
   description String?
   type        EmailProviderType
-  
+
   // Configuration (encrypted JSON)
-  config      String            // AES-256-GCM encrypted JSON config
-  
+  config String // AES-256-GCM encrypted JSON config
+
   // Default sender info
-  fromName    String            // "Your App"
-  fromEmail   String            // "noreply@yourapp.com"
-  replyTo     String?
-  
+  fromName  String // "Your App"
+  fromEmail String // "noreply@yourapp.com"
+  replyTo   String?
+
   // Status
-  isActive    Boolean           @default(true)
-  isDefault   Boolean           @default(false)
-  
+  isActive  Boolean @default(true)
+  isDefault Boolean @default(false)
+
   // Usage tracking
-  lastUsedAt  DateTime?
-  emailsSent  Int               @default(0)
-  
+  lastUsedAt DateTime?
+  emailsSent Int       @default(0)
+
   // Multi-tenant (workspace = organization)
-  workspaceId String?           @db.ObjectId
-  workspace   Workspace?        @relation(fields: [workspaceId], references: [id])
-  
+  workspaceId String?    @db.ObjectId
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
   // Audit
-  createdById String?           @db.ObjectId
-  createdBy   User?             @relation("EmailProviderCreatedBy", fields: [createdById], references: [id])
-  updatedById String?           @db.ObjectId
-  updatedBy   User?             @relation("EmailProviderUpdatedBy", fields: [updatedById], references: [id])
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  
+  createdById String?  @db.ObjectId
+  createdBy   User?    @relation("EmailProviderCreatedBy", fields: [createdById], references: [id])
+  updatedById String?  @db.ObjectId
+  updatedBy   User?    @relation("EmailProviderUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@index([type])
   @@index([isActive])
   @@index([isDefault])

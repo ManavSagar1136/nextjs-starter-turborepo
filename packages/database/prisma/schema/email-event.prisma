@@ -12,25 +12,25 @@ enum EmailEventType {
 }
 
 model EmailEvent {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
   // Tracking reference
-  trackingId  String         // Links to sent email
-  
+  trackingId String // Links to sent email
+
   // Event info
-  type        EmailEventType
-  timestamp   DateTime       @default(now())
-  
+  type      EmailEventType
+  timestamp DateTime       @default(now())
+
   // Request metadata
-  ipAddress   String?
-  userAgent   String?
-  
+  ipAddress String?
+  userAgent String?
+
   // Click-specific
-  linkUrl     String?        // URL that was clicked
-  
+  linkUrl String? // URL that was clicked
+
   // Extra metadata (bounce type, etc.)
-  metadata    Json?
-  
+  metadata Json?
+
   @@index([trackingId])
   @@index([type])
   @@index([timestamp])
