@@ -591,17 +591,46 @@ See `packages/env/README.md` and `ENV_MANAGEMENT.md` for more details.
 
 ## Scripts
 
-| Command            | Description                        |
-| ------------------ | ---------------------------------- |
-| `yarn dev`         | Start all apps in development mode |
-| `yarn build`       | Build all packages and apps        |
-| `yarn lint`        | Lint all packages and apps         |
-| `yarn check-types` | Type check all packages and apps   |
-| `yarn format`      | Format code with Prettier          |
-| `yarn db:generate` | Generate Prisma client             |
-| `yarn db:push`     | Push schema to database            |
-| `yarn db:migrate`  | Run database migrations            |
-| `yarn db:studio`   | Open Prisma Studio                 |
+| Command            | Description                            |
+| ------------------ | -------------------------------------- |
+| `yarn dev`         | Start all apps in development mode     |
+| `yarn build`       | Build all packages and apps            |
+| `yarn lint`        | Lint all packages and apps             |
+| `yarn check-types` | Type check all packages and apps       |
+| `yarn format`      | Format code with Prettier              |
+| `yarn db:generate` | Generate Prisma client                 |
+| `yarn db:push`     | Push schema to database                |
+| `yarn db:migrate`  | Run database migrations                |
+| `yarn db:studio`   | Open Prisma Studio                     |
+| `yarn ralph`       | Run Ralph autonomous agent (see below) |
+
+---
+
+## Ralph - Autonomous AI Agent
+
+Ralph is an autonomous AI coding agent that implements PRD items one by one until all tasks are complete.
+
+### Quick Start
+
+1. **Edit your PRD:**
+
+   ```bash
+   # Modify scripts/ralph/prd.json with your user stories
+   ```
+
+2. **Run Ralph:**
+
+   ```bash
+   yarn ralph              # Default: Claude Code, 10 iterations
+   yarn ralph 20           # 20 iterations
+   yarn ralph:amp          # Use Amp instead
+   ```
+
+3. **Check progress:**
+   - `scripts/ralph/prd.json` - Story completion status
+   - `scripts/ralph/progress.txt` - Learnings and patterns
+
+See [scripts/ralph/README.md](scripts/ralph/README.md) for full documentation.
 
 ---
 

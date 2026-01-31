@@ -98,9 +98,12 @@ storybook-static/
 yalc.lock
 packages/*/yalc.lock
 
-# Ralph planning files (AI development)
-prd.json
-progress.txt
-ralph.sh
-CLAUDE.md
+# Ralph planning files (ignore at root, allow in scripts/ralph/)
+/prd.json
+/progress.txt
+/ralph.sh
+/CLAUDE.md
 TESTING_PLAN.md
+
+# Ralph runtime files (inside scripts/ralph/)
+scripts/ralph/.last-branch
