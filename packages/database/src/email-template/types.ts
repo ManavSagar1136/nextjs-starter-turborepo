@@ -7,6 +7,21 @@ import type { EmailTemplate, EmailTemplateCategory as PrismaEmailTemplateCategor
 // Re-export Prisma's EmailTemplateCategory to avoid conflicts
 export type EmailTemplateCategory = PrismaEmailTemplateCategory;
 
+/**
+ * Email template type enum
+ * Defines the possible types of email templates
+ */
+export enum EmailTemplateType {
+  UNLAYER = "unlayer",
+  HTML = "html",
+  TEXT = "text",
+}
+
+/**
+ * Array of all email template type values
+ */
+export const EMAIL_TEMPLATE_TYPES = Object.values(EmailTemplateType) as EmailTemplateType[];
+
 export interface CreateEmailTemplateInput {
   slug?: string;
   name: string;

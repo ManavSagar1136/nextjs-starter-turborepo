@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@buildbase/ui/input";
 import { Button } from "@buildbase/ui/button";
 import { Textarea } from "@buildbase/ui/textarea";
 import { Label } from "@buildbase/ui/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@buildbase/ui/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@buildbase/ui/components/ui/radio-group";
 import { Checkbox } from "@buildbase/ui/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@buildbase/ui/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@buildbase/ui/components/ui/sheet";
 import { UnlayerEditor } from "./unlayer-editor";
+import { FileCode, Type, Palette } from "lucide-react";
 
 /**
  * Email template categories
@@ -27,14 +29,17 @@ const TEMPLATE_CATEGORIES = [
   { value: "CUSTOM", label: "Custom" },
 ] as const;
 
+import { EmailTemplateType } from "@buildbase/database";
+
 export interface EmailTemplateFormData {
   slug?: string;
   name: string;
   description?: string;
   subject: string;
-  html: string;
-  text?: string;
-  design?: string; // Unlayer design JSON
+  templateType: EmailTemplateType; // Type of template: unlayer, html, or text
+  html?: string; // Required only if templateType is "html"
+  text?: string; // Required only if templateType is "text"
+  design?: string; // Unlayer design JSON - required only if templateType is "unlayer"
   category: string;
   isActive?: boolean;
 }
@@ -57,17 +62,27 @@ export function EmailTemplateForm({
   isLoading = false,
   mode = "create",
 }: EmailTemplateFormProps) {
+  // Determine initial template type from initialData
+  const getInitialTemplateType = (): EmailTemplateType => {
+    if (initialData?.design) return EmailTemplateType.UNLAYER;
+    if (initialData?.html) return EmailTemplateType.HTML;
+    if (initialData?.text) return EmailTemplateType.TEXT;
+    return EmailTemplateType.HTML; // Default to HTML
+  };
+
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm<EmailTemplateFormData>({
     defaultValues: {
       name: "",
       description: "",
       subject: "",
+      templateType: getInitialTemplateType(),
       html: "",
       text: "",
       design: "",
@@ -77,14 +92,85 @@ export function EmailTemplateForm({
     },
   });
 
-  const [editorMode, setEditorMode] = useState<"visual" | "html">("visual");
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const category = watch("category");
   const isActive = watch("isActive");
+  const templateType = watch("templateType");
   const html = watch("html");
+  const text = watch("text");
   const design = watch("design");
 
+  // Open sheet when template type is selected
+  const handleOpenEditor = () => {
+    if (templateType) {
+      setIsSheetOpen(true);
+    }
+  };
+
+  // Get template type label and icon
+  const getTemplateTypeInfo = (type: EmailTemplateType) => {
+    switch (type) {
+      case EmailTemplateType.UNLAYER:
+        return { label: "Unlayer Design", icon: Palette, description: "Visual drag-and-drop email editor" };
+      case EmailTemplateType.HTML:
+        return { label: "HTML", icon: FileCode, description: "Write HTML code directly" };
+      case EmailTemplateType.TEXT:
+        return { label: "Plain Text", icon: Type, description: "Plain text email content" };
+      default:
+        return { label: "HTML", icon: FileCode, description: "Write HTML code directly" };
+    }
+  };
+
+  const handleFormSubmit = async (data: EmailTemplateFormData) => {
+    // In create mode, only validate template type selection, not content
+    // Content can be added later in edit mode
+    if (mode === "create") {
+      if (!data.templateType) {
+        setError("templateType", {
+          type: "manual",
+          message: "Please select a template type",
+        });
+        return;
+      }
+    } else {
+      // In edit mode, validate that the selected template type has content
+      if (data.templateType === EmailTemplateType.UNLAYER && !data.design?.trim()) {
+        setError("design", {
+          type: "manual",
+          message: "Please save your design using the 'Save Design' button in the Unlayer editor",
+        });
+        return;
+      }
+      if (data.templateType === EmailTemplateType.HTML && !data.html?.trim()) {
+        setError("html", {
+          type: "manual",
+          message: "HTML content is required when using HTML template type",
+        });
+        return;
+      }
+      if (data.templateType === EmailTemplateType.TEXT && !data.text?.trim()) {
+        setError("text", {
+          type: "manual",
+          message: "Plain text content is required when using Plain Text template type",
+        });
+        return;
+      }
+    }
+
+    // Clean up data - only keep the relevant field based on template type
+    const cleanedData: EmailTemplateFormData = {
+      ...data,
+      // Clear other template type fields
+      html: data.templateType === EmailTemplateType.HTML ? data.html : undefined,
+      text: data.templateType === EmailTemplateType.TEXT ? data.text : undefined,
+      design: data.templateType === EmailTemplateType.UNLAYER ? data.design : undefined,
+    };
+
+    await onSubmit(cleanedData);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 pb-4">
       {/* Basic Information Section */}
       <div className="space-y-4">
         <div>
@@ -200,79 +286,302 @@ export function EmailTemplateForm({
         <div>
           <h3 className="mb-1 text-sm font-semibold">Email Content</h3>
           <p className="text-muted-foreground text-xs">
-            Create your email template using the visual editor or HTML code
+            {mode === "create"
+              ? "Select a template type. You can add the actual content after creating the template."
+              : "Choose one template type: Unlayer Design (visual editor), HTML, or Plain Text"}
           </p>
         </div>
-        <Tabs
-          defaultValue="visual"
-          className="w-full"
-          onValueChange={value => setEditorMode(value as "visual" | "html")}
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="visual">
-              Visual Editor <span className="text-destructive ml-1">*</span>
-            </TabsTrigger>
-            <TabsTrigger value="html">HTML Code</TabsTrigger>
-          </TabsList>
-          <TabsContent value="visual" className="mt-4">
-            <div className="space-y-2">
-              <Label>Visual Email Editor</Label>
-              <div className="bg-background overflow-hidden rounded-md border">
-                <UnlayerEditor
-                  initialDesign={design || undefined}
-                  initialHtml={html || undefined}
-                  onSave={(designJson, htmlContent) => {
-                    setValue("design", designJson, { shouldValidate: true });
-                    setValue("html", htmlContent, { shouldValidate: true });
-                  }}
-                  isLoading={isLoading}
-                  minHeight="500px"
-                />
+
+        {/* Template Type Selector - Radio Toggle */}
+        <div className="space-y-2">
+          <Label htmlFor="templateType">
+            Template Type <span className="text-destructive">*</span>
+          </Label>
+          <RadioGroup
+            value={templateType}
+            onValueChange={(value: string) => {
+              const newType = value as EmailTemplateType;
+              setValue("templateType", newType, { shouldValidate: true });
+              // Clear content when switching types
+              if (newType !== EmailTemplateType.HTML) setValue("html", undefined);
+              if (newType !== EmailTemplateType.TEXT) setValue("text", undefined);
+              if (newType !== EmailTemplateType.UNLAYER) setValue("design", undefined);
+            }}
+            className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+          >
+            {/* Unlayer Design Option */}
+            <label
+              htmlFor="template-type-unlayer"
+              className={`hover:bg-accent relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                templateType === EmailTemplateType.UNLAYER
+                  ? "border-primary bg-primary/5"
+                  : "border-border bg-background"
+              }`}
+            >
+              <RadioGroupItem value={EmailTemplateType.UNLAYER} id="template-type-unlayer" className="sr-only" />
+              <Palette
+                className={`h-6 w-6 ${templateType === EmailTemplateType.UNLAYER ? "text-primary" : "text-muted-foreground"}`}
+              />
+              <div className="text-center">
+                <p
+                  className={`text-sm font-medium ${templateType === EmailTemplateType.UNLAYER ? "text-primary" : "text-foreground"}`}
+                >
+                  Unlayer Design
+                </p>
+                <p className="text-muted-foreground text-xs">Visual editor</p>
               </div>
-              <div className="bg-muted/50 rounded-md p-3">
+            </label>
+
+            {/* HTML Option */}
+            <label
+              htmlFor="template-type-html"
+              className={`hover:bg-accent relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                templateType === EmailTemplateType.HTML ? "border-primary bg-primary/5" : "border-border bg-background"
+              }`}
+            >
+              <RadioGroupItem value={EmailTemplateType.HTML} id="template-type-html" className="sr-only" />
+              <FileCode
+                className={`h-6 w-6 ${templateType === EmailTemplateType.HTML ? "text-primary" : "text-muted-foreground"}`}
+              />
+              <div className="text-center">
+                <p
+                  className={`text-sm font-medium ${templateType === EmailTemplateType.HTML ? "text-primary" : "text-foreground"}`}
+                >
+                  HTML
+                </p>
+                <p className="text-muted-foreground text-xs">Code editor</p>
+              </div>
+            </label>
+
+            {/* Plain Text Option */}
+            <label
+              htmlFor="template-type-text"
+              className={`hover:bg-accent relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                templateType === EmailTemplateType.TEXT ? "border-primary bg-primary/5" : "border-border bg-background"
+              }`}
+            >
+              <RadioGroupItem value={EmailTemplateType.TEXT} id="template-type-text" className="sr-only" />
+              <Type
+                className={`h-6 w-6 ${templateType === EmailTemplateType.TEXT ? "text-primary" : "text-muted-foreground"}`}
+              />
+              <div className="text-center">
+                <p
+                  className={`text-sm font-medium ${templateType === EmailTemplateType.TEXT ? "text-primary" : "text-foreground"}`}
+                >
+                  Plain Text
+                </p>
+                <p className="text-muted-foreground text-xs">Text editor</p>
+              </div>
+            </label>
+          </RadioGroup>
+        </div>
+
+        {/* Editor Button and Preview - Only shown in edit mode */}
+        {templateType && mode === "edit" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const { icon: Icon, label } = getTemplateTypeInfo(templateType);
+                  return (
+                    <>
+                      <Icon className="text-muted-foreground h-4 w-4" />
+                      <Label className="text-sm font-medium">{label} Editor</Label>
+                    </>
+                  );
+                })()}
+              </div>
+              <Button type="button" variant="outline" onClick={handleOpenEditor} className="gap-2">
+                {(() => {
+                  const { icon: Icon } = getTemplateTypeInfo(templateType);
+                  return <Icon className="h-4 w-4" />;
+                })()}
+                {templateType === EmailTemplateType.UNLAYER && design
+                  ? "Edit Design"
+                  : templateType === EmailTemplateType.HTML && html
+                    ? "Edit HTML"
+                    : templateType === EmailTemplateType.TEXT && text
+                      ? "Edit Text"
+                      : "Open Editor"}
+              </Button>
+            </div>
+
+            {/* Content Preview/Status */}
+            <div className="bg-muted/50 rounded-md border p-3">
+              {templateType === EmailTemplateType.UNLAYER && (
+                <div className="space-y-1">
+                  {design ? (
+                    <p className="text-muted-foreground text-xs">✓ Design saved. Click "Edit Design" to modify.</p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs">
+                      No design saved yet. Click "Open Editor" to create your email template.
+                    </p>
+                  )}
+                  {errors.design && <p className="text-destructive text-xs">{errors.design.message}</p>}
+                </div>
+              )}
+              {templateType === EmailTemplateType.HTML && (
+                <div className="space-y-1">
+                  {html ? (
+                    <p className="text-muted-foreground text-xs">
+                      ✓ HTML content saved ({html.length} characters). Click "Edit HTML" to modify.
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs">
+                      No HTML content yet. Click "Open Editor" to write your HTML.
+                    </p>
+                  )}
+                  {errors.html && <p className="text-destructive text-xs">{errors.html.message}</p>}
+                </div>
+              )}
+              {templateType === EmailTemplateType.TEXT && (
+                <div className="space-y-1">
+                  {text ? (
+                    <p className="text-muted-foreground text-xs">
+                      ✓ Plain text content saved ({text.length} characters). Click "Edit Text" to modify.
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs">
+                      No plain text content yet. Click "Open Editor" to write your text.
+                    </p>
+                  )}
+                  {errors.text && <p className="text-destructive text-xs">{errors.text.message}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Create Mode Message */}
+        {templateType && mode === "create" && (
+          <div className="bg-muted/50 rounded-md border p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                {(() => {
+                  const { icon: Icon } = getTemplateTypeInfo(templateType);
+                  return <Icon className="text-muted-foreground mt-0.5 h-5 w-5" />;
+                })()}
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium">Template Type Selected</p>
                 <p className="text-muted-foreground text-xs">
-                  <strong>Tip:</strong> Use the visual editor to design your email template. The HTML will be
-                  automatically generated. You can also use{" "}
-                  <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> for dynamic content.
+                  You've selected <strong>{getTemplateTypeInfo(templateType).label}</strong> as your template type.
+                  After creating the template, you can edit it to add the actual email content.
                 </p>
               </div>
             </div>
-          </TabsContent>
-          <TabsContent value="html" className="mt-4 space-y-2">
-            <Label htmlFor="html">HTML Content</Label>
-            <Textarea
-              id="html"
-              placeholder="<h1>Welcome, {{userName}}!</h1><p>Thank you for joining {{appName}}.</p>..."
-              className="min-h-[350px] font-mono text-sm"
-              {...register("html", { required: "HTML content is required" })}
-            />
-            {errors.html && <p className="text-destructive text-xs">{errors.html.message}</p>}
-            <div className="bg-muted/50 rounded-md p-3">
-              <p className="text-muted-foreground text-xs">
-                <strong>Variables:</strong> Use{" "}
-                <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> to insert dynamic
-                content
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        {/* Plain Text Section */}
-        <div className="space-y-2">
-          <Label htmlFor="text">Plain Text Content (Optional)</Label>
-          <Textarea
-            id="text"
-            placeholder="Welcome, {{userName}}! Thank you for joining {{appName}}..."
-            className="min-h-[200px] font-mono text-sm"
-            {...register("text")}
-          />
-          <div className="bg-muted/50 rounded-md p-3">
-            <p className="text-muted-foreground text-xs">
-              <strong>Optional:</strong> Plain text version for email clients that don't support HTML. Auto-generated
-              from HTML if not provided.
-            </p>
           </div>
-        </div>
+        )}
+
+        {/* Sheet for Editor - Only available in edit mode */}
+        {mode === "edit" && (
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl lg:max-w-4xl">
+              <SheetHeader>
+                <SheetTitle>
+                  {(() => {
+                    const { label } = getTemplateTypeInfo(templateType);
+                    return `${label} Editor`;
+                  })()}
+                </SheetTitle>
+                <SheetDescription>
+                  {(() => {
+                    const { description } = getTemplateTypeInfo(templateType);
+                    return description;
+                  })()}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-6">
+                {templateType === EmailTemplateType.UNLAYER && (
+                  <div className="space-y-4">
+                    <UnlayerEditor
+                      initialDesign={design || undefined}
+                      initialHtml={html || undefined}
+                      onSave={(designJson, htmlContent) => {
+                        setValue("design", designJson, { shouldValidate: true });
+                        setValue("html", htmlContent, { shouldValidate: true });
+                        setValue("templateType", EmailTemplateType.UNLAYER, { shouldValidate: true });
+                        setIsSheetOpen(false);
+                      }}
+                      isLoading={isLoading}
+                      minHeight="600px"
+                    />
+                  </div>
+                )}
+
+                {templateType === EmailTemplateType.HTML && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="html-sheet">HTML Content</Label>
+                      <Textarea
+                        id="html-sheet"
+                        placeholder="<h1>Welcome, {{userName}}!</h1><p>Thank you for joining {{appName}}.</p>..."
+                        className="min-h-[500px] font-mono text-sm"
+                        {...register("html", {
+                          validate: value => {
+                            if (templateType === EmailTemplateType.HTML && !value?.trim()) {
+                              return "HTML content is required when using HTML template type";
+                            }
+                            return true;
+                          },
+                        })}
+                      />
+                      {errors.html && <p className="text-destructive text-xs">{errors.html.message}</p>}
+                      <div className="bg-muted/50 rounded-md p-3">
+                        <p className="text-muted-foreground text-xs">
+                          <strong>Variables:</strong> Use{" "}
+                          <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> to insert
+                          dynamic content
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 border-t pt-4">
+                      <Button type="button" variant="outline" onClick={() => setIsSheetOpen(false)}>
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {templateType === EmailTemplateType.TEXT && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="text-sheet">Plain Text Content</Label>
+                      <Textarea
+                        id="text-sheet"
+                        placeholder="Welcome, {{userName}}! Thank you for joining {{appName}}..."
+                        className="min-h-[500px] font-mono text-sm"
+                        {...register("text", {
+                          validate: value => {
+                            if (templateType === EmailTemplateType.TEXT && !value?.trim()) {
+                              return "Plain text content is required when using Plain Text template type";
+                            }
+                            return true;
+                          },
+                        })}
+                      />
+                      {errors.text && <p className="text-destructive text-xs">{errors.text.message}</p>}
+                      <div className="bg-muted/50 rounded-md p-3">
+                        <p className="text-muted-foreground text-xs">
+                          <strong>Variables:</strong> Use{" "}
+                          <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> to insert
+                          dynamic content. Plain text emails are simpler and have better compatibility across email
+                          clients.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 border-t pt-4">
+                      <Button type="button" variant="outline" onClick={() => setIsSheetOpen(false)}>
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
 
       {/* Actions */}

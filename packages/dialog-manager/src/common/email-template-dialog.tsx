@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
 import { EmailTemplateForm } from "@buildbase/components";
+import { EmailTemplateType } from "@buildbase/database";
 import type { DialogOrSheetBaseProps } from "../base-props";
 
 /**
@@ -16,6 +17,7 @@ export interface EmailTemplateDialogProps extends DialogOrSheetBaseProps {
     name?: string;
     description?: string;
     subject?: string;
+    templateType?: EmailTemplateType;
     html?: string;
     text?: string;
     design?: string;
@@ -31,7 +33,8 @@ export interface EmailTemplateDialogProps extends DialogOrSheetBaseProps {
     name: string;
     description?: string;
     subject: string;
-    html: string;
+    templateType?: EmailTemplateType;
+    html?: string;
     text?: string;
     design?: string;
     category: string;
@@ -63,11 +66,27 @@ export function EmailTemplateDialog({
 
   // Fetch template data when in edit mode
   useEffect(() => {
-    if (open && mode === "edit" && templateId && onFetchTemplate && !formData?.html) {
+    if (
+      open &&
+      mode === "edit" &&
+      templateId &&
+      onFetchTemplate &&
+      !formData?.html &&
+      !formData?.text &&
+      !formData?.design
+    ) {
       setIsLoadingData(true);
       onFetchTemplate(templateId)
         .then(data => {
-          setFormData(data);
+          // Determine template type from fetched data
+          const templateType = data.design
+            ? EmailTemplateType.UNLAYER
+            : data.html
+              ? EmailTemplateType.HTML
+              : data.text
+                ? EmailTemplateType.TEXT
+                : EmailTemplateType.HTML;
+          setFormData({ ...data, templateType });
         })
         .catch(error => {
           console.error("Failed to fetch template:", error);
@@ -79,7 +98,7 @@ export function EmailTemplateDialog({
       // Reset form data for create mode
       setFormData(initialData);
     }
-  }, [open, mode, templateId, initialData, formData?.html, onFetchTemplate]);
+  }, [open, mode, templateId, initialData, formData?.html, formData?.text, formData?.design, onFetchTemplate]);
 
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
