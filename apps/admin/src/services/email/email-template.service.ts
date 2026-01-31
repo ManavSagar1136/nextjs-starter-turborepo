@@ -130,4 +130,45 @@ export class EmailTemplateApis extends BaseApiController {
       )
     ).data;
   }
+
+  /**
+   * Send email using template slug
+   * @param slug - Template slug
+   * @param to - Recipient email address(es)
+   * @param options - Send options (providerId, variables, etc.)
+   */
+  async sendBySlug(
+    slug: string,
+    to: string | string[],
+    options?: {
+      providerId?: string;
+      variables?: Record<string, unknown>;
+      from?: { email: string; name?: string };
+      replyTo?: string;
+      cc?: string[];
+      bcc?: string[];
+      headers?: Record<string, string>;
+      disableTracking?: boolean;
+    }
+  ): Promise<{ success: boolean; messageId?: string; templateId?: string; error?: string }> {
+    return (
+      await this.post<{ success: boolean; messageId?: string; templateId?: string; error?: string }>(
+        "/email/send",
+        {},
+        {},
+        {
+          to,
+          templateSlug: slug,
+          providerId: options?.providerId, // If not provided, API will use default provider
+          variables: options?.variables || {},
+          from: options?.from,
+          replyTo: options?.replyTo,
+          cc: options?.cc,
+          bcc: options?.bcc,
+          headers: options?.headers,
+          disableTracking: options?.disableTracking,
+        }
+      )
+    ).data;
+  }
 }
