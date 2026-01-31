@@ -30,7 +30,9 @@
     "QSTASH_CURRENT_SIGNING_KEY",
     "QSTASH_NEXT_SIGNING_KEY",
 
-    "CRON_SECRET"
+    "CRON_SECRET",
+
+    "NEXT_PUBLIC_PRODUCT_LAUNCHED"
   ],
   "globalDependencies": [],
   "tasks": {
