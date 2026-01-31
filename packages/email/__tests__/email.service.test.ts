@@ -67,11 +67,13 @@ describe("EmailService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     // Setup factory mock
     (EmailFactory.getInstance as ReturnType<typeof vi.fn>).mockReturnValue({
       getProvider: vi.fn().mockResolvedValue(mockProvider),
       getProviderService: vi.fn().mockReturnValue(mockProviderService),
+      getPrisma: vi.fn().mockReturnValue({}),
     });
   });
 
@@ -320,6 +322,7 @@ describe("sendEmail convenience function", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     const mockProvider = new ConsoleProvider();
 
@@ -328,6 +331,7 @@ describe("sendEmail convenience function", () => {
       getProviderService: vi.fn().mockReturnValue({
         incrementEmailsSent: vi.fn(),
       }),
+      getPrisma: vi.fn().mockReturnValue({}),
     });
   });
 

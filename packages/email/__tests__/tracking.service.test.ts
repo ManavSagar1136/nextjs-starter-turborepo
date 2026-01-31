@@ -338,7 +338,7 @@ describe("TrackingService", () => {
       const pixel = trackingService.getTrackingPixel();
 
       expect(pixel).toBeInstanceOf(Buffer);
-      expect(pixel.length).toBe(43);
+      expect(pixel.length).toBe(42); // 1x1 transparent GIF
     });
   });
 

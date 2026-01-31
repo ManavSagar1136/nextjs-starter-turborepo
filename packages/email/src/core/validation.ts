@@ -48,7 +48,8 @@ export function normalizeEmail(email: string, fieldName = "email"): string {
  * @throws ValidationError if any are invalid
  */
 export function validateEmails(emails: string | string[], fieldName = "to"): string[] {
-  const emailArray = Array.isArray(emails) ? emails : [emails];
+  const isSingleString = !Array.isArray(emails);
+  const emailArray = isSingleString ? [emails] : emails;
 
   if (emailArray.length === 0) {
     throw new ValidationError("At least one recipient is required", fieldName);
@@ -58,7 +59,8 @@ export function validateEmails(emails: string | string[], fieldName = "to"): str
     throw new ValidationError(`Too many recipients (max ${MAX_RECIPIENTS})`, fieldName, emailArray.length);
   }
 
-  return emailArray.map((email, index) => normalizeEmail(email, `${fieldName}[${index}]`));
+  // Use simple field name for single string input, indexed for arrays
+  return emailArray.map((email, index) => normalizeEmail(email, isSingleString ? fieldName : `${fieldName}[${index}]`));
 }
 
 /**

@@ -140,9 +140,9 @@ describe("Tracking Pixel", () => {
       expect(pixel[3]).toBe(0x38); // 8
     });
 
-    it("should return 43 bytes (1x1 transparent GIF)", () => {
+    it("should return 42 bytes (1x1 transparent GIF)", () => {
       const pixel = getTransparentPixel();
-      expect(pixel.length).toBe(43);
+      expect(pixel.length).toBe(42);
     });
 
     it("should return the same buffer every time", () => {

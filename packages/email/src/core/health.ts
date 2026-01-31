@@ -51,8 +51,8 @@ export async function healthCheck(prisma: PrismaClient): Promise<HealthCheckResu
   try {
     const start = Date.now();
     // Use a simple query that works with any Prisma client
-    (await (prisma as { $runCommandRaw?: (cmd: object) => Promise<unknown> }).$runCommandRaw?.({ ping: 1 })) ??
-      prisma.emailProvider.count();
+    await ((prisma as { $runCommandRaw?: (cmd: object) => Promise<unknown> }).$runCommandRaw?.({ ping: 1 }) ??
+      prisma.emailProvider.count());
     components.database = {
       status: "healthy",
       latencyMs: Date.now() - start,

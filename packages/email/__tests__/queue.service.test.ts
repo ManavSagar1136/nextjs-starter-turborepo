@@ -7,12 +7,16 @@ import { EmailQueueService } from "../src/queue/queue.service.js";
 import { QueueNotConfiguredError, QueueOperationError } from "../src/queue/errors.js";
 import type { SendEmailOptions } from "../src/core/types.js";
 
+// Create stable mock functions that persist across tests
+const mockPublishJSON = vi.fn().mockResolvedValue({ messageId: "qstash_msg_123" });
+const mockDeleteSchedule = vi.fn().mockResolvedValue(undefined);
+
 // Mock @buildbase/qstash
 vi.mock("@buildbase/qstash/factory", () => ({
   createQStashFactory: vi.fn(() => ({
     client: {
-      publishJSON: vi.fn().mockResolvedValue({ messageId: "qstash_msg_123" }),
-      deleteSchedule: vi.fn().mockResolvedValue(undefined),
+      publishJSON: mockPublishJSON,
+      deleteSchedule: mockDeleteSchedule,
     },
   })),
 }));
@@ -29,11 +33,16 @@ describe("EmailQueueService", () => {
     vi.stubEnv("QSTASH_TOKEN", "test_token");
     vi.stubEnv("APP_URL", "https://app.example.com");
     queueService = new EmailQueueService();
+
+    // Reset mock implementations
+    mockPublishJSON.mockClear();
+    mockPublishJSON.mockResolvedValue({ messageId: "qstash_msg_123" });
+    mockDeleteSchedule.mockClear();
+    mockDeleteSchedule.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
-    vi.clearAllMocks();
   });
 
   describe("initialize", () => {
@@ -163,20 +172,11 @@ describe("EmailQueueService", () => {
     });
 
     it("should handle partial failures", async () => {
-      const mockPublishJSON = vi
-        .fn()
+      // Configure mock to fail on second call
+      mockPublishJSON
         .mockResolvedValueOnce({ messageId: "msg_1" })
         .mockRejectedValueOnce(new Error("Failed"))
         .mockResolvedValueOnce({ messageId: "msg_3" });
-
-      // Re-mock with partial failure
-      vi.doMock("@buildbase/qstash/factory", () => ({
-        createQStashFactory: () => ({
-          client: {
-            publishJSON: mockPublishJSON,
-          },
-        }),
-      }));
 
       const emails: SendEmailOptions[] = [
         { to: "user1@example.com", subject: "Test 1", html: "<p>1</p>" },
@@ -186,8 +186,10 @@ describe("EmailQueueService", () => {
 
       const result = await queueService.enqueueBulk(emails);
 
-      // Since our mock always succeeds, this tests the success path
       expect(result.total).toBe(3);
+      expect(result.queued).toBe(2);
+      expect(result.failed).toBe(1);
+      expect(result.errors).toHaveLength(1);
     });
 
     it("should stagger emails with delay", async () => {
@@ -199,6 +201,7 @@ describe("EmailQueueService", () => {
       const result = await queueService.enqueueBulk(emails, { delay: 1000 });
 
       expect(result.queued).toBe(2);
+      expect(mockPublishJSON).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -211,26 +214,16 @@ describe("EmailQueueService", () => {
       const result = await queueService.cancel("qstash_msg_123");
 
       expect(result).toBe(true);
+      expect(mockDeleteSchedule).toHaveBeenCalledWith("qstash_msg_123");
     });
 
     it("should return false when cancellation fails", async () => {
-      // Mock deleteSchedule to throw
-      vi.doMock("@buildbase/qstash/factory", () => ({
-        createQStashFactory: () => ({
-          client: {
-            publishJSON: vi.fn().mockResolvedValue({ messageId: "msg" }),
-            deleteSchedule: vi.fn().mockRejectedValue(new Error("Not found")),
-          },
-        }),
-      }));
+      // Configure mock to throw
+      mockDeleteSchedule.mockRejectedValueOnce(new Error("Not found"));
 
-      // Reinitialize with new mock
-      const service = new EmailQueueService();
-      await service.initialize();
-
-      // For this test, we know our mock always succeeds
       const result = await queueService.cancel("nonexistent");
-      expect(result).toBe(true); // Our current mock always succeeds
+
+      expect(result).toBe(false);
     });
   });
 
