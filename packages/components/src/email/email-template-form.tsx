@@ -106,7 +106,7 @@ export function EmailTemplateForm({
         initialDesign: design || undefined,
         initialHtml: html || undefined,
         initialText: text || undefined,
-        onSave: data => {
+        onSave: (data: { design?: string; html?: string; text?: string; templateType: EmailTemplateType }) => {
           // Always update template type when saving from editor
           if (data.templateType) {
             setValue("templateType", data.templateType, { shouldValidate: true });
