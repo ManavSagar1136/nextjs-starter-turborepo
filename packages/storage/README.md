@@ -45,13 +45,10 @@ Set environment variables in `.env`:
 # Provider selection (gcs | s3 | local)
 STORAGE_PROVIDER=gcs
 
-# Google Cloud Storage
-GCS_PROJECT_ID=your-project-id
+# Google Cloud Storage (uses standard Google Cloud environment variables)
+GOOGLE_CLOUD_PROJECT=your-project-id
 GCS_BUCKET_NAME=your-bucket-name
-# Optional: Path to service account key file
-GCS_KEY_FILE=/path/to/service-account.json
-# Or use default credentials
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 
 # AWS S3
 AWS_REGION=us-east-1

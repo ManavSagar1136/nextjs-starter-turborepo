@@ -96,9 +96,10 @@ const url = await getSignedUrl("uploads/image.png", { expiresInMinutes: 60 });
 # Provider selection
 STORAGE_PROVIDER=gcs  # gcs | s3 | local
 
-# Google Cloud Storage
-GCS_PROJECT_ID=your-project
+# Google Cloud Storage (uses standard Google Cloud environment variables)
+GOOGLE_CLOUD_PROJECT=your-project
 GCS_BUCKET_NAME=your-bucket
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 
 # AWS S3
 AWS_REGION=us-east-1

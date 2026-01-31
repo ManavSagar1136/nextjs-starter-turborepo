@@ -144,11 +144,9 @@ packages/storage/
 # Provider selection
 STORAGE_PROVIDER=gcs  # gcs | s3 | azure | local
 
-# Google Cloud Storage
-GCS_PROJECT_ID=your-project
+# Google Cloud Storage (uses standard Google Cloud environment variables)
+GOOGLE_CLOUD_PROJECT=your-project
 GCS_BUCKET_NAME=your-bucket
-GCS_KEY_FILE=./service-account.json
-# OR
 GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
 
 # AWS S3

@@ -31,7 +31,7 @@ export class GcsStorageProvider extends BaseStorageProvider {
 
     this.storage = new Storage({
       projectId: config.projectId,
-      keyFilename: config.keyFilename,
+      credentials: config.credentials,
     });
 
     this.bucketInstance = this.storage.bucket(this.bucket);

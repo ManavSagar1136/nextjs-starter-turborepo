@@ -19,9 +19,11 @@ export function getStorageProvider(): StorageProvider {
  */
 export function getGcsConfig() {
   return {
-    projectId: process.env.GCS_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "",
+    projectId: process.env.GOOGLE_CLOUD_PROJECT || "",
     bucket: process.env.GCS_BUCKET_NAME || "",
-    keyFilename: process.env.GCS_KEY_FILE || process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+      : undefined,
   };
 }
 
@@ -69,6 +71,14 @@ export function validateConfig(provider: StorageProvider): void {
       if (!config.bucket) {
         throw new Error("GCS_BUCKET_NAME is required for GCS provider");
       }
+      if (!config.projectId) {
+        throw new Error("GOOGLE_CLOUD_PROJECT is required for GCS provider");
+      }
+
+      if (!config.credentials) {
+        throw new Error("GOOGLE_APPLICATION_CREDENTIALS is required for GCS provider");
+      }
+
       break;
     }
     case "s3": {
