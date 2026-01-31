@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@buildbase/ui/input";
 import { Button } from "@buildbase/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@buildbase/ui/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@buildbase/ui/components/ui/select";
 import { Checkbox } from "@buildbase/ui/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@buildbase/ui/components/ui/tabs";
+import { UnlayerEditor } from "./unlayer-editor";
 
 /**
  * Email template categories
@@ -33,12 +34,13 @@ export interface EmailTemplateFormData {
   subject: string;
   html: string;
   text?: string;
+  design?: string; // Unlayer design JSON
   category: string;
   isActive?: boolean;
 }
 
 export interface EmailTemplateFormProps {
-  initialData?: Partial<EmailTemplateFormData>;
+  initialData?: Partial<EmailTemplateFormData & { design?: string }>;
   onSubmit: (data: EmailTemplateFormData) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
@@ -68,17 +70,21 @@ export function EmailTemplateForm({
       subject: "",
       html: "",
       text: "",
+      design: "",
       category: "TRANSACTIONAL",
       isActive: true,
       ...initialData,
     },
   });
 
+  const [editorMode, setEditorMode] = useState<"visual" | "html">("visual");
   const category = watch("category");
   const isActive = watch("isActive");
+  const html = watch("html");
+  const design = watch("design");
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-4">
       {/* Basic Information Section */}
       <div className="space-y-4">
         <div>
@@ -194,16 +200,44 @@ export function EmailTemplateForm({
         <div>
           <h3 className="mb-1 text-sm font-semibold">Email Content</h3>
           <p className="text-muted-foreground text-xs">
-            Create your email template with HTML and optional plain text version
+            Create your email template using the visual editor or HTML code
           </p>
         </div>
-        <Tabs defaultValue="html" className="w-full">
+        <Tabs
+          defaultValue="visual"
+          className="w-full"
+          onValueChange={value => setEditorMode(value as "visual" | "html")}
+        >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="html">
-              HTML Content <span className="text-destructive ml-1">*</span>
+            <TabsTrigger value="visual">
+              Visual Editor <span className="text-destructive ml-1">*</span>
             </TabsTrigger>
-            <TabsTrigger value="text">Plain Text (Optional)</TabsTrigger>
+            <TabsTrigger value="html">HTML Code</TabsTrigger>
           </TabsList>
+          <TabsContent value="visual" className="mt-4">
+            <div className="space-y-2">
+              <Label>Visual Email Editor</Label>
+              <div className="bg-background overflow-hidden rounded-md border">
+                <UnlayerEditor
+                  initialDesign={design || undefined}
+                  initialHtml={html || undefined}
+                  onSave={(designJson, htmlContent) => {
+                    setValue("design", designJson, { shouldValidate: true });
+                    setValue("html", htmlContent, { shouldValidate: true });
+                  }}
+                  isLoading={isLoading}
+                  minHeight="500px"
+                />
+              </div>
+              <div className="bg-muted/50 rounded-md p-3">
+                <p className="text-muted-foreground text-xs">
+                  <strong>Tip:</strong> Use the visual editor to design your email template. The HTML will be
+                  automatically generated. You can also use{" "}
+                  <code className="bg-background rounded px-1 py-0.5">{"{{variableName}}"}</code> for dynamic content.
+                </p>
+              </div>
+            </div>
+          </TabsContent>
           <TabsContent value="html" className="mt-4 space-y-2">
             <Label htmlFor="html">HTML Content</Label>
             <Textarea
@@ -221,22 +255,24 @@ export function EmailTemplateForm({
               </p>
             </div>
           </TabsContent>
-          <TabsContent value="text" className="mt-4 space-y-2">
-            <Label htmlFor="text">Plain Text Content</Label>
-            <Textarea
-              id="text"
-              placeholder="Welcome, {{userName}}! Thank you for joining {{appName}}..."
-              className="min-h-[350px] font-mono text-sm"
-              {...register("text")}
-            />
-            <div className="bg-muted/50 rounded-md p-3">
-              <p className="text-muted-foreground text-xs">
-                <strong>Optional:</strong> Plain text version for email clients that don't support HTML. Auto-generated
-                from HTML if not provided.
-              </p>
-            </div>
-          </TabsContent>
         </Tabs>
+
+        {/* Plain Text Section */}
+        <div className="space-y-2">
+          <Label htmlFor="text">Plain Text Content (Optional)</Label>
+          <Textarea
+            id="text"
+            placeholder="Welcome, {{userName}}! Thank you for joining {{appName}}..."
+            className="min-h-[200px] font-mono text-sm"
+            {...register("text")}
+          />
+          <div className="bg-muted/50 rounded-md p-3">
+            <p className="text-muted-foreground text-xs">
+              <strong>Optional:</strong> Plain text version for email clients that don't support HTML. Auto-generated
+              from HTML if not provided.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Actions */}

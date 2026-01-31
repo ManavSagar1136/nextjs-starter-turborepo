@@ -40,3 +40,5 @@ export { EmailTemplateForm } from "./email/email-template-form";
 export type { EmailTemplateFormProps, EmailTemplateFormData } from "./email/email-template-form";
 export { EmailProviderForm } from "./email/email-provider-form";
 export type { EmailProviderFormProps, EmailProviderFormData } from "./email/email-provider-form";
+export { UnlayerEditor } from "./email/unlayer-editor";
+export type { UnlayerEditorProps } from "./email/unlayer-editor";

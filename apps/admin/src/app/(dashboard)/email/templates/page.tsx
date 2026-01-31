@@ -71,6 +71,7 @@ const EmailTemplatesPage = () => {
           subject: data.subject,
           html: data.html,
           text: data.text,
+          design: data.design,
           category: data.category,
           isActive: data.isActive,
         };

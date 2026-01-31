@@ -8,6 +8,7 @@ export interface EmailTemplate {
   subject: string;
   html: string;
   text?: string;
+  design?: string; // Unlayer design JSON
   category: string;
   tags: string[];
   isActive: boolean;
@@ -18,12 +19,13 @@ export interface EmailTemplate {
 }
 
 export interface CreateEmailTemplateInput {
-  slug: string;
+  slug?: string;
   name: string;
   description?: string;
   subject: string;
   html: string;
   text?: string;
+  design?: string; // Unlayer design JSON
   category?: string;
   tags?: string[];
   variables?: unknown;
@@ -36,6 +38,7 @@ export interface UpdateEmailTemplateInput {
   subject?: string;
   html?: string;
   text?: string;
+  design?: string; // Unlayer design JSON
   category?: string;
   tags?: string[];
   variables?: unknown;

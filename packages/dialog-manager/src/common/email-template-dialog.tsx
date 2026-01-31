@@ -18,6 +18,7 @@ export interface EmailTemplateDialogProps extends DialogOrSheetBaseProps {
     subject?: string;
     html?: string;
     text?: string;
+    design?: string;
     category?: string;
     isActive?: boolean;
   };
@@ -32,6 +33,7 @@ export interface EmailTemplateDialogProps extends DialogOrSheetBaseProps {
     subject: string;
     html: string;
     text?: string;
+    design?: string;
     category: string;
     isActive?: boolean;
   }>;
@@ -95,8 +97,8 @@ export function EmailTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="w-full min-w-full max-w-5xl overflow-y-auto">
+        <DialogHeader className="border-b px-6 pb-4 pt-6">
           <DialogTitle>{mode === "create" ? "Create Email Template" : "Edit Email Template"}</DialogTitle>
           <DialogDescription>
             {mode === "create"
@@ -105,7 +107,7 @@ export function EmailTemplateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-y-auto px-6 py-4">
           {isLoadingData ? (
             <div className="text-muted-foreground py-8 text-center">Loading template details...</div>
           ) : (

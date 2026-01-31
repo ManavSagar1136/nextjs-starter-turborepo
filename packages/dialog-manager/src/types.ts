@@ -61,6 +61,7 @@ export type CommonDialogComponentMap = DialogComponentMap & {
       subject?: string;
       html?: string;
       text?: string;
+      design?: string;
       category?: string;
       isActive?: boolean;
     };
@@ -72,6 +73,7 @@ export type CommonDialogComponentMap = DialogComponentMap & {
       subject: string;
       html: string;
       text?: string;
+      design?: string;
       category: string;
       isActive?: boolean;
     }>;
