@@ -2,10 +2,7 @@
  * @buildbase/database - Email Template Types
  */
 
-import type { EmailTemplate, EmailTemplateCategory as PrismaEmailTemplateCategory } from "../generated/client";
-
-// Re-export Prisma's EmailTemplateCategory to avoid conflicts
-export type EmailTemplateCategory = PrismaEmailTemplateCategory;
+import type { EmailTemplate, EmailTemplateCategory } from "../generated/client";
 
 /**
  * Email template type enum

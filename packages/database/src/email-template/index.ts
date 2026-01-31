@@ -5,7 +5,6 @@ export { deleteEmailTemplate } from "./delete-email-template";
 export { getEmailTemplateById, getEmailTemplateBySlug } from "./get-email-template";
 export { listEmailTemplates, listEmailTemplatesByCategory } from "./list-email-templates";
 export { duplicateEmailTemplate } from "./duplicate-email-template";
-export * from "./types";
 
 // Export types (EmailTemplateCategory comes from Prisma via ./generated/client)
 export type {

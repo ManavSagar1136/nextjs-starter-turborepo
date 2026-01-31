@@ -3,7 +3,8 @@
  */
 
 import type { PrismaClient, EmailTemplate } from "../generated/client";
-import type { ListEmailTemplatesOptions, PaginatedEmailTemplates, EmailTemplateCategory } from "./types";
+import type { ListEmailTemplatesOptions, PaginatedEmailTemplates } from "./types";
+import type { EmailTemplateCategory } from "../generated/client";
 import { DEFAULT_PAGE_SIZE } from "./constants";
 
 /**
