@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@buildbase/ui/components/ui/button";
-import { FileText, Plus, Edit, Trash2, Eye, Palette } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, Eye, Palette, Mail } from "lucide-react";
 import { useDialogManager, type CommonDialogProps, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
 import { Badge } from "@buildbase/ui/components/ui/badge";
@@ -107,6 +107,44 @@ const EmailTemplatesPage = () => {
       setIsPreviewOpen(true);
     } catch (error) {
       console.error("Failed to fetch template for preview:", error);
+    }
+  };
+
+  const handleTestEmail = async (template: EmailTemplate) => {
+    try {
+      // Get default email provider
+      const providers = await API.email.providers.list();
+      const defaultProvider = providers.find(p => p.isDefault && p.isActive);
+
+      if (!defaultProvider) {
+        alert("No default email provider found. Please configure a default email provider first.");
+        return;
+      }
+
+      // Open test email dialog
+      openDialog(COMMON_DIALOG_KEYS.TEST_EMAIL, {
+        providerId: defaultProvider.id,
+        providerName: defaultProvider.name,
+        onTestEmail: async (providerId: string, email: string) => {
+          // Send template email via API
+          const result = await API.email.templates.sendTest(template.id, email, providerId, {});
+          return {
+            success: result.success || true,
+            connectionValid: true,
+            emailSent: result.success || true,
+            messageId: result.messageId,
+            error: result.error,
+          };
+        },
+        onSuccess: result => {
+          alert(
+            `✅ Test email sent successfully!\n\nMessage ID: ${result.messageId || "N/A"}\n\nPlease check your inbox at ${result.email}`
+          );
+        },
+      });
+    } catch (error) {
+      console.error("Failed to send test email:", error);
+      alert(`Failed to send test email: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 
@@ -237,6 +275,10 @@ const EmailTemplatesPage = () => {
                           title="Edit Design"
                         >
                           <Palette className="h-4 w-4" />
+                        </Button>
+
+                        <Button variant="ghost" size="sm" onClick={() => handleTestEmail(template)} title="Test Email">
+                          <Mail className="h-4 w-4" />
                         </Button>
 
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(template)} title="Edit">

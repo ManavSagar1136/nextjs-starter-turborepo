@@ -102,4 +102,32 @@ export class EmailTemplateApis extends BaseApiController {
   async remove(id: string): Promise<{ success: boolean }> {
     return (await this.delete(`${this.urlPath}/${id}`, {}, {}, {})).data;
   }
+
+  /**
+   * Send a test email using this template
+   * @param id - Template ID
+   * @param to - Recipient email address
+   * @param providerId - Optional provider ID (uses default if not provided)
+   * @param variables - Optional template variables
+   */
+  async sendTest(
+    id: string,
+    to: string,
+    providerId?: string,
+    variables?: Record<string, unknown>
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    return (
+      await this.post<{ success: boolean; messageId?: string; error?: string }>(
+        "/email/send",
+        {},
+        {},
+        {
+          to,
+          templateId: id,
+          providerId,
+          variables: variables || {},
+        }
+      )
+    ).data;
+  }
 }
