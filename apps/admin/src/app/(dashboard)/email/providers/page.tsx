@@ -2,17 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@buildbase/ui/components/ui/button";
-import { Mail, Plus, Edit, Trash2, TestTube } from "lucide-react";
+import { Mail, Plus, Edit, Trash2, MailIcon } from "lucide-react";
 import { useDialogManager, type CommonDialogProps, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
 import { Badge } from "@buildbase/ui/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@buildbase/ui/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
 import { API } from "@/services";
 import type { EmailProvider } from "@/services/email";
 
@@ -153,7 +146,9 @@ const EmailProvidersPage = () => {
                   <TableHead>From Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Emails Sent</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Updated</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -177,28 +172,42 @@ const EmailProvidersPage = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{provider.emailsSent.toLocaleString()}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleTest(provider)}>
-                            <TestTube className="mr-2 h-4 w-4" />
-                            Test Connection
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(provider)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(provider.id)} className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <TableCell>
+                      {provider.createdAt && (
+                        <span title={new Date(provider.createdAt).toLocaleString()}>
+                          {new Date(provider.createdAt).toLocaleDateString()}{" "}
+                          {new Date(provider.createdAt).toLocaleTimeString()}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {provider.updatedAt && (
+                        <span title={new Date(provider.updatedAt).toLocaleString()}>
+                          {new Date(provider.updatedAt).toLocaleDateString()}{" "}
+                          {new Date(provider.updatedAt).toLocaleTimeString()}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleTest(provider)} title="Test Email">
+                          <MailIcon className="h-4 w-4" />
+                        </Button>
+
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(provider)} title="Edit">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(provider.id)}
+                          className="text-destructive hover:text-destructive"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

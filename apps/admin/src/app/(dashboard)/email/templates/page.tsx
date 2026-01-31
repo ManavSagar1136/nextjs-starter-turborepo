@@ -236,6 +236,8 @@ const EmailTemplatesPage = () => {
                   <TableHead>Subject</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Updated</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -261,6 +263,22 @@ const EmailTemplatesPage = () => {
                       <Badge variant={template.isActive ? "default" : "secondary"}>
                         {template.isActive ? "Active" : "Inactive"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {template.createdAt && (
+                        <span title={new Date(template.createdAt).toLocaleString()}>
+                          {new Date(template.createdAt).toLocaleDateString()}{" "}
+                          {new Date(template.createdAt).toLocaleTimeString()}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {template.updatedAt && (
+                        <span title={new Date(template.updatedAt).toLocaleString()}>
+                          {new Date(template.updatedAt).toLocaleDateString()}{" "}
+                          {new Date(template.updatedAt).toLocaleTimeString()}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
