@@ -6,14 +6,7 @@ import { FileText, Plus, Edit, Trash2, Eye, Palette } from "lucide-react";
 import { useDialogManager, type CommonDialogProps, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
 import { Badge } from "@buildbase/ui/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@buildbase/ui/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
-import { MoreHorizontal } from "lucide-react";
 import { API } from "@/services";
 import type { EmailTemplate } from "@/services/email";
 import { EmailTemplateType } from "@buildbase/database";
@@ -121,21 +114,44 @@ const EmailTemplatesPage = () => {
     try {
       // Fetch full template data including design
       const fullTemplate = await API.email.templates.getById(template.id);
+      const templateType = getTemplateType(fullTemplate);
 
-      openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_DESIGN_EDITOR, {
-        templateId: template.id,
-        templateName: template.name,
-        initialDesign: fullTemplate.design,
-        initialHtml: fullTemplate.html,
-        onSaveDesign: async (templateId: string, design: string, html: string) => {
-          await API.email.templates.update(templateId, {
-            design,
-            html,
-          });
-        },
-        onSuccess: () => {
+      // Use the editor sheet which supports all template types
+      openDialog(COMMON_DIALOG_KEYS.EMAIL_TEMPLATE_EDITOR_SHEET, {
+        templateType,
+        initialDesign: fullTemplate.design || undefined,
+        initialHtml: fullTemplate.html || undefined,
+        initialText: fullTemplate.text || undefined,
+        onSave: async (data: { design?: string; html?: string; text?: string; templateType: EmailTemplateType }) => {
+          // Prepare update data based on template type
+          const updateData: {
+            design?: string;
+            html?: string;
+            text?: string;
+            templateType?: EmailTemplateType;
+          } = {};
+
+          if (data.templateType === EmailTemplateType.UNLAYER && data.design) {
+            updateData.design = data.design;
+            updateData.html = data.html;
+            // Clear other types
+            updateData.text = undefined;
+          } else if (data.templateType === EmailTemplateType.HTML && data.html) {
+            updateData.html = data.html;
+            // Clear other types
+            updateData.design = undefined;
+            updateData.text = undefined;
+          } else if (data.templateType === EmailTemplateType.TEXT && data.text) {
+            updateData.text = data.text;
+            // Clear other types
+            updateData.design = undefined;
+            updateData.html = undefined;
+          }
+
+          await API.email.templates.update(template.id, updateData);
           setRefreshCounter(prev => prev + 1);
         },
+        isLoading: false,
       });
     } catch (error) {
       console.error("Failed to fetch template for design editing:", error);
@@ -182,7 +198,7 @@ const EmailTemplatesPage = () => {
                   <TableHead>Subject</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -208,34 +224,35 @@ const EmailTemplatesPage = () => {
                         {template.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handlePreview(template)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Preview
-                          </DropdownMenuItem>
-                          {template.design && (
-                            <DropdownMenuItem onClick={() => handleEditDesign(template)}>
-                              <Palette className="mr-2 h-4 w-4" />
-                              Edit Design
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleEdit(template)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(template.id)} className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handlePreview(template)} title="Preview">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditDesign(template)}
+                          title="Edit Design"
+                        >
+                          <Palette className="h-4 w-4" />
+                        </Button>
+
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(template)} title="Edit">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(template.id)}
+                          className="text-destructive hover:text-destructive"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -20,7 +20,12 @@ export interface EmailTemplateEditorSheetProps extends DialogOrSheetBaseProps {
   /**
    * Callback when content is saved
    */
-  onSave: (data: { design?: string; html?: string; text?: string; templateType: EmailTemplateType }) => void;
+  onSave: (data: {
+    design?: string;
+    html?: string;
+    text?: string;
+    templateType: EmailTemplateType;
+  }) => void | Promise<void>;
   /**
    * Loading state
    */
@@ -76,29 +81,44 @@ export function EmailTemplateEditorSheet({
 
   const { label, description } = getTemplateTypeInfo(templateType);
 
-  const handleUnlayerSave = (designJson: string, htmlContent: string) => {
-    onSave({
-      design: designJson,
-      html: htmlContent,
-      templateType: EmailTemplateType.UNLAYER,
-    });
-    onOpenChange(false);
+  const handleUnlayerSave = async (designJson: string, htmlContent: string) => {
+    try {
+      await onSave({
+        design: designJson,
+        html: htmlContent,
+        templateType: EmailTemplateType.UNLAYER,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      // Error handling is done by the parent component
+      console.error("Error saving Unlayer design:", error);
+    }
   };
 
-  const handleHtmlSave = () => {
-    onSave({
-      html: htmlValue,
-      templateType: EmailTemplateType.HTML,
-    });
-    onOpenChange(false);
+  const handleHtmlSave = async () => {
+    try {
+      await onSave({
+        html: htmlValue,
+        templateType: EmailTemplateType.HTML,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      // Error handling is done by the parent component
+      console.error("Error saving HTML:", error);
+    }
   };
 
-  const handleTextSave = () => {
-    onSave({
-      text: textValue,
-      templateType: EmailTemplateType.TEXT,
-    });
-    onOpenChange(false);
+  const handleTextSave = async () => {
+    try {
+      await onSave({
+        text: textValue,
+        templateType: EmailTemplateType.TEXT,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      // Error handling is done by the parent component
+      console.error("Error saving text:", error);
+    }
   };
 
   return (

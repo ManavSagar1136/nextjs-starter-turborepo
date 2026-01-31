@@ -76,18 +76,43 @@ export function UnlayerEditor({
 
   const handleSave = () => {
     if (!emailEditorRef.current?.editor) {
+      toast({
+        title: "Editor not ready",
+        description: "Please wait for the editor to finish loading.",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsExporting(true);
-    // Export HTML and design
-    emailEditorRef.current.editor.exportHtml((data: { html: string; design: Record<string, unknown> }) => {
-      const { html, design } = data;
-      // Convert design to JSON string for storage
-      const designJson = JSON.stringify(design);
-      onSave(designJson, html);
+    try {
+      // Export HTML and design
+      emailEditorRef.current.editor.exportHtml((data: { html: string; design: Record<string, unknown> }) => {
+        try {
+          const { html, design } = data;
+          // Convert design to JSON string for storage
+          const designJson = JSON.stringify(design);
+          onSave(designJson, html);
+        } catch (error) {
+          console.error("Error processing saved data:", error);
+          toast({
+            title: "Error saving design",
+            description: "Failed to process the design data. Please try again.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsExporting(false);
+        }
+      });
+    } catch (error) {
+      console.error("Error exporting HTML:", error);
+      toast({
+        title: "Error saving design",
+        description: "Failed to export the design. Please try again.",
+        variant: "destructive",
+      });
       setIsExporting(false);
-    });
+    }
   };
 
   const handleExportHtml = () => {

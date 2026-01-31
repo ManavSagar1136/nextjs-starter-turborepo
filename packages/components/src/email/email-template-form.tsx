@@ -107,6 +107,21 @@ export function EmailTemplateForm({
         initialHtml: html || undefined,
         initialText: text || undefined,
         onSave: data => {
+          // Always update template type when saving from editor
+          if (data.templateType) {
+            setValue("templateType", data.templateType, { shouldValidate: true });
+            // Clear other template type fields when switching
+            if (data.templateType !== EmailTemplateType.HTML) {
+              setValue("html", "", { shouldValidate: false });
+            }
+            if (data.templateType !== EmailTemplateType.TEXT) {
+              setValue("text", "", { shouldValidate: false });
+            }
+            if (data.templateType !== EmailTemplateType.UNLAYER) {
+              setValue("design", "", { shouldValidate: false });
+            }
+          }
+          // Update the content for the saved template type
           if (data.design) {
             setValue("design", data.design, { shouldValidate: true });
           }
@@ -115,9 +130,6 @@ export function EmailTemplateForm({
           }
           if (data.text) {
             setValue("text", data.text, { shouldValidate: true });
-          }
-          if (data.templateType) {
-            setValue("templateType", data.templateType, { shouldValidate: true });
           }
         },
         isLoading,
@@ -320,10 +332,11 @@ export function EmailTemplateForm({
             onValueChange={(value: string) => {
               const newType = value as EmailTemplateType;
               setValue("templateType", newType, { shouldValidate: true });
-              // Clear content when switching types
-              if (newType !== EmailTemplateType.HTML) setValue("html", undefined);
-              if (newType !== EmailTemplateType.TEXT) setValue("text", undefined);
-              if (newType !== EmailTemplateType.UNLAYER) setValue("design", undefined);
+              // Clear content when switching types in edit mode
+              // This allows users to change template types and create new content
+              if (newType !== EmailTemplateType.HTML) setValue("html", "", { shouldValidate: false });
+              if (newType !== EmailTemplateType.TEXT) setValue("text", "", { shouldValidate: false });
+              if (newType !== EmailTemplateType.UNLAYER) setValue("design", "", { shouldValidate: false });
             }}
             className="grid grid-cols-1 gap-3 sm:grid-cols-3"
           >
