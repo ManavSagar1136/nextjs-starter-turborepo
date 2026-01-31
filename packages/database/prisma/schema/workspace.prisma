@@ -12,6 +12,12 @@ model Workspace {
   members      WorkspaceMember[]
   currentUsers User[]            @relation("UserCurrentWorkspace") // Users with this as current workspace
 
+  // Email providers
+  emailProviders EmailProvider[]
+
+  // Email templates
+  emailTemplates EmailTemplate[]
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

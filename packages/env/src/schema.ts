@@ -80,6 +80,9 @@ export const env = createEnv({
 
     // API Secret
     NEXT_PUBLIC_API_SECRET: z.string().optional(),
+
+    // Product Launch Status
+    NEXT_PUBLIC_PRODUCT_LAUNCHED: z.enum(["true", "false"]).optional(),
   },
 
   /**
@@ -122,6 +125,9 @@ export const env = createEnv({
 
     // Cron Jobs (Vercel Cron)
     CRON_SECRET: process.env.CRON_SECRET,
+
+    // Product Launch Status
+    NEXT_PUBLIC_PRODUCT_LAUNCHED: process.env.NEXT_PUBLIC_PRODUCT_LAUNCHED,
 
     // Logging & Monitoring
     LOG_LEVEL: process.env.LOG_LEVEL,

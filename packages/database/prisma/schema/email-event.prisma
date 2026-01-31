@@ -1,0 +1,38 @@
+// Email Event model - tracks email engagement events
+// Opens, clicks, bounces, unsubscribes
+
+enum EmailEventType {
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+}
+
+model EmailEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Tracking reference
+  trackingId String // Links to sent email
+
+  // Event info
+  type      EmailEventType
+  timestamp DateTime       @default(now())
+
+  // Request metadata
+  ipAddress String?
+  userAgent String?
+
+  // Click-specific
+  linkUrl String? // URL that was clicked
+
+  // Extra metadata (bounce type, etc.)
+  metadata Json?
+
+  @@index([trackingId])
+  @@index([type])
+  @@index([timestamp])
+  @@map("email_events")
+}

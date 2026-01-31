@@ -1,0 +1,66 @@
+// Sent Email model - stores every email sent through the system
+// Full audit trail of all outgoing emails
+
+enum EmailStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
+
+model SentEmail {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Tracking reference (links to EmailEvent)
+  trackingId String @unique
+
+  // Recipients
+  to  String[] // Primary recipients
+  cc  String[] // CC recipients
+  bcc String[] // BCC recipients
+
+  // Sender info
+  from    String // From address
+  replyTo String? // Reply-to address
+
+  // Content
+  subject String
+  html    String? // HTML body
+  text    String? // Plain text body
+
+  // Provider info
+  providerId   String? @db.ObjectId
+  providerName String? // Provider name at time of send
+  messageId    String? // Provider's message ID
+
+  // Template info (if sent via template)
+  templateId   String? @db.ObjectId
+  templateSlug String? // Template slug at time of send
+
+  // Status
+  status EmailStatus @default(SENT)
+  error  String? // Error message if failed
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime? // When actually sent
+  deliveredAt DateTime? // When delivered (from webhook)
+
+  // Optional workspace/org scoping
+  workspaceId String? @db.ObjectId
+  userId      String? @db.ObjectId // User who triggered the send
+
+  // Additional metadata
+  metadata Json? // Campaign ID, tags, etc.
+
+  @@index([to])
+  @@index([from])
+  @@index([subject])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerId])
+  @@index([templateId])
+  @@index([workspaceId])
+  @@map("sent_emails")
+}

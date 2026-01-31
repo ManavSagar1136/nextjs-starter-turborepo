@@ -6,7 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { dialogRegistry } from "./registry";
 import { DIALOG_AUTO_CLEANUP_DELAY_MS, DIALOG_URL_PARAMS, DIALOG_URL_BLACKLIST, COMMON_DIALOG_KEYS } from "./config";
 import { DialogContext } from "./context";
-import type { DialogInstance, DialogKey, DialogComponentMap } from "./types";
+import type {
+  DialogInstance,
+  DialogKey,
+  DialogComponentMap,
+  CommonDialogComponentMap,
+  DialogContextType,
+} from "./types";
 
 /**
  * Props for DialogProvider.
@@ -114,24 +120,27 @@ const UrlDialogHandler = ({
 
 export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, customDialogs }: DialogProviderProps) => {
   const [openDialogIds, setOpenDialogIds] = useState<Set<string>>(new Set());
-  const [dialogMap] = useState<Map<string, DialogInstance>>(new Map());
+  const [dialogMap] = useState<Map<string, DialogInstance<CommonDialogComponentMap>>>(new Map());
   const cleanupTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const router = useRouter();
 
   // Get dialog components from registry or custom dialogs
-  const dialogComponents = useMemo(() => {
-    return customDialogs || dialogRegistry.getAll();
+  // Use CommonDialogComponentMap to ensure email dialogs have proper types
+  const dialogComponents = useMemo((): CommonDialogComponentMap => {
+    const allDialogs = customDialogs || dialogRegistry.getAll();
+    // Cast to CommonDialogComponentMap to preserve email dialog types
+    return allDialogs as unknown as CommonDialogComponentMap;
   }, [customDialogs]);
 
   /**
    * Opens a new dialog instance or updates an existing one by ID.
    */
   const openDialog = useCallback(
-    <K extends DialogKey>(
+    <K extends DialogKey<CommonDialogComponentMap>>(
       key: K,
-      props: Omit<React.ComponentProps<(typeof dialogComponents)[K]>, "open" | "onOpenChange">,
+      props: Omit<React.ComponentProps<CommonDialogComponentMap[K]>, "open" | "onOpenChange">,
       options?: { id?: string; onClose?: () => void; onOpen?: () => void }
-    ) => {
+    ): string => {
       const dialogMapId = options?.id ? `${key}-${options.id}` : `${key}-${Date.now()}`;
 
       // Cancel cleanup if dialog was recently closed
@@ -260,7 +269,9 @@ export const DialogProvider = ({ children, onToast, enableUrlDialogs = true, cus
   }, [orderedDialogs, openDialogIds, dialogComponents, lazyDialogs]);
 
   return (
-    <DialogContext.Provider value={{ openDialog, closeDialog, forceCloseAllDialogs }}>
+    <DialogContext.Provider
+      value={{ openDialog, closeDialog, forceCloseAllDialogs } as DialogContextType<CommonDialogComponentMap>}
+    >
       {enableUrlDialogs && (
         <Suspense fallback={null}>
           <UrlDialogHandler

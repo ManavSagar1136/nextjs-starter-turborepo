@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@buildbase/ui": "*",
+    "@buildbase/components": "*",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-alert-dialog": "^1.1.0",
     "lucide-react": "^0.469.0"
