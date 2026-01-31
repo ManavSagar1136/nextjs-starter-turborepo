@@ -32,6 +32,32 @@ const menuItemsConfig = [
       },
     ],
   },
+  {
+    title: "Email Management",
+    url: "#",
+    items: [
+      {
+        title: "Email Providers",
+        url: Routes.email.providers,
+        iconName: "Mail",
+      },
+      {
+        title: "Email Templates",
+        url: Routes.email.templates,
+        iconName: "FileText",
+      },
+      {
+        title: "Sent Emails",
+        url: Routes.email.sent,
+        iconName: "Send",
+      },
+      {
+        title: "Email Stats",
+        url: Routes.email.stats,
+        iconName: "BarChart3",
+      },
+    ],
+  },
 ];
 
 async function ProtectedLayout({ children }: { children: React.ReactNode }) {

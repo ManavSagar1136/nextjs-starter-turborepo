@@ -28,6 +28,17 @@ export const Routes = {
   workspaces: "/workspaces",
 
   /**
+   * Email management routes
+   */
+  email: {
+    providers: "/email/providers",
+    templates: "/email/templates",
+    sent: "/email/sent",
+    stats: "/email/stats",
+    send: "/email/send",
+  },
+
+  /**
    * API routes
    */
   api: {

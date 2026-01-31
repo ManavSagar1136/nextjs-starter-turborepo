@@ -3,6 +3,7 @@
 import { ThemeProvider } from "@buildbase/ui/components/providers/ThemeProvider";
 import { DialogProvider } from "@buildbase/dialog-manager/provider";
 import SaaSProvider from "./SaaSProvider";
+import { InitializeDialogs } from "@/dialogs/initialize";
 import type { ReactNode } from "react";
 
 interface AppProvidersProps {
@@ -17,12 +18,18 @@ interface AppProvidersProps {
  * - ThemeProvider: Theme management (light/dark mode)
  * - DialogProvider: Dialog management system
  * - SaaSProvider: Buildbase SDK authentication
+ * - InitializeDialogs: Initializes dialog system
  */
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <DialogProvider>
-        <SaaSProvider>{children}</SaaSProvider>
+        <SaaSProvider>
+          <div>
+            <InitializeDialogs />
+            {children}
+          </div>
+        </SaaSProvider>
       </DialogProvider>
     </ThemeProvider>
   );

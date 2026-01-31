@@ -1,10 +1,10 @@
 import { createContext } from "react";
-import type { DialogContextType } from "./types";
+import type { DialogContextType, CommonDialogComponentMap } from "./types";
 
 /**
  * Default context value for the dialog context.
  */
-export const DEFAULT_CONTEXT_VALUE: DialogContextType = {
+export const DEFAULT_CONTEXT_VALUE: DialogContextType<CommonDialogComponentMap> = {
   openDialog: () => "",
   closeDialog: () => {},
   forceCloseAllDialogs: () => {},
@@ -13,4 +13,4 @@ export const DEFAULT_CONTEXT_VALUE: DialogContextType = {
 /**
  * Context instance for managing dialogs.
  */
-export const DialogContext = createContext<DialogContextType>(DEFAULT_CONTEXT_VALUE);
+export const DialogContext = createContext<DialogContextType<CommonDialogComponentMap>>(DEFAULT_CONTEXT_VALUE);

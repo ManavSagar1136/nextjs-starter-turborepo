@@ -68,9 +68,9 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
         console.log("*** eventType", eventType);
         console.log("*** data", data);
 
-        // Handle workspace changed, created, updated, deleted, user-added, user-removed, and user-role-changed events
+        // Handle workspace created, updated, deleted, user-added, user-removed, and user-role-changed events
+        // Note: workspace:changed is handled by onWorkspaceChange callback, not here
         if (
-          eventType === "workspace:changed" ||
           eventType === "workspace:created" ||
           eventType === "workspace:updated" ||
           eventType === "workspace:deleted" ||
@@ -156,7 +156,6 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
                   // Token is managed via HTTP-only cookies, no need to store in localStorage
                   const actionMap: Record<string, string> = {
                     "workspace:created": "created",
-                    "workspace:changed": "changed",
                     "workspace:updated": "updated",
                     "workspace:deleted": "deleted",
                     "workspace:user-added": "user added to",
@@ -167,7 +166,6 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
                 } else {
                   const actionMap: Record<string, string> = {
                     "workspace:created": "create",
-                    "workspace:changed": "update",
                     "workspace:updated": "update",
                     "workspace:deleted": "delete",
                     "workspace:user-added": "add user to",
@@ -180,7 +178,6 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
               .catch(error => {
                 const actionMap: Record<string, string> = {
                   "workspace:created": "creating",
-                  "workspace:changed": "updating",
                   "workspace:updated": "updating",
                   "workspace:deleted": "deleting",
                   "workspace:user-added": "adding user to",
@@ -190,6 +187,19 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
                 console.error(`Error ${actionMap[eventType] || "processing"} workspace:`, error);
               });
           }
+        }
+      }}
+      onWorkspaceChange={async (payload: any) => {
+        try {
+          const result = await API.auth.changeWorkspace(payload.workspace, payload.user, payload.role);
+          if (!result.success) {
+            console.error("Failed to change workspace:", result);
+            throw new Error(result.error || "Failed to change workspace");
+          }
+          return Promise.resolve();
+        } catch (error) {
+          console.error("Error changing workspace:", error);
+          return Promise.reject(error);
         }
       }}
     >

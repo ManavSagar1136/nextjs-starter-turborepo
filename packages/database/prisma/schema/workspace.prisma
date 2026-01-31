@@ -12,6 +12,12 @@ model Workspace {
   members      WorkspaceMember[]
   currentUsers User[]            @relation("UserCurrentWorkspace") // Users with this as current workspace
 
+  // Email providers
+  emailProviders EmailProvider[]
+
+  // Email templates
+  emailTemplates EmailTemplate[]
+
   // Asset relationships
   assets       Asset[]
   assetFolders AssetFolder[]

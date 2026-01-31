@@ -50,6 +50,7 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
       }}
       profileRoute={Routes.profile}
       excludeRoutes={[Routes.login]}
+      showTeamSwitcher={true}
     >
       {children}
     </DashboardConfigProvider>

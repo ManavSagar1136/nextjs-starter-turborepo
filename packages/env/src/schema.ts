@@ -52,6 +52,14 @@ export const env = createEnv({
     // Cron Jobs (Vercel Cron)
     CRON_SECRET: z.string().min(1).optional(),
 
+    // Logging & Monitoring
+    LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).optional(),
+
+    // New Relic APM
+    NEW_RELIC_ENABLED: z.enum(["true", "false"]).optional(),
+    NEW_RELIC_LICENSE_KEY: z.string().min(1).optional(),
+    NEW_RELIC_APP_NAME: z.string().min(1).optional(),
+
     // Storage Provider Configuration
     STORAGE_PROVIDER: z.enum(["gcs", "s3", "local", "azure"]).optional(),
 
@@ -92,6 +100,9 @@ export const env = createEnv({
 
     // API Secret
     NEXT_PUBLIC_API_SECRET: z.string().optional(),
+
+    // Product Launch Status
+    NEXT_PUBLIC_PRODUCT_LAUNCHED: z.enum(["true", "false"]).optional(),
   },
 
   /**
@@ -134,6 +145,17 @@ export const env = createEnv({
 
     // Cron Jobs (Vercel Cron)
     CRON_SECRET: process.env.CRON_SECRET,
+
+    // Product Launch Status
+    NEXT_PUBLIC_PRODUCT_LAUNCHED: process.env.NEXT_PUBLIC_PRODUCT_LAUNCHED,
+
+    // Logging & Monitoring
+    LOG_LEVEL: process.env.LOG_LEVEL,
+
+    // New Relic APM
+    NEW_RELIC_ENABLED: process.env.NEW_RELIC_ENABLED,
+    NEW_RELIC_LICENSE_KEY: process.env.NEW_RELIC_LICENSE_KEY,
+    NEW_RELIC_APP_NAME: process.env.NEW_RELIC_APP_NAME,
 
     // Storage Provider
     STORAGE_PROVIDER: process.env.STORAGE_PROVIDER,
