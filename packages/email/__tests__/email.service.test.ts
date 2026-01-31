@@ -9,6 +9,14 @@ import { EmailQueue } from "../src/queue/queue.service.js";
 import { ConsoleProvider } from "../src/providers/console.provider.js";
 import type { SendEmailOptions } from "../src/core/types.js";
 
+// Use vi.hoisted() for mock functions that are used in vi.mock() factories
+const { mockEnqueue, mockEnqueueBulk, mockDelay, mockSchedule } = vi.hoisted(() => ({
+  mockEnqueue: vi.fn(),
+  mockEnqueueBulk: vi.fn(),
+  mockDelay: vi.fn(),
+  mockSchedule: vi.fn(),
+}));
+
 // Mock the factory
 vi.mock("../src/factory/email.factory.js", () => ({
   EmailFactory: {
@@ -18,12 +26,7 @@ vi.mock("../src/factory/email.factory.js", () => ({
   },
 }));
 
-// Mock the queue - define mock functions that persist
-const mockEnqueue = vi.fn();
-const mockEnqueueBulk = vi.fn();
-const mockDelay = vi.fn();
-const mockSchedule = vi.fn();
-
+// Mock the queue with hoisted mock functions
 vi.mock("../src/queue/queue.service.js", () => ({
   EmailQueue: {
     initialize: vi.fn().mockResolvedValue(undefined),
