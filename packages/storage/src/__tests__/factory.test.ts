@@ -49,10 +49,13 @@ describe("StorageFactory", () => {
 
     it("should throw error when GCS bucket not configured", async () => {
       process.env.STORAGE_PROVIDER = "gcs";
-      delete process.env.GCS_BUCKET_NAME;
+      delete process.env.GOOGLE_CLOUD_BUCKET_NAME;
+      delete process.env.GOOGLE_CLOUD_PROJECT_ID;
+      delete process.env.GOOGLE_CLOUD_CLIENT_EMAIL;
+      delete process.env.GOOGLE_CLOUD_PRIVATE_KEY;
 
       const factory = StorageFactory.getInstance();
-      await expect(factory.getProvider()).rejects.toThrow("GCS_BUCKET_NAME is required");
+      await expect(factory.getProvider()).rejects.toThrow("Missing required Google Cloud Storage configuration");
     });
 
     it("should throw error when S3 bucket not configured", async () => {
