@@ -36,7 +36,10 @@ const nextConfig: NextConfig = {
     "@buildbase/redux",
     "@buildbase/dialog-manager",
     "@buildbase/logger",
+    "@buildbase/database",
   ],
+  // Required for Prisma in monorepo - tells Next.js where to find files in packages/
+  outputFileTracingRoot: resolve(__dirname, "../.."),
   turbopack: {
     root: resolve(__dirname, "../.."),
   },
