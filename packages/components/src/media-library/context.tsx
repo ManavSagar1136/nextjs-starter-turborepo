@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
+import { useDebounce } from "@buildbase/ui/hooks/use-debounce";
+
 import {
   DEFAULT_MEDIA_LIBRARY_CONFIG,
   type IAsset,
@@ -28,6 +30,7 @@ interface MediaLibraryState {
   selectedTagIds: string[];
   selectedMimeTypes: string[];
   searchQuery: string;
+  debouncedSearchQuery: string;
   viewMode: ViewMode;
   currentPage: number;
 
@@ -208,6 +211,9 @@ export function MediaLibraryProvider({
     action: IAssetAction;
     asset: IAsset;
   } | null>(null);
+
+  // Debounce search query (300ms delay)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Computed: current folder path for breadcrumbs
   const currentFolderPath = useMemo(() => {
@@ -409,6 +415,7 @@ export function MediaLibraryProvider({
       selectedTagIds,
       selectedMimeTypes,
       searchQuery,
+      debouncedSearchQuery,
       viewMode,
       currentPage,
       sortBy,
@@ -467,6 +474,7 @@ export function MediaLibraryProvider({
       selectedTagIds,
       selectedMimeTypes,
       searchQuery,
+      debouncedSearchQuery,
       viewMode,
       currentPage,
       isUploadDialogOpen,
@@ -509,20 +517,28 @@ export function MediaLibraryProvider({
 // ============================================================================
 
 export function useAssetQueryParams(): IAssetListParams {
-  const { config, selectedFolderId, selectedTagIds, selectedMimeTypes, searchQuery, currentPage, sortBy, sortOrder } =
-    useMediaLibrary();
+  const {
+    config,
+    selectedFolderId,
+    selectedTagIds,
+    selectedMimeTypes,
+    debouncedSearchQuery,
+    currentPage,
+    sortBy,
+    sortOrder,
+  } = useMediaLibrary();
 
   return useMemo(
     () => ({
       folderId: config.enableFolders ? selectedFolderId : undefined,
       tagIds: config.enableTags && selectedTagIds.length > 0 ? selectedTagIds : undefined,
       contentType: selectedMimeTypes.length > 0 ? selectedMimeTypes : undefined,
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
       sortBy,
       sortOrder,
       $page: currentPage,
       $limit: config.pageSize,
     }),
-    [config, selectedFolderId, selectedTagIds, selectedMimeTypes, searchQuery, currentPage, sortBy, sortOrder]
+    [config, selectedFolderId, selectedTagIds, selectedMimeTypes, debouncedSearchQuery, currentPage, sortBy, sortOrder]
   );
 }

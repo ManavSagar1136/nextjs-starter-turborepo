@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FolderPlus, PanelLeft, Upload, X } from "lucide-react";
 
 import { Button } from "@buildbase/ui/button";
@@ -13,6 +13,7 @@ import { BulkActionsBar } from "./BulkActionsBar";
 import { useMediaLibrary } from "./context";
 import { FolderSidebar } from "./FolderTree";
 import { SearchAndFilters } from "./SearchAndFilters";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { type IFolderTreeItem } from "./types";
 
 // ============================================================================
@@ -61,9 +62,61 @@ export function MediaLibrary({
   onBulkAssignTags,
 }: MediaLibraryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const { config, isLoadingFolders } = useMediaLibrary();
+  const { config, isLoadingFolders, selectedAssetIds, selectAllAssets, clearAssetSelection } = useMediaLibrary();
+
+  // Handle drag and drop for moving assets to folders
+  useEffect(() => {
+    const handleMoveAsset = (event: Event) => {
+      const customEvent = event as CustomEvent<{ assetId: string; targetFolderId: string }>;
+      const { assetId, targetFolderId } = customEvent.detail;
+      // For drag-drop, we need to directly move to the target folder
+      // This requires updating the move dialog or creating a direct move function
+      // For now, trigger the move dialog which will allow user to confirm
+      if (onBulkMove && assetId) {
+        onBulkMove([assetId]);
+      }
+    };
+
+    window.addEventListener("media-library:move-asset", handleMoveAsset);
+    return () => {
+      window.removeEventListener("media-library:move-asset", handleMoveAsset);
+    };
+  }, [onBulkMove]);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onSearchFocus: () => {
+      searchInputRef.current?.focus();
+    },
+    onSelectAll: () => {
+      selectAllAssets();
+    },
+    onDelete: () => {
+      if (selectedAssetIds.length > 0 && onBulkDelete) {
+        onBulkDelete(selectedAssetIds);
+      }
+    },
+    onMove: () => {
+      if (selectedAssetIds.length > 0 && onBulkMove) {
+        onBulkMove(selectedAssetIds);
+      }
+    },
+    onAssignTags: () => {
+      if (selectedAssetIds.length > 0 && onBulkAssignTags) {
+        onBulkAssignTags(selectedAssetIds);
+      }
+    },
+    onClearSelection: () => {
+      clearAssetSelection();
+    },
+    onEscape: () => {
+      clearAssetSelection();
+      setMobileSidebarOpen(false);
+    },
+  });
 
   return (
     <div className={cn("bg-background flex h-full overflow-hidden", className)}>
@@ -167,7 +220,7 @@ export function MediaLibrary({
             </div>
 
             {/* Search and Filters */}
-            <SearchAndFilters />
+            <SearchAndFilters searchInputRef={searchInputRef} />
           </div>
         </div>
 

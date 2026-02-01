@@ -35,8 +35,10 @@ export function BulkActionsBar({ className, onBulkDelete, onBulkMove, onBulkAssi
         "bg-primary text-primary-foreground fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg px-4 py-3 shadow-lg",
         className
       )}
+      role="toolbar"
+      aria-label="Bulk actions toolbar"
     >
-      <span className="text-sm font-medium">
+      <span className="text-sm font-medium" aria-live="polite" aria-atomic="true">
         {selectedAssetIds.length} {selectedAssetIds.length === 1 ? "asset" : "assets"} selected
       </span>
 
@@ -50,8 +52,10 @@ export function BulkActionsBar({ className, onBulkDelete, onBulkMove, onBulkAssi
               onBulkMove(selectedAssetIds);
               clearAssetSelection();
             }}
+            aria-label={`Move ${selectedAssetIds.length} selected assets`}
+            title="Move selected assets (Ctrl/Cmd + M)"
           >
-            <Folder className="mr-2 h-4 w-4" />
+            <Folder className="mr-2 h-4 w-4" aria-hidden="true" />
             Move
           </Button>
         )}
@@ -65,8 +69,10 @@ export function BulkActionsBar({ className, onBulkDelete, onBulkMove, onBulkAssi
               onBulkAssignTags(selectedAssetIds);
               clearAssetSelection();
             }}
+            aria-label={`Assign tags to ${selectedAssetIds.length} selected assets`}
+            title="Assign tags to selected assets (Ctrl/Cmd + T)"
           >
-            <Tag className="mr-2 h-4 w-4" />
+            <Tag className="mr-2 h-4 w-4" aria-hidden="true" />
             Assign Tags
           </Button>
         )}
@@ -80,8 +86,10 @@ export function BulkActionsBar({ className, onBulkDelete, onBulkMove, onBulkAssi
               onBulkDelete(selectedAssetIds);
               clearAssetSelection();
             }}
+            aria-label={`Delete ${selectedAssetIds.length} selected assets`}
+            title="Delete selected assets (Delete)"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
             Delete
           </Button>
         )}
@@ -92,6 +100,7 @@ export function BulkActionsBar({ className, onBulkDelete, onBulkMove, onBulkAssi
           className="text-primary-foreground hover:bg-background/20 h-8 w-8 p-0"
           onClick={clearAssetSelection}
           aria-label="Clear selection"
+          title="Clear selection (Escape)"
         >
           <X className="h-4 w-4" />
         </Button>

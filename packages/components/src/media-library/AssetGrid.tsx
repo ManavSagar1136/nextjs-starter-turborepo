@@ -236,26 +236,34 @@ export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
   };
 
   return (
-    <div className={cn("p-6", className)}>
+    <div className={cn("p-6", className)} role="region" aria-label="Asset library">
       {/* Loading overlay */}
       {isLoadingAssets && (
-        <div className="mb-4 flex items-center justify-center py-4">
-          <Loader2 className="text-muted-foreground mr-2 h-5 w-5 animate-spin" />
+        <div className="mb-4 flex items-center justify-center py-4" role="status" aria-live="polite">
+          <Loader2 className="text-muted-foreground mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
           <span className="text-muted-foreground text-sm">Loading assets...</span>
         </div>
       )}
 
       {/* Asset Grid/List */}
       {viewMode === "list" ? (
-        <div className="space-y-2">
+        <ul className="space-y-2" role="list">
           {assets.docs.map(asset => (
-            <AssetListItem key={asset.id} asset={asset} />
+            <li key={asset.id} role="listitem">
+              <AssetListItem asset={asset} />
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <div
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+          role="list"
+          aria-label="Asset grid"
+        >
           {assets.docs.map(asset => (
-            <AssetCard key={asset.id} asset={asset} />
+            <div key={asset.id} role="listitem">
+              <AssetCard asset={asset} />
+            </div>
           ))}
         </div>
       )}

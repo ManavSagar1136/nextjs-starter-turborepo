@@ -55,6 +55,7 @@ function FolderItem({
 }: FolderItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const hasChildren = folder.children && folder.children.length > 0;
   const assetCount = folder._count?.assets || 0;
@@ -64,18 +65,58 @@ function FolderItem({
     setIsExpanded(!isExpanded);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    try {
+      const data = e.dataTransfer.getData("application/json");
+      if (data) {
+        const { type, id } = JSON.parse(data);
+        if (type === "asset" && id) {
+          // Trigger move asset callback via custom event with target folder
+          window.dispatchEvent(
+            new CustomEvent<{ assetId: string; targetFolderId: string }>("media-library:move-asset", {
+              detail: { assetId: id, targetFolderId: folder.id },
+            })
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error handling drop:", error);
+    }
+  };
+
   return (
     <div>
       <div
         className={cn(
           "flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5",
           "hover:bg-accent transition-colors",
-          isSelected && "bg-accent"
+          isSelected && "bg-accent",
+          isDragOver && "bg-primary/20 ring-primary ring-2"
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={() => onSelect(folder.id)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {/* Expand/collapse button */}
         {hasChildren ? (

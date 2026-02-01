@@ -29,6 +29,8 @@ interface SearchAndFiltersProps {
   /** Show mobile sidebar toggle */
   showMobileSidebarToggle?: boolean;
   onMobileSidebarToggle?: () => void;
+  /** Ref for search input (for keyboard shortcuts) */
+  searchInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 // ============================================================================
@@ -217,7 +219,12 @@ function SortDropdown() {
 // Search and Filters Component
 // ============================================================================
 
-export function SearchAndFilters({ className, showMobileSidebarToggle, onMobileSidebarToggle }: SearchAndFiltersProps) {
+export function SearchAndFilters({
+  className,
+  showMobileSidebarToggle,
+  onMobileSidebarToggle,
+  searchInputRef,
+}: SearchAndFiltersProps) {
   const { config, searchQuery, setSearchQuery, hasActiveFilters, activeFilterCount, clearFilters } = useMediaLibrary();
 
   return (
@@ -228,8 +235,9 @@ export function SearchAndFilters({ className, showMobileSidebarToggle, onMobileS
         <div className="relative flex-1">
           <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
+            ref={searchInputRef}
             type="search"
-            placeholder="Search assets..."
+            placeholder="Search assets... (Ctrl/Cmd + K)"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="h-9 pl-9"

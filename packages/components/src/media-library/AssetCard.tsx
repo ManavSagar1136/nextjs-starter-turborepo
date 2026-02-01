@@ -162,14 +162,23 @@ export function AssetCard({ asset, className }: AssetCardProps) {
   const displayName = asset.filename || asset.name;
   const extension = getFileExtension(asset.filename, asset.contentType);
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "asset", id: asset.id }));
+    e.dataTransfer.setData("text/plain", asset.id);
+  };
+
   return (
     <Card
       className={cn(
         "group overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md",
         "hover:border-primary/20 bg-card",
         isSelected && "ring-primary border-primary ring-2",
+        "cursor-move",
         className
       )}
+      draggable
+      onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -187,6 +196,7 @@ export function AssetCard({ asset, className }: AssetCardProps) {
             onChange={() => toggleAssetSelection(asset.id)}
             onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
             className="text-primary focus:ring-primary h-4 w-4 cursor-pointer rounded border-gray-300 focus:ring-2"
+            aria-label={`Select ${displayName}`}
           />
         </div>
       </div>
@@ -215,7 +225,7 @@ export function AssetCard({ asset, className }: AssetCardProps) {
           </>
         ) : (
           <div className="flex h-full items-center justify-center">
-            <File className="text-muted-foreground h-10 w-10" />
+            <File className="text-muted-foreground h-10 w-10" aria-hidden="true" />
           </div>
         )}
 
@@ -233,8 +243,10 @@ export function AssetCard({ asset, className }: AssetCardProps) {
               variant="secondary"
               className="bg-background/90 hover:bg-background h-8 w-8 p-0 shadow-lg backdrop-blur-sm"
               onClick={() => onAssetAction({ action: ASSET_ACTIONS.PREVIEW, asset })}
+              aria-label={`Preview ${displayName}`}
+              title="Preview asset"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-4 w-4" aria-hidden="true" />
             </Button>
             {hasMenuItems && (
               <DropdownMenu>
@@ -243,8 +255,10 @@ export function AssetCard({ asset, className }: AssetCardProps) {
                     size="sm"
                     variant="secondary"
                     className="bg-background/90 hover:bg-background h-8 w-8 p-0 shadow-lg backdrop-blur-sm"
+                    aria-label={`More options for ${displayName}`}
+                    title="More options"
                   >
-                    <MoreVertical className="h-4 w-4" />
+                    <MoreVertical className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -365,6 +379,12 @@ export function AssetListItem({ asset, className }: AssetListItemProps) {
 
   const isSelected = selectedAssetIds.includes(asset.id);
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "asset", id: asset.id }));
+    e.dataTransfer.setData("text/plain", asset.id);
+  };
+
   const fileConfig = useMemo(() => getFileTypeConfig(asset.contentType || ""), [asset.contentType]);
 
   const { action: ongoingAction } = getOngoingAssetAction(asset);
@@ -378,8 +398,11 @@ export function AssetListItem({ asset, className }: AssetListItemProps) {
       className={cn(
         "hover:bg-accent/50 border-border shadow-sm transition-colors",
         isSelected && "ring-primary border-primary ring-2",
+        "cursor-move",
         className
       )}
+      draggable
+      onDragStart={handleDragStart}
     >
       <CardContent className="flex items-center gap-4 p-4">
         {/* Selection Checkbox */}
@@ -399,9 +422,15 @@ export function AssetListItem({ asset, className }: AssetListItemProps) {
           )}
         >
           {isImage && asset.url ? (
-            <img src={asset.url} alt={displayName} className="h-full w-full object-cover" loading="lazy" />
+            <img
+              src={asset.url}
+              alt={`${displayName} - ${asset.contentType || "file"}`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              role="img"
+            />
           ) : (
-            <File className="text-muted-foreground h-8 w-8" />
+            <File className="text-muted-foreground h-8 w-8" aria-hidden="true" />
           )}
         </div>
 
