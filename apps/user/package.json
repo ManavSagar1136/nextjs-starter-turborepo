@@ -22,6 +22,7 @@
     "@buildbase/http-client": "*",
     "@buildbase/database": "*",
     "@buildbase/env": "*",
+    "@buildbase/storage": "*",
     "@buildbase/saas-sdk": "*",
     "@buildbase/redux": "*",
     "@buildbase/dialog-manager": "*",

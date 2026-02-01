@@ -8,7 +8,18 @@ const nextConfig: NextConfig = {
   // },
   // Externalize packages that don't work well with bundlers
   // These have native modules or test files that break Turbopack
-  serverExternalPackages: ["pino", "pino-pretty", "newrelic", "@newrelic/security-agent", "thread-stream"],
+  serverExternalPackages: [
+    "pino",
+    "pino-pretty",
+    "newrelic",
+    "@newrelic/security-agent",
+    "thread-stream",
+    "@buildbase/storage",
+    "@google-cloud/storage",
+    "google-auth-library",
+    "@aws-sdk/client-s3",
+    "@aws-sdk/s3-request-presigner",
+  ],
   transpilePackages: [
     "@buildbase/ui",
     "@buildbase/magicui",
@@ -18,8 +29,13 @@ const nextConfig: NextConfig = {
     "@buildbase/helpers",
     "@buildbase/hooks-manager",
     "@buildbase/tanstack-query",
-    "@buildbase/saas-sdk",
+    "@buildbase/http-client",
+    "@buildbase/database",
     "@buildbase/env",
+    "@buildbase/saas-sdk",
+    "@buildbase/redux",
+    "@buildbase/dialog-manager",
+    "@buildbase/logger",
   ],
   turbopack: {
     root: resolve(__dirname, "../.."),
