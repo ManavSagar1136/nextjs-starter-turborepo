@@ -7,7 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/generated/client/index.js",
-    "./user": "./src/user/index.ts"
+    "./user": "./src/user/index.ts",
+    "./assets": "./src/assets/index.ts",
+    "./asset/server": "./src/asset/server.ts"
   },
   "scripts": {
     "build": "prisma generate",
@@ -16,7 +18,9 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0"
@@ -26,6 +30,7 @@
     "@types/node": "^22.15.30",
     "prisma": "^6.1.0",
     "tsx": "^4.19.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
   }
 }

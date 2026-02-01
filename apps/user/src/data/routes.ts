@@ -24,6 +24,7 @@ export const Routes = {
    */
   dashboard: "/",
   profile: "/profile",
+  assets: "/assets",
 
   /**
    * API routes

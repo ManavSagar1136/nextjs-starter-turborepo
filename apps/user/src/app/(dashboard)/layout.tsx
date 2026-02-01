@@ -16,6 +16,17 @@ const menuItemsConfig = [
     ],
   },
   {
+    title: "Content",
+    url: "#",
+    items: [
+      {
+        title: "Media Library",
+        url: Routes.assets,
+        iconName: "Image",
+      },
+    ],
+  },
+  {
     title: "Account",
     url: "#",
     items: [

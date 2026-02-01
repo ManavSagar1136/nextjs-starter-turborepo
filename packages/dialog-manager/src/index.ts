@@ -63,6 +63,33 @@ export { initializeCommonDialogs } from "./initialize";
 export { setupAppDialogs, createLazyDialogLoader } from "./app-setup";
 export type { AppDialogSetupOptions } from "./app-setup";
 
+// Media Library Dialogs
+export { MEDIA_LIBRARY_DIALOG_KEYS, type MediaLibraryDialogKey } from "./media-library";
+export {
+  CreateFolderDialog,
+  EditFolderDialog,
+  MoveFolderDialog,
+  CreateTagDialog,
+  EditTagDialog,
+  AssignTagsDialog,
+  MoveAssetDialog,
+  MediaUploadDialog,
+  AssetPreviewDialog,
+  FolderTreeSelect,
+} from "./media-library";
+export type {
+  AssetPreviewDialogProps,
+  MediaUploadDialogProps,
+  CreateFolderDialogProps,
+  EditFolderDialogProps,
+  MoveFolderDialogProps,
+  CreateTagDialogProps,
+  EditTagDialogProps,
+  AssignTagsDialogProps,
+  MoveAssetDialogProps,
+  UploadedFile,
+} from "./media-library";
+
 /**
  * Builds a URL for opening a dialog with optional props.
  *

@@ -59,6 +59,25 @@ export const env = createEnv({
     NEW_RELIC_ENABLED: z.enum(["true", "false"]).optional(),
     NEW_RELIC_LICENSE_KEY: z.string().min(1).optional(),
     NEW_RELIC_APP_NAME: z.string().min(1).optional(),
+
+    // Storage Provider Configuration
+    STORAGE_PROVIDER: z.enum(["gcs", "s3", "local", "azure"]).optional(),
+
+    // Google Cloud Storage
+    GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
+    GOOGLE_CLOUD_CLIENT_EMAIL: z.string().email().optional(),
+    GOOGLE_CLOUD_PRIVATE_KEY: z.string().optional(),
+    GOOGLE_CLOUD_BUCKET_NAME: z.string().optional(),
+
+    // AWS S3
+    AWS_REGION: z.string().optional(),
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_BUCKET_NAME: z.string().optional(),
+
+    // Local Storage (dev)
+    LOCAL_STORAGE_PATH: z.string().optional(),
+    LOCAL_STORAGE_URL: z.string().optional(),
   },
 
   /**
@@ -136,6 +155,25 @@ export const env = createEnv({
     NEW_RELIC_ENABLED: process.env.NEW_RELIC_ENABLED,
     NEW_RELIC_LICENSE_KEY: process.env.NEW_RELIC_LICENSE_KEY,
     NEW_RELIC_APP_NAME: process.env.NEW_RELIC_APP_NAME,
+
+    // Storage Provider
+    STORAGE_PROVIDER: process.env.STORAGE_PROVIDER,
+
+    // Google Cloud Storage
+    GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
+    GOOGLE_CLOUD_CLIENT_EMAIL: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+    GOOGLE_CLOUD_PRIVATE_KEY: process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+    GOOGLE_CLOUD_BUCKET_NAME: process.env.GOOGLE_CLOUD_BUCKET_NAME,
+
+    // AWS S3
+    AWS_REGION: process.env.AWS_REGION,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
+
+    // Local Storage
+    LOCAL_STORAGE_PATH: process.env.LOCAL_STORAGE_PATH,
+    LOCAL_STORAGE_URL: process.env.LOCAL_STORAGE_URL,
   },
 
   /**

@@ -58,6 +58,17 @@ const menuItemsConfig = [
       },
     ],
   },
+  {
+    title: "Asset Management",
+    url: "#",
+    items: [
+      {
+        title: "Assets",
+        url: Routes.assets,
+        iconName: "Image",
+      },
+    ],
+  },
 ];
 
 async function ProtectedLayout({ children }: { children: React.ReactNode }) {
