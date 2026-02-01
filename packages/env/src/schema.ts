@@ -64,9 +64,10 @@ export const env = createEnv({
     STORAGE_PROVIDER: z.enum(["gcs", "s3", "local", "azure"]).optional(),
 
     // Google Cloud Storage
-    GOOGLE_CLOUD_PROJECT: z.string().optional(), // Standard Google Cloud project ID
-    GCS_BUCKET_NAME: z.string().optional(), // Bucket name (no standard Google Cloud variable for this)
-    GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(), // Path to service account JSON file (standard Google Cloud env var)
+    GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
+    GOOGLE_CLOUD_CLIENT_EMAIL: z.string().email().optional(),
+    GOOGLE_CLOUD_PRIVATE_KEY: z.string().optional(),
+    GOOGLE_CLOUD_BUCKET_NAME: z.string().optional(),
 
     // AWS S3
     AWS_REGION: z.string().optional(),
@@ -159,9 +160,10 @@ export const env = createEnv({
     STORAGE_PROVIDER: process.env.STORAGE_PROVIDER,
 
     // Google Cloud Storage
-    GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
-    GCS_BUCKET_NAME: process.env.GCS_BUCKET_NAME,
-    GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
+    GOOGLE_CLOUD_CLIENT_EMAIL: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+    GOOGLE_CLOUD_PRIVATE_KEY: process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+    GOOGLE_CLOUD_BUCKET_NAME: process.env.GOOGLE_CLOUD_BUCKET_NAME,
 
     // AWS S3
     AWS_REGION: process.env.AWS_REGION,

@@ -16,14 +16,29 @@ export function getStorageProvider(): StorageProvider {
 
 /**
  * Get GCS configuration from environment
+ * Uses individual credential fields (client_email and private_key)
  */
 export function getGcsConfig() {
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || "";
+  const bucket = process.env.GOOGLE_CLOUD_BUCKET_NAME || "";
+  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL || "";
+  const privateKey = process.env.GOOGLE_CLOUD_PRIVATE_KEY || "";
+
+  if (!projectId || !bucket || !clientEmail || !privateKey) {
+    throw new Error(
+      "Missing required Google Cloud Storage configuration. Required: " +
+        "GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_BUCKET_NAME, " +
+        "GOOGLE_CLOUD_CLIENT_EMAIL, GOOGLE_CLOUD_PRIVATE_KEY"
+    );
+  }
+
   return {
-    projectId: process.env.GOOGLE_CLOUD_PROJECT || "",
-    bucket: process.env.GCS_BUCKET_NAME || "",
-    credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
-      ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-      : undefined,
+    projectId,
+    bucket,
+    credentials: {
+      client_email: clientEmail,
+      private_key: privateKey.replace(/\\n/g, "\n"),
+    },
   };
 }
 
@@ -68,17 +83,15 @@ export function validateConfig(provider: StorageProvider): void {
   switch (provider) {
     case "gcs": {
       const config = getGcsConfig();
-      if (!config.bucket) {
-        throw new Error("GCS_BUCKET_NAME is required for GCS provider");
+      // getGcsConfig() already validates all required fields
+      // This is just a double-check
+      if (!config.bucket || !config.projectId || !config.credentials) {
+        throw new Error(
+          "Invalid GCS configuration. Required: " +
+            "GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_BUCKET_NAME, " +
+            "GOOGLE_CLOUD_CLIENT_EMAIL, GOOGLE_CLOUD_PRIVATE_KEY"
+        );
       }
-      if (!config.projectId) {
-        throw new Error("GOOGLE_CLOUD_PROJECT is required for GCS provider");
-      }
-
-      if (!config.credentials) {
-        throw new Error("GOOGLE_APPLICATION_CREDENTIALS is required for GCS provider");
-      }
-
       break;
     }
     case "s3": {

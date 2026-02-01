@@ -11,9 +11,10 @@
  */
 
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
-// import { dialogRegistry } from "@buildbase/dialog-manager/registry";
+import { MEDIA_LIBRARY_DIALOG_KEYS, MediaUploadDialog } from "@buildbase/dialog-manager";
 import type { DialogComponentMap } from "@buildbase/dialog-manager";
-// import { ADMIN_DIALOG_KEYS } from "./constants";
+import type { MediaUploadDialogProps } from "@buildbase/dialog-manager";
+import React from "react";
 
 /**
  * Define your app's dialog component map type.
@@ -28,6 +29,8 @@ import type { DialogComponentMap } from "@buildbase/dialog-manager";
  * ```
  */
 export type AdminAppDialogs = {
+  // Media library dialogs
+  [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: React.ComponentType<MediaUploadDialogProps>;
   // Add your dialog keys here using ADMIN_DIALOG_KEYS constants
   // Example:
   // [ADMIN_DIALOG_KEYS.CREATE_USER]: typeof CreateUserDialog;
@@ -43,20 +46,9 @@ export function setupAdminDialogs() {
   // These dialogs are loaded immediately when the app starts
   setupAppDialogs<AdminAppDialogs>({
     dialogs: {
-      // Add your frequently used dialogs here using ADMIN_DIALOG_KEYS constants
-      // Example:
-      // [ADMIN_DIALOG_KEYS.CREATE_USER]: CreateUserDialog,
-      // [ADMIN_DIALOG_KEYS.EDIT_USER]: EditUserDialog,
+      // Media/Asset upload dialog - reusable across admin app
+      [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog as any,
     },
     initializeCommon: true, // Initialize confirmation & alert dialogs
   });
-
-  // Register lazy-loaded dialogs (loaded on-demand)
-  // These dialogs are only loaded when first opened
-  // Use this for heavy or rarely-used dialogs
-  // Example:
-  // dialogRegistry.registerLazy(
-  //   "admin:bulk-operations",
-  //   createLazyDialogLoader(() => import("./components/BulkOperationsDialog"))
-  // );
 }

@@ -29,6 +29,7 @@ export class GcsStorageProvider extends BaseStorageProvider {
 
     this.bucket = config.bucket;
 
+    // Initialize Storage with credentials (matching the example pattern)
     this.storage = new Storage({
       projectId: config.projectId,
       credentials: config.credentials,

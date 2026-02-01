@@ -39,6 +39,11 @@ export const Routes = {
   },
 
   /**
+   * Asset management routes
+   */
+  assets: "/assets",
+
+  /**
    * API routes
    */
   api: {
