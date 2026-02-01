@@ -1,9 +1,10 @@
 // Export all asset service functions
+// Note: duplicateAsset is server-only (uses @buildbase/storage) and is exported from "./server"
 export { listAssets } from "./list-assets";
 export { getAssetById } from "./get-asset";
 export { updateAsset } from "./update-asset";
 export { deleteAsset } from "./delete-asset";
-export { duplicateAsset } from "./duplicate-asset";
+// duplicateAsset is exported from "./server" to avoid client bundling issues
 
 // Export bulk operations
 export { bulkDeleteAssets, bulkMoveAssets, bulkAssignTags, bulkRemoveTags } from "./bulk-operations";

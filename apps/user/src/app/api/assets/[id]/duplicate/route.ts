@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@buildbase/helpers/auth";
-import { duplicateAsset, getAssetById } from "@buildbase/database";
+import { getAssetById } from "@buildbase/database";
+import { duplicateAsset } from "@buildbase/database/asset/server";
 import { AssetsRepository } from "@buildbase/database/assets";
 
 /**

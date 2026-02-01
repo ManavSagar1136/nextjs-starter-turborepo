@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
-import { duplicateAsset, getAssetById } from "@buildbase/database";
+import { getAssetById } from "@buildbase/database";
+import { duplicateAsset } from "@buildbase/database/asset/server";
 import { AssetsRepository } from "@buildbase/database/assets";
 
 /**

@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./client": "./src/generated/client/index.js",
     "./user": "./src/user/index.ts",
-    "./assets": "./src/assets/index.ts"
+    "./assets": "./src/assets/index.ts",
+    "./asset/server": "./src/asset/server.ts"
   },
   "scripts": {
     "build": "prisma generate",
