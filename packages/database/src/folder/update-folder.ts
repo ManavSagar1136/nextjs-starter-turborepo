@@ -6,6 +6,7 @@ import { prisma } from "../index";
 import type { AssetFolder } from "../generated/client";
 import type { UpdateFolderInput } from "./types";
 import { MAX_FOLDER_DEPTH } from "./constants";
+import { validateFolderName, validateFolderNameUniqueness } from "../assets/validation.utils";
 
 /**
  * Calculate the depth of a folder from root
@@ -44,6 +45,23 @@ export async function updateFolder(id: string, data: UpdateFolderInput): Promise
 
   if (!existingFolder) {
     throw new Error("Folder not found");
+  }
+
+  // Validate folder name if provided
+  if (data.name !== undefined) {
+    validateFolderName(data.name);
+  }
+
+  // Determine the final parent folder ID (for uniqueness check)
+  const finalParentFolderId = data.parentFolderId !== undefined ? data.parentFolderId : existingFolder.parentFolderId;
+
+  // Check name uniqueness if name is being changed or parent is being changed
+  if (
+    data.name !== undefined ||
+    (data.parentFolderId !== undefined && data.parentFolderId !== existingFolder.parentFolderId)
+  ) {
+    const nameToCheck = data.name !== undefined ? data.name.trim() : existingFolder.name;
+    await validateFolderNameUniqueness(nameToCheck, finalParentFolderId, existingFolder.workspaceId, id);
   }
 
   // Validate parent folder change
@@ -97,7 +115,7 @@ export async function updateFolder(id: string, data: UpdateFolderInput): Promise
 
   // Update folder
   const updateData: Record<string, unknown> = {};
-  if (data.name !== undefined) updateData.name = data.name;
+  if (data.name !== undefined) updateData.name = data.name.trim();
   if (data.description !== undefined) updateData.description = data.description;
   if (data.parentFolderId !== undefined) updateData.parentFolderId = data.parentFolderId;
 

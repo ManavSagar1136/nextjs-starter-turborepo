@@ -5,6 +5,7 @@
 import { prisma } from "../index";
 import type { MediaTag } from "../generated/client";
 import type { CreateTagInput } from "./types";
+import { validateTagName } from "../assets/validation.utils";
 
 /**
  * Generate slug from name
@@ -20,12 +21,15 @@ function generateSlug(name: string): string {
  * Create a new tag
  */
 export async function createTag(data: CreateTagInput): Promise<MediaTag> {
+  // Validate tag name format (length and characters)
+  validateTagName(data.name);
+
   // If workspaceId not provided (admin context), set to null
   // This allows admin to create global tags without workspace association
   const finalWorkspaceId: string | null = data.workspaceId === undefined ? null : (data.workspaceId ?? null);
 
   // Generate slug
-  const baseSlug = generateSlug(data.name);
+  const baseSlug = generateSlug(data.name.trim());
   let slug = baseSlug;
   let counter = 1;
 
@@ -50,7 +54,7 @@ export async function createTag(data: CreateTagInput): Promise<MediaTag> {
     workspaceId: string | null;
     userId: string;
   } = {
-    name: data.name,
+    name: data.name.trim(),
     slug,
     color: data.color || null,
     workspaceId: finalWorkspaceId,

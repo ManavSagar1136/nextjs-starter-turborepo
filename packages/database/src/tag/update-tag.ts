@@ -5,6 +5,7 @@
 import { prisma } from "../index";
 import type { MediaTag } from "../generated/client";
 import type { UpdateTagInput } from "./types";
+import { validateTagName } from "../assets/validation.utils";
 
 /**
  * Generate slug from name
@@ -29,13 +30,18 @@ export async function updateTag(id: string, data: UpdateTagInput): Promise<Media
     throw new Error("Tag not found");
   }
 
+  // Validate tag name if provided
+  if (data.name !== undefined) {
+    validateTagName(data.name);
+  }
+
   const updateData: Record<string, unknown> = {};
 
-  if (data.name !== undefined && data.name !== existingTag.name) {
-    updateData.name = data.name;
+  if (data.name !== undefined && data.name.trim() !== existingTag.name) {
+    updateData.name = data.name.trim();
 
     // Update slug if name changed
-    const baseSlug = generateSlug(data.name);
+    const baseSlug = generateSlug(data.name.trim());
     let slug = baseSlug;
     let counter = 1;
 

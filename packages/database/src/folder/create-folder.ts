@@ -5,12 +5,17 @@
 import { prisma } from "../index";
 import type { AssetFolder } from "../generated/client";
 import type { CreateFolderInput } from "./types";
+import { validateFolderName, validateFolderNameUniqueness } from "../assets/validation.utils";
 
 /**
  * Create a new folder
  */
 export async function createFolder(data: CreateFolderInput): Promise<AssetFolder> {
+  // Validate folder name format (length and characters)
+  validateFolderName(data.name);
+
   let finalWorkspaceId: string | null | undefined = data.workspaceId;
+  const finalParentFolderId = data.parentFolderId || null;
 
   // Verify parent folder exists if provided
   if (data.parentFolderId) {
@@ -34,6 +39,9 @@ export async function createFolder(data: CreateFolderInput): Promise<AssetFolder
     finalWorkspaceId = null;
   }
 
+  // Check name uniqueness within parent folder and workspace
+  await validateFolderNameUniqueness(data.name.trim(), finalParentFolderId, finalWorkspaceId);
+
   const createData: {
     name: string;
     description: string | null;
@@ -41,9 +49,9 @@ export async function createFolder(data: CreateFolderInput): Promise<AssetFolder
     workspaceId: string | null;
     userId: string;
   } = {
-    name: data.name,
+    name: data.name.trim(),
     description: data.description || null,
-    parentFolderId: data.parentFolderId || null,
+    parentFolderId: finalParentFolderId,
     workspaceId: finalWorkspaceId,
     userId: data.userId,
   };
