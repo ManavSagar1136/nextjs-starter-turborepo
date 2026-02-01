@@ -35,7 +35,7 @@ const getDefaultConfig = (): HttpClientConfig => {
   };
 };
 
-class MediaLibraryService extends ApiController implements IMediaLibraryApi {
+export class MediaLibraryService extends ApiController implements IMediaLibraryApi {
   protected urlPath = "/assets"; // Default, but we override in each method
 
   constructor() {
@@ -143,12 +143,12 @@ class MediaLibraryService extends ApiController implements IMediaLibraryApi {
   }
 
   async moveFolder(folderId: string, targetParentFolderId: string | null): Promise<IFolder> {
-    const response = await this.patch(
-      `/folders/${folderId}`,
+    const response = await this.post(
+      `/folders/${folderId}/move`,
       {},
       {},
       {
-        parentFolderId: targetParentFolderId,
+        targetParentFolderId,
       }
     );
     return response.data.data;
@@ -192,19 +192,34 @@ class MediaLibraryService extends ApiController implements IMediaLibraryApi {
   // ============================================================================
 
   async moveAssetToFolder(assetId: string, folderId: string | null): Promise<IAsset> {
-    return this.updateAsset(assetId, { folderId });
+    const response = await this.post(
+      `/assets/${assetId}/move`,
+      {},
+      {},
+      {
+        folderId,
+      }
+    );
+    return response.data.data;
   }
 
   async assignTagsToAsset(assetId: string, tagIds: string[]): Promise<IAsset> {
-    return this.updateAsset(assetId, { tags: tagIds });
+    await this.post(
+      `/assets/${assetId}/tags`,
+      {},
+      {},
+      {
+        tagIds,
+      }
+    );
+    // Get updated asset after assigning tags
+    return this.getAsset(assetId);
   }
 
   async removeTagsFromAsset(assetId: string, tagIds: string[]): Promise<IAsset> {
-    // Get current tags and remove specified ones
-    const asset = await this.getAsset(assetId);
-    const currentTagIds = asset.tags?.map(t => t.id) || [];
-    const newTagIds = currentTagIds.filter(id => !tagIds.includes(id));
-    return this.updateAsset(assetId, { tags: newTagIds });
+    await this.delete(`/assets/${assetId}/tags`, { tagIds: tagIds.join(",") }, {});
+    // Get updated asset after removing tags
+    return this.getAsset(assetId);
   }
 
   // ============================================================================
@@ -249,6 +264,3 @@ class MediaLibraryService extends ApiController implements IMediaLibraryApi {
     });
   }
 }
-
-// Export singleton instance
-export const mediaLibraryApi = new MediaLibraryService();
