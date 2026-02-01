@@ -46,9 +46,9 @@ model AssetFolder {
   description    String?
   parentFolderId String? @db.ObjectId
 
-  // Workspace relationship
-  workspaceId String    @db.ObjectId
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Workspace relationship (null for admin-created folders)
+  workspaceId String?    @db.ObjectId
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   // Creator relationship
   userId String @db.ObjectId
@@ -99,9 +99,9 @@ model MediaTag {
   slug  String
   color String?
 
-  // Workspace relationship
-  workspaceId String    @db.ObjectId
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Workspace relationship (null for admin-created tags)
+  workspaceId String?    @db.ObjectId
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   // Creator relationship
   userId String @db.ObjectId
@@ -114,6 +114,7 @@ model MediaTag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Unique slug per workspace (or null workspace for admin tags)
   @@unique([workspaceId, slug])
   @@index([workspaceId])
   @@map("media_tags")

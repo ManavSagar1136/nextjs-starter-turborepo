@@ -28,3 +28,12 @@ export * from "./sent-email";
 
 // Export asset repository and filters
 export * from "./assets";
+
+// Export asset service functions
+export * from "./asset";
+
+// Export folder service functions
+export * from "./folder";
+
+// Export tag service functions
+export * from "./tag";
