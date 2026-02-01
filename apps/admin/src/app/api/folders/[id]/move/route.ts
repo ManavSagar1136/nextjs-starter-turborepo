@@ -46,7 +46,11 @@ async function handlePOST(request: NextRequest, { params }: RouteParams): Promis
     const status =
       error instanceof Error && error.message.includes("not found")
         ? 404
-        : error instanceof Error && (error.message.includes("Cannot") || error.message.includes("must be"))
+        : error instanceof Error &&
+            (error.message.includes("Cannot") ||
+              error.message.includes("must be") ||
+              error.message.includes("Maximum") ||
+              error.message.includes("depth"))
           ? 400
           : 500;
     return NextResponse.json({ success: false, message }, { status });

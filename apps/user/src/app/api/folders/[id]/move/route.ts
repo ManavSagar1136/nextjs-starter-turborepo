@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@buildbase/helpers/auth";
-import { updateFolder } from "@buildbase/database";
+import { updateFolder, verifyFolderOwnership } from "@buildbase/database";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -32,6 +32,12 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
       );
     }
 
+    // Verify folder belongs to workspace
+    const belongsToWorkspace = await verifyFolderOwnership(id, workspaceId);
+    if (!belongsToWorkspace) {
+      return NextResponse.json({ success: false, message: "Folder not found" }, { status: 404 });
+    }
+
     // Move folder using service (update parentFolderId)
     const folder = await updateFolder(id, {
       parentFolderId: targetParentFolderId === null ? null : targetParentFolderId,
@@ -54,7 +60,11 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
     const status =
       error instanceof Error && error.message.includes("not found")
         ? 404
-        : error instanceof Error && (error.message.includes("Cannot") || error.message.includes("must be"))
+        : error instanceof Error &&
+            (error.message.includes("Cannot") ||
+              error.message.includes("must be") ||
+              error.message.includes("Maximum") ||
+              error.message.includes("depth"))
           ? 400
           : 500;
     return NextResponse.json({ success: false, message }, { status });

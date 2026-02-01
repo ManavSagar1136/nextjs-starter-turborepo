@@ -5,6 +5,33 @@
 import { prisma } from "../index";
 import type { AssetFolder } from "../generated/client";
 import type { UpdateFolderInput } from "./types";
+import { MAX_FOLDER_DEPTH } from "./constants";
+
+/**
+ * Calculate the depth of a folder from root
+ * @param folderId - The folder ID to calculate depth for (null for root = 0)
+ * @returns The depth of the folder (0 for root, 1 for first level, etc.)
+ */
+async function calculateFolderDepth(folderId: string | null): Promise<number> {
+  if (!folderId) return 0;
+
+  let depth = 0;
+  let currentId: string | null = folderId;
+  const visited = new Set<string>();
+
+  while (currentId && !visited.has(currentId)) {
+    visited.add(currentId);
+    const folder: { parentFolderId: string | null } | null = await prisma.assetFolder.findUnique({
+      where: { id: currentId },
+      select: { parentFolderId: true },
+    });
+    if (!folder) break;
+    depth++;
+    currentId = folder.parentFolderId;
+  }
+
+  return depth;
+}
 
 /**
  * Update an existing folder
@@ -52,6 +79,19 @@ export async function updateFolder(id: string, data: UpdateFolderInput): Promise
         if (!nextFolder) break;
         checkFolder = nextFolder;
       }
+
+      // Check folder depth (max 10 levels)
+      // Calculate depth of target parent
+      const targetParentDepth = await calculateFolderDepth(data.parentFolderId);
+      // When moving to a parent, the new depth is: targetParentDepth + 1
+      const newDepth = targetParentDepth + 1;
+
+      if (newDepth > MAX_FOLDER_DEPTH) {
+        throw new Error(`Maximum folder depth (${MAX_FOLDER_DEPTH} levels) would be exceeded`);
+      }
+    } else {
+      // Moving to root - new depth will be 1 (first level)
+      // This is always valid (1 <= 10), so no check needed
     }
   }
 
