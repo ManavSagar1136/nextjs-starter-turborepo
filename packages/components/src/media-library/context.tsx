@@ -57,6 +57,13 @@ interface MediaLibraryContextValue extends MediaLibraryState {
   hasActiveFilters: boolean;
   activeFilterCount: number;
 
+  // Selection state
+  selectedAssetIds: string[];
+
+  // Sorting state
+  sortBy: "name" | "size" | "createdAt" | "updatedAt" | "contentType";
+  sortOrder: "asc" | "desc";
+
   // Actions - Selection
   setSelectedFolderId: (folderId: string | null) => void;
   setSelectedTagIds: (tagIds: string[]) => void;
@@ -66,6 +73,11 @@ interface MediaLibraryContextValue extends MediaLibraryState {
   setViewMode: (mode: ViewMode) => void;
   setCurrentPage: (page: number) => void;
   clearFilters: () => void;
+  toggleAssetSelection: (assetId: string) => void;
+  selectAllAssets: () => void;
+  clearAssetSelection: () => void;
+  setSortBy: (sortBy: "name" | "size" | "createdAt" | "updatedAt" | "contentType") => void;
+  setSortOrder: (sortOrder: "asc" | "desc") => void;
 
   // Actions - UI
   openUploadDialog: () => void;
@@ -187,8 +199,11 @@ export function MediaLibraryProvider({
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode ?? config.defaultViewMode);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<"name" | "size" | "createdAt" | "updatedAt" | "contentType">("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isFolderSidebarOpen, setIsFolderSidebarOpen] = useState(false);
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [activeAssetAction, setActiveAssetAction] = useState<{
     action: IAssetAction;
     asset: IAsset;
@@ -270,6 +285,32 @@ export function MediaLibraryProvider({
     setSearchQuery("");
     setCurrentPage(1);
   }, [config.enableFolders, config.enableTags]);
+
+  // Actions - Asset selection
+  const handleToggleAssetSelection = useCallback((assetId: string) => {
+    setSelectedAssetIds(prev => (prev.includes(assetId) ? prev.filter(id => id !== assetId) : [...prev, assetId]));
+  }, []);
+
+  const handleSelectAllAssets = useCallback(() => {
+    if (!assets?.docs) return;
+    const allAssetIds = assets.docs.map(asset => asset.id);
+    setSelectedAssetIds(allAssetIds);
+  }, [assets]);
+
+  const handleClearAssetSelection = useCallback(() => {
+    setSelectedAssetIds([]);
+  }, []);
+
+  // Actions - Sorting
+  const handleSetSortBy = useCallback((newSortBy: "name" | "size" | "createdAt" | "updatedAt" | "contentType") => {
+    setSortBy(newSortBy);
+    setCurrentPage(1);
+  }, []);
+
+  const handleSetSortOrder = useCallback((newSortOrder: "asc" | "desc") => {
+    setSortOrder(newSortOrder);
+    setCurrentPage(1);
+  }, []);
 
   // Actions - Asset operations
   const handleCopyUrl = useCallback(async (asset: IAsset) => {
@@ -370,8 +411,11 @@ export function MediaLibraryProvider({
       searchQuery,
       viewMode,
       currentPage,
+      sortBy,
+      sortOrder,
       isUploadDialogOpen,
       isFolderSidebarOpen,
+      selectedAssetIds,
       activeAssetAction,
 
       // Data
@@ -396,6 +440,11 @@ export function MediaLibraryProvider({
       setViewMode,
       setCurrentPage,
       clearFilters: handleClearFilters,
+      toggleAssetSelection: handleToggleAssetSelection,
+      selectAllAssets: handleSelectAllAssets,
+      clearAssetSelection: handleClearAssetSelection,
+      setSortBy: handleSetSortBy,
+      setSortOrder: handleSetSortOrder,
 
       // Actions - UI
       openUploadDialog: () => setIsUploadDialogOpen(true),
@@ -422,6 +471,7 @@ export function MediaLibraryProvider({
       currentPage,
       isUploadDialogOpen,
       isFolderSidebarOpen,
+      selectedAssetIds,
       activeAssetAction,
       assets,
       folderTree,
@@ -438,6 +488,11 @@ export function MediaLibraryProvider({
       handleSetSelectedMimeTypes,
       handleSetSearchQuery,
       handleClearFilters,
+      handleToggleAssetSelection,
+      handleSelectAllAssets,
+      handleClearAssetSelection,
+      handleSetSortBy,
+      handleSetSortOrder,
       handleAssetAction,
       getOngoingAssetAction,
       onRefreshAssets,
@@ -454,7 +509,8 @@ export function MediaLibraryProvider({
 // ============================================================================
 
 export function useAssetQueryParams(): IAssetListParams {
-  const { config, selectedFolderId, selectedTagIds, selectedMimeTypes, searchQuery, currentPage } = useMediaLibrary();
+  const { config, selectedFolderId, selectedTagIds, selectedMimeTypes, searchQuery, currentPage, sortBy, sortOrder } =
+    useMediaLibrary();
 
   return useMemo(
     () => ({
@@ -462,9 +518,11 @@ export function useAssetQueryParams(): IAssetListParams {
       tagIds: config.enableTags && selectedTagIds.length > 0 ? selectedTagIds : undefined,
       contentType: selectedMimeTypes.length > 0 ? selectedMimeTypes : undefined,
       search: searchQuery || undefined,
+      sortBy,
+      sortOrder,
       $page: currentPage,
       $limit: config.pageSize,
     }),
-    [config, selectedFolderId, selectedTagIds, selectedMimeTypes, searchQuery, currentPage]
+    [config, selectedFolderId, selectedTagIds, selectedMimeTypes, searchQuery, currentPage, sortBy, sortOrder]
   );
 }

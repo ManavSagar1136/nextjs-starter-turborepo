@@ -1,7 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Copy, Download, Eye, File, Folder, Globe, Lock, MoreVertical, Tag as TagIcon, Trash2 } from "lucide-react";
+import {
+  Copy,
+  Download,
+  Eye,
+  File,
+  Folder,
+  Globe,
+  Lock,
+  MoreVertical,
+  Tag as TagIcon,
+  Trash2,
+  Check,
+} from "lucide-react";
 
 import { Badge } from "@buildbase/ui/badge";
 import { Button } from "@buildbase/ui/button";
@@ -135,7 +147,10 @@ export function AssetCard({ asset, className }: AssetCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const { config, selectedTagIds, onAssetAction, getOngoingAssetAction } = useMediaLibrary();
+  const { config, selectedTagIds, selectedAssetIds, toggleAssetSelection, onAssetAction, getOngoingAssetAction } =
+    useMediaLibrary();
+
+  const isSelected = selectedAssetIds.includes(asset.id);
 
   const fileConfig = useMemo(() => getFileTypeConfig(asset.contentType || ""), [asset.contentType]);
 
@@ -152,11 +167,30 @@ export function AssetCard({ asset, className }: AssetCardProps) {
       className={cn(
         "group overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md",
         "hover:border-primary/20 bg-card",
+        isSelected && "ring-primary border-primary ring-2",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Selection Checkbox */}
+      <div className="absolute left-3 top-3 z-10">
+        <div
+          className={cn(
+            "bg-background/90 border-border rounded-md border p-1 shadow-lg backdrop-blur-sm transition-opacity",
+            isHovered || isSelected ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => toggleAssetSelection(asset.id)}
+            onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+            className="text-primary focus:ring-primary h-4 w-4 cursor-pointer rounded border-gray-300 focus:ring-2"
+          />
+        </div>
+      </div>
+
       {/* Thumbnail */}
       <div className="from-muted/50 to-muted relative aspect-square overflow-hidden bg-gradient-to-br">
         {isImage && asset.url ? (
@@ -326,7 +360,10 @@ export function AssetCard({ asset, className }: AssetCardProps) {
 // ============================================================================
 
 export function AssetListItem({ asset, className }: AssetListItemProps) {
-  const { config, selectedTagIds, onAssetAction, getOngoingAssetAction } = useMediaLibrary();
+  const { config, selectedTagIds, selectedAssetIds, toggleAssetSelection, onAssetAction, getOngoingAssetAction } =
+    useMediaLibrary();
+
+  const isSelected = selectedAssetIds.includes(asset.id);
 
   const fileConfig = useMemo(() => getFileTypeConfig(asset.contentType || ""), [asset.contentType]);
 
@@ -337,8 +374,23 @@ export function AssetListItem({ asset, className }: AssetListItemProps) {
   const displayName = asset.filename || asset.name;
 
   return (
-    <Card className={cn("hover:bg-accent/50 border-border shadow-sm transition-colors", className)}>
+    <Card
+      className={cn(
+        "hover:bg-accent/50 border-border shadow-sm transition-colors",
+        isSelected && "ring-primary border-primary ring-2",
+        className
+      )}
+    >
       <CardContent className="flex items-center gap-4 p-4">
+        {/* Selection Checkbox */}
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => toggleAssetSelection(asset.id)}
+          onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+          className="text-primary focus:ring-primary h-4 w-4 cursor-pointer rounded border-gray-300 focus:ring-2"
+        />
+
         {/* Thumbnail */}
         <div
           className={cn(

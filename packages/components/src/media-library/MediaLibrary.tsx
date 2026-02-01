@@ -9,6 +9,7 @@ import { cn } from "@buildbase/ui/lib/utils";
 
 import { AssetGrid } from "./AssetGrid";
 import { BreadcrumbNav } from "./BreadcrumbNav";
+import { BulkActionsBar } from "./BulkActionsBar";
 import { useMediaLibrary } from "./context";
 import { FolderSidebar } from "./FolderTree";
 import { SearchAndFilters } from "./SearchAndFilters";
@@ -34,6 +35,12 @@ interface MediaLibraryProps {
   onDeleteFolder?: (folder: IFolderTreeItem) => void;
   /** Callback when move folder is requested */
   onMoveFolder?: (folder: IFolderTreeItem) => void;
+  /** Callback when bulk delete is requested */
+  onBulkDelete?: (assetIds: string[]) => void;
+  /** Callback when bulk move is requested */
+  onBulkMove?: (assetIds: string[]) => void;
+  /** Callback when bulk assign tags is requested */
+  onBulkAssignTags?: (assetIds: string[]) => void;
 }
 
 // ============================================================================
@@ -49,6 +56,9 @@ export function MediaLibrary({
   onEditFolder,
   onDeleteFolder,
   onMoveFolder,
+  onBulkDelete,
+  onBulkMove,
+  onBulkAssignTags,
 }: MediaLibraryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -166,6 +176,9 @@ export function MediaLibrary({
           <AssetGrid scrollContainerRef={scrollRef} />
         </div>
       </div>
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar onBulkDelete={onBulkDelete} onBulkMove={onBulkMove} onBulkAssignTags={onBulkAssignTags} />
     </div>
   );
 }

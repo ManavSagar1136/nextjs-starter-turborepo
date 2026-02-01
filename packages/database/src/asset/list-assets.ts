@@ -11,7 +11,18 @@ import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "./constants";
  * List assets with pagination and filters
  */
 export async function listAssets(options: ListAssetsOptions = {}): Promise<PaginatedAssets> {
-  const { workspaceId, folderId, tagIds, search, contentType, isPublic, page = 1, limit = DEFAULT_PAGE_SIZE } = options;
+  const {
+    workspaceId,
+    folderId,
+    tagIds,
+    search,
+    contentType,
+    isPublic,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = DEFAULT_PAGE_SIZE,
+  } = options;
 
   const finalLimit = Math.min(limit, MAX_PAGE_SIZE);
   const skip = (page - 1) * finalLimit;
@@ -42,6 +53,27 @@ export async function listAssets(options: ListAssetsOptions = {}): Promise<Pagin
   // Build where clause - for admin, workspaceId is optional
   const where = workspaceId ? buildAssetFilter(workspaceId, filters) : buildAssetFilter(undefined, filters);
 
+  // Build orderBy clause
+  const orderBy: Record<string, "asc" | "desc"> = {};
+  switch (sortBy) {
+    case "name":
+      orderBy.filename = sortOrder;
+      break;
+    case "size":
+      orderBy.size = sortOrder;
+      break;
+    case "updatedAt":
+      orderBy.updatedAt = sortOrder;
+      break;
+    case "contentType":
+      orderBy.contentType = sortOrder;
+      break;
+    case "createdAt":
+    default:
+      orderBy.createdAt = sortOrder;
+      break;
+  }
+
   // Query assets with pagination
   const [assets, totalDocs] = await Promise.all([
     prisma.asset.findMany({
@@ -64,7 +96,7 @@ export async function listAssets(options: ListAssetsOptions = {}): Promise<Pagin
           select: { id: true, name: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip,
       take: finalLimit,
     }),

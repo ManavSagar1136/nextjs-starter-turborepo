@@ -263,3 +263,55 @@ export function useUploadAsset() {
     },
   });
 }
+
+// ============================================================================
+// Bulk Operations Hooks
+// ============================================================================
+
+export function useBulkDeleteAssets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (assetIds: string[]) => API.mediaLibrary.bulkDeleteAssets(assetIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
+    },
+  });
+}
+
+export function useBulkMoveAssets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ assetIds, folderId }: { assetIds: string[]; folderId: string | null }) =>
+      API.mediaLibrary.bulkMoveAssets(assetIds, folderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
+      queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.folders() });
+    },
+  });
+}
+
+export function useBulkAssignTags() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ assetIds, tagIds }: { assetIds: string[]; tagIds: string[] }) =>
+      API.mediaLibrary.bulkAssignTags(assetIds, tagIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
+    },
+  });
+}
+
+export function useBulkRemoveTags() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ assetIds, tagIds }: { assetIds: string[]; tagIds: string[] }) =>
+      API.mediaLibrary.bulkRemoveTags(assetIds, tagIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
+    },
+  });
+}

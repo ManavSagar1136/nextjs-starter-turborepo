@@ -34,6 +34,9 @@ import {
   useCreateTag,
   useUpdateTag,
   useDeleteTag,
+  useBulkDeleteAssets,
+  useBulkMoveAssets,
+  useBulkAssignTags,
 } from "@/hooks/use-media-library";
 
 // ============================================================================
@@ -56,6 +59,9 @@ function AssetsPageContent() {
   const createTag = useCreateTag();
   const updateTag = useUpdateTag();
   const deleteTag = useDeleteTag();
+  const bulkDeleteAssets = useBulkDeleteAssets();
+  const bulkMoveAssets = useBulkMoveAssets();
+  const bulkAssignTags = useBulkAssignTags();
 
   // Queries for dialogs
   const folderTreeQuery = useFolderTree();
@@ -324,6 +330,74 @@ function AssetsPageContent() {
     [togglePrivacy]
   );
 
+  // ============================================================================
+  // Bulk Operations
+  // ============================================================================
+
+  const handleBulkDelete = useCallback(
+    (assetIds: string[]) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "assets",
+        itemName: `${assetIds.length} ${assetIds.length === 1 ? "asset" : "assets"}`,
+        actionPayload: assetIds,
+        confirmButtonProps: {
+          onAction: async () => {
+            try {
+              const result = await bulkDeleteAssets.mutateAsync(assetIds);
+              if (result.failureCount > 0) {
+                return {
+                  success: false,
+                  message: `Deleted ${result.successCount} of ${assetIds.length} assets. ${result.failureCount} failed.`,
+                };
+              }
+              return { success: true, message: `Successfully deleted ${result.successCount} assets` };
+            } catch (error) {
+              return { success: false, message: "Failed to delete assets" };
+            }
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, bulkDeleteAssets]
+  );
+
+  const handleBulkMove = useCallback(
+    (assetIds: string[]) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET, {
+        assetId: assetIds[0] || "",
+        assetName: `${assetIds.length} ${assetIds.length === 1 ? "asset" : "assets"}`,
+        currentFolderId: null,
+        currentFolderPath: "Multiple folders",
+        folderTree: folderTreeQuery.data || [],
+        isLoadingTree: folderTreeQuery.isLoading,
+        isLoading: bulkMoveAssets.isPending,
+        onMoveAsset: async (targetFolderId: string | null) => {
+          await bulkMoveAssets.mutateAsync({ assetIds, folderId: targetFolderId });
+        },
+      } as Omit<MoveAssetDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, bulkMoveAssets, folderTreeQuery]
+  );
+
+  const handleBulkAssignTags = useCallback(
+    (assetIds: string[]) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS, {
+        assetId: assetIds[0] || "",
+        currentTags: [],
+        allTags: tagsQuery.data?.docs || [],
+        isLoadingTags: tagsQuery.isLoading,
+        tagsError: tagsQuery.error ? "Failed to load tags" : undefined,
+        onRetryLoadTags: () => tagsQuery.refetch(),
+        isLoading: bulkAssignTags.isPending,
+        onSaveTags: async (tagIds: string[]) => {
+          await bulkAssignTags.mutateAsync({ assetIds, tagIds });
+        },
+      } as Omit<AssignTagsDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, bulkAssignTags, tagsQuery]
+  );
+
   return (
     <MediaLibrary
       className="h-[calc(100vh-4rem)]"
@@ -332,6 +406,9 @@ function AssetsPageContent() {
       onEditFolder={openEditFolder}
       onDeleteFolder={handleDeleteFolder}
       onMoveFolder={openMoveFolder}
+      onBulkDelete={handleBulkDelete}
+      onBulkMove={handleBulkMove}
+      onBulkAssignTags={handleBulkAssignTags}
     />
   );
 }

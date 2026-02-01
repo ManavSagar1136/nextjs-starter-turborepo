@@ -11,6 +11,8 @@ export interface ListAssetsOptions {
   search?: string;
   contentType?: string | string[];
   isPublic?: boolean;
+  sortBy?: "name" | "size" | "createdAt" | "updatedAt" | "contentType";
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
 }

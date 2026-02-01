@@ -59,6 +59,8 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
       query.contentType = Array.isArray(params.contentType) ? params.contentType.join(",") : params.contentType;
     }
     if (params?.isPublic !== undefined) query.isPublic = String(params.isPublic);
+    if (params?.sortBy) query.sortBy = params.sortBy;
+    if (params?.sortOrder) query.sortOrder = params.sortOrder;
 
     const response = await this.get("/assets", query);
     return response.data;
@@ -220,6 +222,76 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
     await this.delete(`/assets/${assetId}/tags`, { tagIds: tagIds.join(",") }, {});
     // Get updated asset after removing tags
     return this.getAsset(assetId);
+  }
+
+  // ============================================================================
+  // Bulk Operations
+  // ============================================================================
+
+  async bulkDeleteAssets(
+    assetIds: string[]
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "delete",
+        assetIds,
+      }
+    );
+    return response.data.data;
+  }
+
+  async bulkMoveAssets(
+    assetIds: string[],
+    folderId: string | null
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "move",
+        assetIds,
+        folderId,
+      }
+    );
+    return response.data.data;
+  }
+
+  async bulkAssignTags(
+    assetIds: string[],
+    tagIds: string[]
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "assignTags",
+        assetIds,
+        tagIds,
+      }
+    );
+    return response.data.data;
+  }
+
+  async bulkRemoveTags(
+    assetIds: string[],
+    tagIds: string[]
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "removeTags",
+        assetIds,
+        tagIds,
+      }
+    );
+    return response.data.data;
   }
 
   // ============================================================================

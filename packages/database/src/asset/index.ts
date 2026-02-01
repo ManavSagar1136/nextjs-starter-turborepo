@@ -4,6 +4,10 @@ export { getAssetById } from "./get-asset";
 export { updateAsset } from "./update-asset";
 export { deleteAsset } from "./delete-asset";
 
+// Export bulk operations
+export { bulkDeleteAssets, bulkMoveAssets, bulkAssignTags, bulkRemoveTags } from "./bulk-operations";
+export type { BulkOperationResult, BulkOperationError } from "./bulk-operations";
+
 // Export types
 export type { ListAssetsOptions, PaginatedAssets, AssetWithDetails, UpdateAssetInput } from "./types";
 

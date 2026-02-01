@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Filter, Grid3X3, List, Search, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Filter, Grid3X3, List, Search, X } from "lucide-react";
 
 import { Badge } from "@buildbase/ui/badge";
 import { Button } from "@buildbase/ui/button";
@@ -163,6 +163,57 @@ function ViewModeToggle() {
 }
 
 // ============================================================================
+// Sort Dropdown
+// ============================================================================
+
+function SortDropdown() {
+  const { sortBy, sortOrder, setSortBy, setSortOrder } = useMediaLibrary();
+
+  const sortOptions: Array<{ value: "name" | "size" | "createdAt" | "updatedAt" | "contentType"; label: string }> = [
+    { value: "name", label: "Name" },
+    { value: "size", label: "Size" },
+    { value: "createdAt", label: "Date Created" },
+    { value: "updatedAt", label: "Date Updated" },
+    { value: "contentType", label: "Type" },
+  ];
+
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || "Date Created";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          {sortOrder === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+          <span className="hidden sm:inline">Sort: {currentSortLabel}</span>
+          <span className="sm:hidden">Sort</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {sortOptions.map(option => (
+          <DropdownMenuCheckboxItem
+            key={option.value}
+            checked={sortBy === option.value}
+            onCheckedChange={() => setSortBy(option.value)}
+          >
+            {option.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Order</DropdownMenuLabel>
+        <DropdownMenuCheckboxItem checked={sortOrder === "asc"} onCheckedChange={() => setSortOrder("asc")}>
+          Ascending
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={sortOrder === "desc"} onCheckedChange={() => setSortOrder("desc")}>
+          Descending
+        </DropdownMenuCheckboxItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// ============================================================================
 // Search and Filters Component
 // ============================================================================
 
@@ -197,6 +248,7 @@ export function SearchAndFilters({ className, showMobileSidebarToggle, onMobileS
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <SortDropdown />
           <MimeTypeFilter />
           <ViewModeToggle />
 

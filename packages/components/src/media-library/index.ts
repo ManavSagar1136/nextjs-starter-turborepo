@@ -54,6 +54,7 @@ export { AssetCard, AssetListItem } from "./AssetCard";
 export { FolderTree, FolderSidebar } from "./FolderTree";
 export { SearchAndFilters } from "./SearchAndFilters";
 export { BreadcrumbNav } from "./BreadcrumbNav";
+export { BulkActionsBar } from "./BulkActionsBar";
 
 // Utilities
 export * from "./utils";

@@ -27,6 +27,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const search = searchParams.get("search");
     const contentType = searchParams.get("contentType");
     const isPublic = searchParams.get("isPublic");
+    const sortBy = searchParams.get("sortBy") as "name" | "size" | "createdAt" | "updatedAt" | "contentType" | null;
+    const sortOrder = searchParams.get("sortOrder") as "asc" | "desc" | null;
 
     // List assets using service
     const result = await listAssets({
@@ -36,6 +38,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       search: search || undefined,
       contentType: contentType ? contentType.split(",").filter(Boolean) : undefined,
       isPublic: isPublic !== null ? isPublic === "true" : undefined,
+      sortBy: sortBy || undefined,
+      sortOrder: sortOrder || undefined,
       page,
       limit,
     });

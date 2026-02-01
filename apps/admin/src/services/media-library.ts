@@ -223,6 +223,76 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
   }
 
   // ============================================================================
+  // Bulk Operations
+  // ============================================================================
+
+  async bulkDeleteAssets(
+    assetIds: string[]
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "delete",
+        assetIds,
+      }
+    );
+    return response.data.data;
+  }
+
+  async bulkMoveAssets(
+    assetIds: string[],
+    folderId: string | null
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "move",
+        assetIds,
+        folderId,
+      }
+    );
+    return response.data.data;
+  }
+
+  async bulkAssignTags(
+    assetIds: string[],
+    tagIds: string[]
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "assignTags",
+        assetIds,
+        tagIds,
+      }
+    );
+    return response.data.data;
+  }
+
+  async bulkRemoveTags(
+    assetIds: string[],
+    tagIds: string[]
+  ): Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }> {
+    const response = await this.post(
+      "/assets/bulk",
+      {},
+      {},
+      {
+        action: "removeTags",
+        assetIds,
+        tagIds,
+      }
+    );
+    return response.data.data;
+  }
+
+  // ============================================================================
   // Upload
   // ============================================================================
 
