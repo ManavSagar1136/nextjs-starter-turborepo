@@ -5,6 +5,7 @@ import { FolderPlus, PanelLeft, Upload, X } from "lucide-react";
 
 import { Button } from "@buildbase/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@buildbase/ui/sheet";
+import { ErrorBoundary } from "@buildbase/ui/components/ui/error-boundary";
 import { cn } from "@buildbase/ui/lib/utils";
 
 import { AssetGrid } from "./AssetGrid";
@@ -65,6 +66,7 @@ export function MediaLibrary({
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const {
     config,
@@ -93,11 +95,29 @@ export function MediaLibrary({
       }
     };
 
+    const handleMoveFolder = (event: Event) => {
+      const customEvent = event as CustomEvent<{ folderId: string; targetParentFolderId: string }>;
+      const { folderId, targetParentFolderId } = customEvent.detail;
+      // Trigger move folder callback if available
+      // The parent component should handle the actual API call
+      if (onMoveFolder) {
+        // We need to find the folder object - for now, dispatch to parent
+        // Parent should handle finding the folder and calling the API
+        window.dispatchEvent(
+          new CustomEvent<{ folderId: string; targetParentFolderId: string }>("media-library:move-folder-confirm", {
+            detail: { folderId, targetParentFolderId },
+          })
+        );
+      }
+    };
+
     window.addEventListener("media-library:move-asset", handleMoveAsset);
+    window.addEventListener("media-library:move-folder", handleMoveFolder);
     return () => {
       window.removeEventListener("media-library:move-asset", handleMoveAsset);
+      window.removeEventListener("media-library:move-folder", handleMoveFolder);
     };
-  }, [onBulkMove]);
+  }, [onBulkMove, onMoveFolder]);
 
   // Arrow key navigation
   const handleArrowKey = useCallback(
@@ -258,6 +278,52 @@ export function MediaLibrary({
     onShiftArrow: handleShiftArrow,
   });
 
+  // File upload drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Check if dragging files
+    if (e.dataTransfer.types.includes("Files")) {
+      e.dataTransfer.dropEffect = "copy";
+      setIsDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only clear if leaving the main container (not entering a child)
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+
+      // Get dropped files
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0 && onUpload) {
+        // Trigger upload with files
+        // The parent component should handle opening upload dialog or direct upload
+        window.dispatchEvent(
+          new CustomEvent<{ files: File[] }>("media-library:upload-files", {
+            detail: { files },
+          })
+        );
+        // Also call onUpload if it accepts files directly
+        if (typeof onUpload === "function") {
+          // Check if onUpload accepts files - if not, it's just a callback to open dialog
+          onUpload();
+        }
+      }
+    },
+    [onUpload]
+  );
+
   return (
     <div className={cn("bg-background flex h-full overflow-hidden", className)}>
       {/* Desktop Sidebar */}
@@ -392,6 +458,49 @@ interface MinimalMediaLibraryProps {
 export function MinimalMediaLibrary({ className, actions, onUpload }: MinimalMediaLibraryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { config } = useMediaLibrary();
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // File upload drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Check if dragging files
+    if (e.dataTransfer.types.includes("Files")) {
+      e.dataTransfer.dropEffect = "copy";
+      setIsDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only clear if leaving the main container (not entering a child)
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+
+      // Get dropped files
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0 && onUpload) {
+        // Trigger upload with files
+        window.dispatchEvent(
+          new CustomEvent<{ files: File[] }>("media-library:upload-files", {
+            detail: { files },
+          })
+        );
+        // Call onUpload to open dialog
+        onUpload();
+      }
+    },
+    [onUpload]
+  );
 
   return (
     <div className={cn("bg-background flex h-full flex-col", className)}>
@@ -420,7 +529,23 @@ export function MinimalMediaLibrary({ className, actions, onUpload }: MinimalMed
       </div>
 
       {/* Content */}
-      <div ref={scrollRef} className="flex-1 overflow-auto">
+      <div
+        ref={scrollRef}
+        className="relative flex-1 overflow-auto"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag overlay */}
+        {isDragOver && (
+          <div className="bg-primary/10 border-primary absolute inset-0 z-50 flex items-center justify-center rounded-lg border-2 border-dashed">
+            <div className="bg-background rounded-lg p-8 text-center shadow-lg">
+              <div className="text-primary mb-2 text-4xl">📁</div>
+              <p className="text-lg font-semibold">Drop files to upload</p>
+              <p className="text-muted-foreground text-sm">Release to add files to your media library</p>
+            </div>
+          </div>
+        )}
         <AssetGrid scrollContainerRef={scrollRef} />
       </div>
     </div>

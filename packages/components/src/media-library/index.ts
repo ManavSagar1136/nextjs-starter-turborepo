@@ -63,3 +63,4 @@ export * from "./utils";
 export { useErrorRecovery } from "./hooks/useErrorRecovery";
 export { useOfflineDetection, useOfflineQueue } from "./hooks/useOfflineDetection";
 export { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+export { useVirtualScrolling } from "./hooks/useVirtualScrolling";

@@ -56,18 +56,67 @@ function FolderItem({
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const hasChildren = folder.children && folder.children.length > 0;
   const assetCount = folder._count?.assets || 0;
+
+  // Check if the dragged folder is a descendant (to prevent circular references)
+  const isDescendant = (folderId: string, targetId: string, tree: IFolderTreeItem): boolean => {
+    if (folderId === targetId) return true;
+    if (tree.children) {
+      return tree.children.some(child => isDescendant(folderId, child.id, child) || child.id === targetId);
+    }
+    return false;
+  };
 
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
 
+  // Handle folder drag start
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!onMoveFolder) return;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "folder", id: folder.id }));
+    e.dataTransfer.setData("text/plain", folder.id);
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Check if dragging a folder
+    try {
+      const data = e.dataTransfer.getData("application/json");
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (parsed.type === "folder" && parsed.id) {
+          // Prevent dropping folder on itself or its descendants
+          const draggedFolderId = parsed.id;
+          if (draggedFolderId === folder.id) {
+            e.dataTransfer.dropEffect = "none";
+            setIsDragOver(false);
+            return;
+          }
+          // Check if folder is a descendant (would create circular reference)
+          // This is a simplified check - full check would need full tree access
+          e.dataTransfer.dropEffect = "move";
+          setIsDragOver(true);
+          return;
+        }
+      }
+    } catch {
+      // Not JSON data, might be asset
+    }
+
+    // Handle asset drops
     e.dataTransfer.dropEffect = "move";
     setIsDragOver(true);
   };
@@ -87,7 +136,16 @@ function FolderItem({
       const data = e.dataTransfer.getData("application/json");
       if (data) {
         const { type, id } = JSON.parse(data);
-        if (type === "asset" && id) {
+        if (type === "folder" && id && onMoveFolder) {
+          // Move folder to this folder as parent
+          // Find the folder being moved (we need to get it from context or pass it)
+          // For now, dispatch event that parent can handle
+          window.dispatchEvent(
+            new CustomEvent<{ folderId: string; targetParentFolderId: string }>("media-library:move-folder", {
+              detail: { folderId: id, targetParentFolderId: folder.id },
+            })
+          );
+        } else if (type === "asset" && id) {
           // Trigger move asset callback via custom event with target folder
           window.dispatchEvent(
             new CustomEvent<{ assetId: string; targetFolderId: string }>("media-library:move-asset", {
@@ -108,12 +166,16 @@ function FolderItem({
           "flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5",
           "hover:bg-accent transition-colors",
           isSelected && "bg-accent",
-          isDragOver && "bg-primary/20 ring-primary ring-2"
+          isDragOver && "bg-primary/20 ring-primary ring-2",
+          isDragging && "opacity-50"
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={() => onSelect(folder.id)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        draggable={!!onMoveFolder}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

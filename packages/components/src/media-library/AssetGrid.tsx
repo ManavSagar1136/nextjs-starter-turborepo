@@ -1,12 +1,31 @@
 "use client";
 
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { File, Loader2 } from "lucide-react";
+
+// Dynamic imports for virtual scrolling (optional dependencies)
+let AutoSizer: any = null;
+let FixedSizeGrid: any = null;
+let FixedSizeList: any = null;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  AutoSizer = require("react-virtualized-auto-sizer").default;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const reactWindow = require("react-window");
+  FixedSizeGrid = reactWindow.FixedSizeGrid;
+  FixedSizeList = reactWindow.FixedSizeList;
+} catch {
+  // Packages not available, virtual scrolling will be disabled
+}
 
 import { Button } from "@buildbase/ui/button";
 import { cn } from "@buildbase/ui/lib/utils";
 
 import { AssetCard, AssetListItem } from "./AssetCard";
 import { useMediaLibrary } from "./context";
+import { useVirtualScrolling } from "./hooks/useVirtualScrolling";
+import type { IAsset } from "./types";
 
 // ============================================================================
 // Types
@@ -201,12 +220,110 @@ function Pagination({ currentPage, totalPages, totalDocs, pageSize, onPageChange
 }
 
 // ============================================================================
+// Virtual Grid Row Renderer
+// ============================================================================
+
+interface GridRowProps {
+  columnIndex: number;
+  rowIndex: number;
+  style: React.CSSProperties;
+  data: {
+    assets: IAsset[];
+    columns: number;
+    itemWidth: number;
+    itemHeight: number;
+    gap: number;
+  };
+}
+
+const GridRow = ({ columnIndex, rowIndex, style, data }: GridRowProps) => {
+  const { assets, columns, itemWidth, itemHeight, gap } = data;
+  const index = rowIndex * columns + columnIndex;
+
+  if (index >= assets.length || !assets[index]) {
+    return <div style={style} />;
+  }
+
+  const asset = assets[index]!;
+
+  return (
+    <div
+      style={{
+        ...style,
+        paddingRight: columnIndex < columns - 1 ? gap : 0,
+        paddingBottom: gap,
+      }}
+    >
+      <div style={{ width: itemWidth, height: itemHeight }}>
+        <AssetCard asset={asset} />
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// Virtual List Row Renderer
+// ============================================================================
+
+interface ListRowProps {
+  index: number;
+  style: React.CSSProperties;
+  data: {
+    assets: IAsset[];
+  };
+}
+
+const ListRow = ({ index, style, data }: ListRowProps) => {
+  const { assets } = data;
+
+  if (index >= assets.length || !assets[index]) {
+    return <div style={style} />;
+  }
+
+  const asset = assets[index]!;
+
+  return (
+    <div style={style}>
+      <AssetListItem asset={asset} />
+    </div>
+  );
+};
+
+// ============================================================================
 // Asset Grid Component
 // ============================================================================
 
 export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
   const { config, assets, isLoadingAssets, viewMode, currentPage, setCurrentPage, hasActiveFilters, refreshAssets } =
     useMediaLibrary();
+
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
+
+  // Enable virtual scrolling for large lists (50+ items) or when explicitly enabled
+  const shouldUseVirtualScrolling = useMemo(() => {
+    return Boolean(assets && assets.docs.length >= 50);
+  }, [assets]);
+
+  const virtualConfig = useVirtualScrolling(viewMode, containerWidth, shouldUseVirtualScrolling);
+
+  // Update container dimensions
+  useEffect(() => {
+    if (scrollContainerRef?.current) {
+      const updateDimensions = () => {
+        if (scrollContainerRef.current) {
+          setContainerWidth(scrollContainerRef.current.clientWidth);
+          setContainerHeight(scrollContainerRef.current.clientHeight || 600);
+        }
+      };
+
+      updateDimensions();
+      const resizeObserver = new ResizeObserver(updateDimensions);
+      resizeObserver.observe(scrollContainerRef.current);
+
+      return () => resizeObserver.disconnect();
+    }
+  }, [scrollContainerRef]);
 
   // Loading state
   if (isLoadingAssets && !assets) {
@@ -235,6 +352,31 @@ export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
     }
   };
 
+  // Prepare data for virtual scrolling
+  const gridData = useMemo(
+    () => ({
+      assets: assets.docs,
+      columns: virtualConfig.columns,
+      itemWidth: virtualConfig.itemWidth,
+      itemHeight: virtualConfig.itemHeight,
+      gap: 20, // gap-5 = 20px
+    }),
+    [assets.docs, virtualConfig]
+  );
+
+  const listData = useMemo(
+    () => ({
+      assets: assets.docs,
+    }),
+    [assets.docs]
+  );
+
+  // Calculate row count for grid
+  const rowCount = useMemo(() => {
+    if (!virtualConfig.enabled || virtualConfig.columns === 0) return 0;
+    return Math.ceil(assets.docs.length / virtualConfig.columns);
+  }, [assets.docs.length, virtualConfig]);
+
   return (
     <div className={cn("p-6", className)} role="region" aria-label="Asset library">
       {/* Loading overlay */}
@@ -246,7 +388,64 @@ export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
       )}
 
       {/* Asset Grid/List */}
-      {viewMode === "list" ? (
+      {shouldUseVirtualScrolling &&
+      virtualConfig.enabled &&
+      containerWidth > 0 &&
+      AutoSizer &&
+      FixedSizeList &&
+      FixedSizeGrid ? (
+        <div className="h-[600px] w-full">
+          <AutoSizer>
+            {({ height, width }: { height: number; width: number }) => {
+              const availableWidth = width - 48; // Account for padding
+              const availableHeight = height;
+
+              if (viewMode === "list") {
+                return (
+                  <FixedSizeList
+                    height={availableHeight}
+                    width={availableWidth}
+                    itemCount={assets.docs.length}
+                    itemSize={virtualConfig.rowHeight}
+                    itemData={listData}
+                    role="list"
+                    aria-label="Asset list"
+                  >
+                    {ListRow}
+                  </FixedSizeList>
+                );
+              }
+
+              // Grid view
+              const cols = virtualConfig.columns;
+              const rows = Math.ceil(assets.docs.length / cols);
+              const itemWidth = Math.floor((availableWidth - 20 * (cols - 1)) / cols);
+              const itemHeight = itemWidth + 80;
+
+              return (
+                <FixedSizeGrid
+                  height={availableHeight}
+                  width={availableWidth}
+                  columnCount={cols}
+                  columnWidth={itemWidth + 20}
+                  rowCount={rows}
+                  rowHeight={itemHeight + 20}
+                  itemData={{
+                    ...gridData,
+                    itemWidth,
+                    itemHeight,
+                  }}
+                  role="list"
+                  aria-label="Asset grid"
+                >
+                  {GridRow}
+                </FixedSizeGrid>
+              );
+            }}
+          </AutoSizer>
+        </div>
+      ) : // Fallback to regular rendering for small lists
+      viewMode === "list" ? (
         <ul className="space-y-2" role="list">
           {assets.docs.map(asset => (
             <li key={asset.id} role="listitem">
