@@ -24,7 +24,10 @@ const nextConfig: NextConfig = {
     "@buildbase/hooks-manager",
     "@buildbase/tanstack-query",
     "@buildbase/env",
+    "@buildbase/database",
   ],
+  // Required for Prisma in monorepo - tells Next.js where to find files in packages/
+  outputFileTracingRoot: resolve(__dirname, "../.."),
   turbopack: {
     root: resolve(__dirname, "../.."),
   },
