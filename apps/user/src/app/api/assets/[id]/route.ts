@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@buildbase/helpers/auth";
-import { prisma } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 import { getStorage } from "@buildbase/storage";
+import { getAssetById, updateAsset, deleteAsset } from "@buildbase/database";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -24,9 +24,16 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
     }
 
     const { id } = await params;
-    const asset = await AssetsRepository.findWithDetails(id, workspaceId);
+
+    // Get asset using service
+    const asset = await getAssetById(id);
 
     if (!asset) {
+      return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
+    }
+
+    // Verify asset belongs to workspace
+    if (asset.workspace?.id !== workspaceId) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 
@@ -72,33 +79,43 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     const { id } = await params;
 
     // Verify asset belongs to workspace
-    const existingAsset = await AssetsRepository.findById(id, workspaceId);
-    if (!existingAsset) {
+    const existingAsset = await getAssetById(id);
+    if (!existingAsset || existingAsset.workspace?.id !== workspaceId) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 
     const body = await request.json();
-    const { filename, folderId, tags, metadata } = body;
+    const { folderId, tagIds } = body;
 
-    // Update asset
-    const updateData: Parameters<typeof AssetsRepository.update>[1] = {};
-    if (filename !== undefined) updateData.filename = filename;
-    if (folderId !== undefined) updateData.folderId = folderId;
-    if (metadata !== undefined) updateData.metadata = metadata;
-
-    const asset = await AssetsRepository.update(id, updateData);
-
-    // Update tags if provided
-    if (tags !== undefined && Array.isArray(tags)) {
-      await AssetsRepository.setTags(id, tags);
-    }
+    // Update asset using service
+    await updateAsset(id, {
+      folderId,
+      tagIds,
+    });
 
     // Get updated asset with details
-    const updatedAsset = await AssetsRepository.findWithDetails(id, workspaceId);
+    const updatedAsset = await getAssetById(id);
 
     return NextResponse.json({
       success: true,
-      data: updatedAsset,
+      message: "Asset updated successfully",
+      data: updatedAsset
+        ? {
+            id: updatedAsset.id,
+            name: updatedAsset.filename,
+            filename: updatedAsset.filename,
+            url: updatedAsset.url,
+            path: updatedAsset.path,
+            size: updatedAsset.size,
+            contentType: updatedAsset.contentType,
+            isPublic: updatedAsset.isPublic,
+            metadata: updatedAsset.metadata,
+            folder: updatedAsset.folder,
+            tags: updatedAsset.tags,
+            createdAt: updatedAsset.createdAt.toISOString(),
+            updatedAt: updatedAsset.updatedAt.toISOString(),
+          }
+        : null,
     });
   } catch (error) {
     console.error("Error updating asset:", error);
@@ -124,8 +141,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     const { id } = await params;
 
     // Verify asset belongs to workspace
-    const asset = await AssetsRepository.findById(id, workspaceId);
-    if (!asset) {
+    const asset = await getAssetById(id);
+    if (!asset || asset.workspace?.id !== workspaceId) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 
@@ -140,8 +157,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
       // Continue with database deletion even if storage fails
     }
 
-    // Delete from database
-    await AssetsRepository.delete(id);
+    // Delete from database using service
+    await deleteAsset(id);
 
     return NextResponse.json({
       success: true,

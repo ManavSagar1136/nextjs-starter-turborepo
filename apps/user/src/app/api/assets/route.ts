@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@buildbase/helpers/auth";
-import { prisma } from "@buildbase/database";
-import { buildAssetFilter, type AssetFilterOptions } from "@buildbase/database/assets";
+import { listAssets } from "@buildbase/database";
 
 /**
  * GET /api/assets - List assets with filtering and pagination
@@ -20,98 +19,28 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(request.url);
 
-    // Pagination
+    // Pagination and filters
     const page = parseInt(searchParams.get("$page") || "1", 10);
-    const limit = Math.min(parseInt(searchParams.get("$limit") || "20", 10), 100);
-    const skip = (page - 1) * limit;
-
-    // Build filters
-    const filters: AssetFilterOptions = {};
-
-    // Folder filter
+    const limit = parseInt(searchParams.get("$limit") || "20", 10);
     const folderId = searchParams.get("folderId");
-    if (folderId !== null) {
-      filters.folderId = folderId === "null" ? null : folderId;
-    }
-
-    // Tag filter
     const tagIds = searchParams.get("tagIds");
-    if (tagIds) {
-      filters.tagIds = tagIds.split(",").filter(Boolean);
-    }
-
-    // Search
     const search = searchParams.get("search");
-    if (search) {
-      filters.search = search;
-    }
-
-    // Content type
     const contentType = searchParams.get("contentType");
-    if (contentType) {
-      filters.contentType = contentType.split(",").filter(Boolean);
-    }
-
-    // Public filter
     const isPublic = searchParams.get("isPublic");
-    if (isPublic !== null) {
-      filters.isPublic = isPublic === "true";
-    }
 
-    // Build where clause
-    const where = buildAssetFilter(workspaceId, filters);
-
-    // Query assets with pagination
-    const [assets, totalDocs] = await Promise.all([
-      prisma.asset.findMany({
-        where,
-        include: {
-          folder: {
-            select: { id: true, name: true },
-          },
-          assetTags: {
-            include: {
-              tag: {
-                select: { id: true, name: true, slug: true, color: true },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
-      }),
-      prisma.asset.count({ where }),
-    ]);
-
-    // Transform response
-    const docs = assets.map(asset => ({
-      id: asset.id,
-      name: asset.filename,
-      filename: asset.filename,
-      url: asset.url,
-      path: asset.path,
-      size: asset.size,
-      contentType: asset.contentType,
-      isPublic: asset.isPublic,
-      metadata: asset.metadata,
-      folder: asset.folder,
-      tags: asset.assetTags.map(at => at.tag),
-      createdAt: asset.createdAt.toISOString(),
-      updatedAt: asset.updatedAt.toISOString(),
-    }));
-
-    const totalPages = Math.ceil(totalDocs / limit);
-
-    return NextResponse.json({
-      docs,
-      totalDocs,
-      limit,
+    // List assets using service
+    const result = await listAssets({
+      workspaceId,
+      folderId: folderId !== null ? (folderId === "null" ? null : folderId) : undefined,
+      tagIds: tagIds ? tagIds.split(",").filter(Boolean) : undefined,
+      search: search || undefined,
+      contentType: contentType ? contentType.split(",").filter(Boolean) : undefined,
+      isPublic: isPublic !== null ? isPublic === "true" : undefined,
       page,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
+      limit,
     });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error listing assets:", error);
     return NextResponse.json({ success: false, message: "Failed to list assets" }, { status: 500 });
