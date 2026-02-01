@@ -25,15 +25,15 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 
     const { id } = await params;
 
-    // Get asset using service
-    const asset = await getAssetById(id);
-
-    if (!asset) {
+    // Verify asset belongs to workspace
+    const assetRecord = await AssetsRepository.findById(id, workspaceId);
+    if (!assetRecord) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 
-    // Verify asset belongs to workspace
-    if (asset.workspace?.id !== workspaceId) {
+    // Get asset with details
+    const asset = await getAssetById(id);
+    if (!asset) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 
@@ -79,8 +79,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     const { id } = await params;
 
     // Verify asset belongs to workspace
-    const existingAsset = await getAssetById(id);
-    if (!existingAsset || existingAsset.workspace?.id !== workspaceId) {
+    const existingAsset = await AssetsRepository.findById(id, workspaceId);
+    if (!existingAsset) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 
@@ -141,8 +141,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     const { id } = await params;
 
     // Verify asset belongs to workspace
-    const asset = await getAssetById(id);
-    if (!asset || asset.workspace?.id !== workspaceId) {
+    const asset = await AssetsRepository.findById(id, workspaceId);
+    if (!asset) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
 

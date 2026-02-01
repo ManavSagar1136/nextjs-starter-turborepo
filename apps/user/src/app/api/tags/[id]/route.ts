@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@buildbase/helpers/auth";
-import { getTagById, updateTag, deleteTag } from "@buildbase/database";
+import { getTagById, updateTag, deleteTag, verifyTagOwnership } from "@buildbase/database";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -23,8 +23,14 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 
     const { id } = await params;
 
+    // Verify tag belongs to workspace
+    const belongsToWorkspace = await verifyTagOwnership(id, workspaceId);
+    if (!belongsToWorkspace) {
+      return NextResponse.json({ success: false, message: "Tag not found" }, { status: 404 });
+    }
+
     // Get tag using service
-    const tag = await getTagById(id, workspaceId);
+    const tag = await getTagById(id);
 
     if (!tag) {
       return NextResponse.json({ success: false, message: "Tag not found" }, { status: 404 });
@@ -56,11 +62,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     }
 
     const { id } = await params;
+
+    // Verify tag belongs to workspace
+    const belongsToWorkspace = await verifyTagOwnership(id, workspaceId);
+    if (!belongsToWorkspace) {
+      return NextResponse.json({ success: false, message: "Tag not found" }, { status: 404 });
+    }
+
     const body = await request.json();
     const { name, color } = body;
 
     // Update tag using service
-    const tag = await updateTag(id, workspaceId, {
+    const tag = await updateTag(id, {
       name,
       color,
     });
@@ -99,8 +112,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
 
     const { id } = await params;
 
+    // Verify tag belongs to workspace
+    const belongsToWorkspace = await verifyTagOwnership(id, workspaceId);
+    if (!belongsToWorkspace) {
+      return NextResponse.json({ success: false, message: "Tag not found" }, { status: 404 });
+    }
+
     // Delete tag using service
-    await deleteTag(id, workspaceId);
+    await deleteTag(id);
 
     return NextResponse.json({
       success: true,

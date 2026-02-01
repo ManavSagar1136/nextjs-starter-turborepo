@@ -5,6 +5,7 @@ export { deleteFolder } from "./delete-folder";
 export { getFolderById } from "./get-folder";
 export { listFolders } from "./list-folders";
 export { getFolderTree } from "./get-folder-tree";
+export { verifyFolderOwnership } from "./verify-folder-ownership";
 
 // Export types
 export type {

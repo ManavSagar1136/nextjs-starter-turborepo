@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@buildbase/helpers/auth";
-import { getFolderById, updateFolder, deleteFolder } from "@buildbase/database";
+import { getFolderById, updateFolder, deleteFolder, verifyFolderOwnership } from "@buildbase/database";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -23,8 +23,14 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 
     const { id } = await params;
 
+    // Verify folder belongs to workspace
+    const belongsToWorkspace = await verifyFolderOwnership(id, workspaceId);
+    if (!belongsToWorkspace) {
+      return NextResponse.json({ success: false, message: "Folder not found" }, { status: 404 });
+    }
+
     // Get folder using service
-    const folder = await getFolderById(id, workspaceId);
+    const folder = await getFolderById(id);
 
     if (!folder) {
       return NextResponse.json({ success: false, message: "Folder not found" }, { status: 404 });
@@ -60,7 +66,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     const { name, description, parentFolderId } = body;
 
     // Update folder using service
-    const folder = await updateFolder(id, workspaceId, {
+    const folder = await updateFolder(id, {
       name,
       description,
       parentFolderId,
