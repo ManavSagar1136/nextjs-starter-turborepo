@@ -10,6 +10,9 @@ interface KeyboardShortcutsOptions {
   onAssignTags?: () => void;
   onClearSelection?: () => void;
   onEscape?: () => void;
+  onArrowKey?: (direction: "up" | "down" | "left" | "right") => void;
+  onEnter?: () => void;
+  onShiftArrow?: (direction: "up" | "down" | "left" | "right") => void;
   enabled?: boolean;
 }
 
@@ -24,6 +27,9 @@ export function useKeyboardShortcuts({
   onAssignTags,
   onClearSelection,
   onEscape,
+  onArrowKey,
+  onEnter,
+  onShiftArrow,
   enabled = true,
 }: KeyboardShortcutsOptions) {
   const handleKeyDown = useCallback(
@@ -91,8 +97,42 @@ export function useKeyboardShortcuts({
         onEscape?.();
         return;
       }
+
+      // Arrow keys - Navigate assets
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+        if (event.shiftKey && onShiftArrow) {
+          event.preventDefault();
+          const direction = event.key.replace("Arrow", "").toLowerCase() as "up" | "down" | "left" | "right";
+          onShiftArrow(direction);
+          return;
+        } else if (onArrowKey) {
+          event.preventDefault();
+          const direction = event.key.replace("Arrow", "").toLowerCase() as "up" | "down" | "left" | "right";
+          onArrowKey(direction);
+          return;
+        }
+      }
+
+      // Enter - Open preview for selected asset
+      if (event.key === "Enter" && !ctrlOrCmd && !event.shiftKey) {
+        event.preventDefault();
+        onEnter?.();
+        return;
+      }
     },
-    [enabled, onSearchFocus, onSelectAll, onDelete, onMove, onAssignTags, onClearSelection, onEscape]
+    [
+      enabled,
+      onSearchFocus,
+      onSelectAll,
+      onDelete,
+      onMove,
+      onAssignTags,
+      onClearSelection,
+      onEscape,
+      onArrowKey,
+      onEnter,
+      onShiftArrow,
+    ]
   );
 
   useEffect(() => {

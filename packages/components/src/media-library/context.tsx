@@ -38,6 +38,10 @@ interface MediaLibraryState {
   isUploadDialogOpen: boolean;
   isFolderSidebarOpen: boolean;
 
+  // Selection state
+  selectedAssetIds: string[];
+  focusedAssetId: string | null;
+
   // Active operations
   activeAssetAction: { action: IAssetAction; asset: IAsset } | null;
 }
@@ -79,6 +83,7 @@ interface MediaLibraryContextValue extends MediaLibraryState {
   toggleAssetSelection: (assetId: string) => void;
   selectAllAssets: () => void;
   clearAssetSelection: () => void;
+  setFocusedAssetId: (assetId: string | null) => void;
   setSortBy: (sortBy: "name" | "size" | "createdAt" | "updatedAt" | "contentType") => void;
   setSortOrder: (sortOrder: "asc" | "desc") => void;
 
@@ -207,6 +212,7 @@ export function MediaLibraryProvider({
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isFolderSidebarOpen, setIsFolderSidebarOpen] = useState(false);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [focusedAssetId, setFocusedAssetId] = useState<string | null>(null);
   const [activeAssetAction, setActiveAssetAction] = useState<{
     action: IAssetAction;
     asset: IAsset;
@@ -305,6 +311,11 @@ export function MediaLibraryProvider({
 
   const handleClearAssetSelection = useCallback(() => {
     setSelectedAssetIds([]);
+    setFocusedAssetId(null);
+  }, []);
+
+  const handleSetFocusedAssetId = useCallback((assetId: string | null) => {
+    setFocusedAssetId(assetId);
   }, []);
 
   // Actions - Sorting
@@ -423,6 +434,7 @@ export function MediaLibraryProvider({
       isUploadDialogOpen,
       isFolderSidebarOpen,
       selectedAssetIds,
+      focusedAssetId,
       activeAssetAction,
 
       // Data
@@ -450,6 +462,7 @@ export function MediaLibraryProvider({
       toggleAssetSelection: handleToggleAssetSelection,
       selectAllAssets: handleSelectAllAssets,
       clearAssetSelection: handleClearAssetSelection,
+      setFocusedAssetId: handleSetFocusedAssetId,
       setSortBy: handleSetSortBy,
       setSortOrder: handleSetSortOrder,
 
@@ -480,6 +493,7 @@ export function MediaLibraryProvider({
       isUploadDialogOpen,
       isFolderSidebarOpen,
       selectedAssetIds,
+      focusedAssetId,
       activeAssetAction,
       assets,
       folderTree,
@@ -499,6 +513,7 @@ export function MediaLibraryProvider({
       handleToggleAssetSelection,
       handleSelectAllAssets,
       handleClearAssetSelection,
+      handleSetFocusedAssetId,
       handleSetSortBy,
       handleSetSortOrder,
       handleAssetAction,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { FolderPlus, PanelLeft, Upload, X } from "lucide-react";
 
 import { Button } from "@buildbase/ui/button";
@@ -13,8 +13,9 @@ import { BulkActionsBar } from "./BulkActionsBar";
 import { useMediaLibrary } from "./context";
 import { FolderSidebar } from "./FolderTree";
 import { SearchAndFilters } from "./SearchAndFilters";
+import { ASSET_ACTIONS, type IFolderTreeItem } from "./types";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { type IFolderTreeItem } from "./types";
+import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 
 // ============================================================================
 // Types
@@ -65,7 +66,19 @@ export function MediaLibrary({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const { config, isLoadingFolders, selectedAssetIds, selectAllAssets, clearAssetSelection } = useMediaLibrary();
+  const {
+    config,
+    isLoadingFolders,
+    selectedAssetIds,
+    focusedAssetId,
+    assets,
+    viewMode,
+    selectAllAssets,
+    clearAssetSelection,
+    setFocusedAssetId,
+    toggleAssetSelection,
+    onAssetAction,
+  } = useMediaLibrary();
 
   // Handle drag and drop for moving assets to folders
   useEffect(() => {
@@ -85,6 +98,130 @@ export function MediaLibrary({
       window.removeEventListener("media-library:move-asset", handleMoveAsset);
     };
   }, [onBulkMove]);
+
+  // Arrow key navigation
+  const handleArrowKey = useCallback(
+    (direction: "up" | "down" | "left" | "right") => {
+      if (!assets?.docs || assets.docs.length === 0) return;
+
+      const currentIndex = focusedAssetId ? assets.docs.findIndex(a => a.id === focusedAssetId) : -1;
+      let nextIndex = currentIndex;
+
+      if (viewMode === "list") {
+        // List view: up/down only
+        if (direction === "up") {
+          nextIndex = currentIndex <= 0 ? assets.docs.length - 1 : currentIndex - 1;
+        } else if (direction === "down") {
+          nextIndex = currentIndex >= assets.docs.length - 1 ? 0 : currentIndex + 1;
+        }
+      } else {
+        // Grid view: all directions
+        const cols =
+          viewMode === "grid"
+            ? window.innerWidth >= 1536
+              ? 5
+              : window.innerWidth >= 1280
+                ? 4
+                : window.innerWidth >= 1024
+                  ? 3
+                  : window.innerWidth >= 640
+                    ? 2
+                    : 1
+            : 1;
+        if (direction === "up") {
+          nextIndex = currentIndex < cols ? assets.docs.length - 1 : Math.max(0, currentIndex - cols);
+        } else if (direction === "down") {
+          nextIndex =
+            currentIndex >= assets.docs.length - cols ? 0 : Math.min(assets.docs.length - 1, currentIndex + cols);
+        } else if (direction === "left") {
+          nextIndex = currentIndex <= 0 ? assets.docs.length - 1 : currentIndex - 1;
+        } else if (direction === "right") {
+          nextIndex = currentIndex >= assets.docs.length - 1 ? 0 : currentIndex + 1;
+        }
+      }
+
+      if (nextIndex >= 0 && nextIndex < assets.docs.length) {
+        const nextAsset = assets.docs[nextIndex];
+        if (nextAsset) {
+          setFocusedAssetId(nextAsset.id);
+        }
+      }
+    },
+    [assets, focusedAssetId, viewMode, setFocusedAssetId]
+  );
+
+  // Shift + Arrow for multi-select
+  const handleShiftArrow = useCallback(
+    (direction: "up" | "down" | "left" | "right") => {
+      if (!assets?.docs || assets.docs.length === 0) return;
+
+      const currentIndex = focusedAssetId ? assets.docs.findIndex(a => a.id === focusedAssetId) : -1;
+      if (currentIndex === -1) {
+        // If no focused asset, focus first one
+        const firstAsset = assets.docs[0];
+        if (firstAsset) {
+          setFocusedAssetId(firstAsset.id);
+        }
+        return;
+      }
+
+      // Calculate next index
+      let nextIndex = currentIndex;
+      if (viewMode === "list") {
+        if (direction === "up") {
+          nextIndex = currentIndex <= 0 ? assets.docs.length - 1 : currentIndex - 1;
+        } else if (direction === "down") {
+          nextIndex = currentIndex >= assets.docs.length - 1 ? 0 : currentIndex + 1;
+        }
+      } else {
+        const cols =
+          window.innerWidth >= 1536
+            ? 5
+            : window.innerWidth >= 1280
+              ? 4
+              : window.innerWidth >= 1024
+                ? 3
+                : window.innerWidth >= 640
+                  ? 2
+                  : 1;
+        if (direction === "up") {
+          nextIndex = currentIndex < cols ? assets.docs.length - 1 : Math.max(0, currentIndex - cols);
+        } else if (direction === "down") {
+          nextIndex =
+            currentIndex >= assets.docs.length - cols ? 0 : Math.min(assets.docs.length - 1, currentIndex + cols);
+        } else if (direction === "left") {
+          nextIndex = currentIndex <= 0 ? assets.docs.length - 1 : currentIndex - 1;
+        } else if (direction === "right") {
+          nextIndex = currentIndex >= assets.docs.length - 1 ? 0 : currentIndex + 1;
+        }
+      }
+
+      if (nextIndex >= 0 && nextIndex < assets.docs.length) {
+        const nextAsset = assets.docs[nextIndex];
+        if (nextAsset) {
+          setFocusedAssetId(nextAsset.id);
+          // Toggle selection of the newly focused asset
+          toggleAssetSelection(nextAsset.id);
+        }
+      }
+    },
+    [assets, focusedAssetId, viewMode, setFocusedAssetId, toggleAssetSelection]
+  );
+
+  // Enter key - open preview
+  const handleEnter = useCallback(() => {
+    if (focusedAssetId && assets?.docs) {
+      const asset = assets.docs.find(a => a.id === focusedAssetId);
+      if (asset && onAssetAction) {
+        onAssetAction({ action: ASSET_ACTIONS.PREVIEW, asset });
+      }
+    } else if (selectedAssetIds.length === 1 && assets?.docs) {
+      const asset = assets.docs.find(a => a.id === selectedAssetIds[0]);
+      if (asset && onAssetAction) {
+        onAssetAction({ action: ASSET_ACTIONS.PREVIEW, asset });
+      }
+    }
+  }, [focusedAssetId, selectedAssetIds, assets, onAssetAction]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -116,6 +253,9 @@ export function MediaLibrary({
       clearAssetSelection();
       setMobileSidebarOpen(false);
     },
+    onArrowKey: handleArrowKey,
+    onEnter: handleEnter,
+    onShiftArrow: handleShiftArrow,
   });
 
   return (
@@ -195,6 +335,7 @@ export function MediaLibrary({
 
               {/* Actions */}
               <div className="flex shrink-0 items-center gap-2">
+                <KeyboardShortcutsDialog />
                 {actions}
 
                 {config.enableFolders && onCreateFolder && (
