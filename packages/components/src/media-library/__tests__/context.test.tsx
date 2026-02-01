@@ -29,6 +29,7 @@ const createMockApi = (): IMediaLibraryApi => ({
   getUploadSignedUrl: vi.fn(),
   completeUpload: vi.fn(),
   uploadAsset: vi.fn(),
+  duplicateAsset: vi.fn(),
 });
 
 // Test component for query params

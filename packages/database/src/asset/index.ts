@@ -3,6 +3,7 @@ export { listAssets } from "./list-assets";
 export { getAssetById } from "./get-asset";
 export { updateAsset } from "./update-asset";
 export { deleteAsset } from "./delete-asset";
+export { duplicateAsset } from "./duplicate-asset";
 
 // Export bulk operations
 export { bulkDeleteAssets, bulkMoveAssets, bulkAssignTags, bulkRemoveTags } from "./bulk-operations";

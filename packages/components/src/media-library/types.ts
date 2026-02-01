@@ -102,6 +102,8 @@ export const ASSET_ACTIONS = {
   PREVIEW: "preview",
   DOWNLOAD: "download",
   EDIT: "edit",
+  EDIT_METADATA: "edit_metadata",
+  DUPLICATE: "duplicate",
 } as const;
 
 export type IAssetAction = (typeof ASSET_ACTIONS)[keyof typeof ASSET_ACTIONS];
@@ -130,6 +132,7 @@ export interface IMediaLibraryApi {
   ) => Promise<IAsset>;
   deleteAsset: (assetId: string, force?: boolean) => Promise<void>;
   toggleAssetPrivacy: (assetId: string, makePublic: boolean) => Promise<IAsset>;
+  duplicateAsset: (assetId: string) => Promise<IAsset>;
   getAssetDownloadUrl: (assetId: string) => Promise<{
     url: string;
     filename: string;

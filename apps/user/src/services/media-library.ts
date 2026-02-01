@@ -80,7 +80,30 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
       metadata?: Record<string, unknown>;
     }
   ): Promise<IAsset> {
+    // If only metadata/filename, use metadata endpoint
+    if (
+      (params.filename !== undefined || params.metadata !== undefined) &&
+      params.folderId === undefined &&
+      params.tags === undefined
+    ) {
+      const response = await this.patch(
+        `/assets/${assetId}/metadata`,
+        {},
+        {},
+        {
+          filename: params.filename,
+          metadata: params.metadata,
+        }
+      );
+      return response.data.data;
+    }
+    // Otherwise use main update endpoint
     const response = await this.patch(`/assets/${assetId}`, {}, {}, params);
+    return response.data.data;
+  }
+
+  async duplicateAsset(assetId: string): Promise<IAsset> {
+    const response = await this.post(`/assets/${assetId}/duplicate`, {}, {}, {});
     return response.data.data;
   }
 

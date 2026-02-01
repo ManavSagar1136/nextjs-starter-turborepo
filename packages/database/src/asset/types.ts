@@ -61,4 +61,6 @@ export interface AssetWithDetails {
 export interface UpdateAssetInput {
   folderId?: string | null;
   tagIds?: string[];
+  filename?: string;
+  metadata?: Record<string, unknown>;
 }

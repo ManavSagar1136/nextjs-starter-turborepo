@@ -94,6 +94,17 @@ export function useToggleAssetPrivacy() {
   });
 }
 
+export function useDuplicateAsset() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (assetId: string) => API.mediaLibrary.duplicateAsset(assetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
+    },
+  });
+}
+
 export function useMoveAssetToFolder() {
   const queryClient = useQueryClient();
 

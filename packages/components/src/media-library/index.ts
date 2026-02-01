@@ -58,3 +58,8 @@ export { BulkActionsBar } from "./BulkActionsBar";
 
 // Utilities
 export * from "./utils";
+
+// Hooks
+export { useErrorRecovery } from "./hooks/useErrorRecovery";
+export { useOfflineDetection, useOfflineQueue } from "./hooks/useOfflineDetection";
+export { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";

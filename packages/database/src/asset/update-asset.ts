@@ -73,4 +73,25 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
       folderId: data.folderId === null ? null : data.folderId,
     });
   }
+
+  // Update asset filename if provided
+  if (data.filename !== undefined) {
+    if (typeof data.filename !== "string" || data.filename.trim().length === 0) {
+      throw new Error("Filename must be a non-empty string");
+    }
+    await AssetsRepository.update(id, {
+      filename: data.filename.trim(),
+    });
+  }
+
+  // Update asset metadata if provided
+  if (data.metadata !== undefined) {
+    // Validate metadata is an object
+    if (data.metadata !== null && typeof data.metadata !== "object") {
+      throw new Error("Metadata must be an object or null");
+    }
+    await AssetsRepository.update(id, {
+      metadata: data.metadata,
+    });
+  }
 }
