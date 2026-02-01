@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
     "@buildbase/tanstack-query",
     "@buildbase/saas-sdk",
     "@buildbase/env",
+    "@buildbase/database",
   ],
+  // Required for Prisma in monorepo - tells Next.js where to find files in packages/
+  outputFileTracingRoot: resolve(__dirname, "../.."),
   turbopack: {
     root: resolve(__dirname, "../.."),
   },
