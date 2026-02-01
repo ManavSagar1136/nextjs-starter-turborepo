@@ -7,7 +7,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { mediaLibraryApi } from "@/services/media-library";
+import { API } from "@/services";
 import type { IAssetListParams, IFolderListParams, IAsset, ITag } from "@buildbase/components/media-library";
 
 // ============================================================================
@@ -35,7 +35,7 @@ export const mediaLibraryKeys = {
 export function useAssets(params?: IAssetListParams, enabled = true) {
   return useQuery({
     queryKey: mediaLibraryKeys.assetList(params),
-    queryFn: () => mediaLibraryApi.getAssets(params),
+    queryFn: () => API.mediaLibrary.getAssets(params),
     enabled,
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
@@ -44,7 +44,7 @@ export function useAssets(params?: IAssetListParams, enabled = true) {
 export function useAsset(assetId: string | null, enabled = true) {
   return useQuery({
     queryKey: mediaLibraryKeys.assetDetail(assetId || ""),
-    queryFn: () => mediaLibraryApi.getAsset(assetId!),
+    queryFn: () => API.mediaLibrary.getAsset(assetId!),
     enabled: enabled && !!assetId,
     staleTime: 1000 * 60 * 2,
   });
@@ -63,7 +63,7 @@ export function useUpdateAsset() {
       folderId?: string | null;
       tags?: string[];
       metadata?: Record<string, unknown>;
-    }) => mediaLibraryApi.updateAsset(assetId, params),
+    }) => API.mediaLibrary.updateAsset(assetId, params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
     },
@@ -75,7 +75,7 @@ export function useDeleteAsset() {
 
   return useMutation({
     mutationFn: ({ assetId, force }: { assetId: string; force?: boolean }) =>
-      mediaLibraryApi.deleteAsset(assetId, force),
+      API.mediaLibrary.deleteAsset(assetId, force),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
     },
@@ -87,7 +87,7 @@ export function useToggleAssetPrivacy() {
 
   return useMutation({
     mutationFn: ({ assetId, makePublic }: { assetId: string; makePublic: boolean }) =>
-      mediaLibraryApi.toggleAssetPrivacy(assetId, makePublic),
+      API.mediaLibrary.toggleAssetPrivacy(assetId, makePublic),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
     },
@@ -99,7 +99,7 @@ export function useMoveAssetToFolder() {
 
   return useMutation({
     mutationFn: ({ assetId, folderId }: { assetId: string; folderId: string | null }) =>
-      mediaLibraryApi.moveAssetToFolder(assetId, folderId),
+      API.mediaLibrary.moveAssetToFolder(assetId, folderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.folders() });
@@ -112,7 +112,7 @@ export function useAssignTagsToAsset() {
 
   return useMutation({
     mutationFn: ({ assetId, tagIds }: { assetId: string; tagIds: string[] }) =>
-      mediaLibraryApi.assignTagsToAsset(assetId, tagIds),
+      API.mediaLibrary.assignTagsToAsset(assetId, tagIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
     },
@@ -126,7 +126,7 @@ export function useAssignTagsToAsset() {
 export function useFolderTree(enabled = true) {
   return useQuery({
     queryKey: mediaLibraryKeys.folderTree(),
-    queryFn: () => mediaLibraryApi.getFolderTree(),
+    queryFn: () => API.mediaLibrary.getFolderTree(),
     enabled,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -135,7 +135,7 @@ export function useFolderTree(enabled = true) {
 export function useFolders(params?: IFolderListParams, enabled = true) {
   return useQuery({
     queryKey: mediaLibraryKeys.folderList(params),
-    queryFn: () => mediaLibraryApi.getFolders(params),
+    queryFn: () => API.mediaLibrary.getFolders(params),
     enabled,
     staleTime: 1000 * 60 * 2,
   });
@@ -144,7 +144,7 @@ export function useFolders(params?: IFolderListParams, enabled = true) {
 export function useFolder(folderId: string | null, enabled = true) {
   return useQuery({
     queryKey: mediaLibraryKeys.folderDetail(folderId || ""),
-    queryFn: () => mediaLibraryApi.getFolder(folderId!),
+    queryFn: () => API.mediaLibrary.getFolder(folderId!),
     enabled: enabled && !!folderId,
     staleTime: 1000 * 60 * 2,
   });
@@ -155,7 +155,7 @@ export function useCreateFolder() {
 
   return useMutation({
     mutationFn: (params: { name: string; parentFolderId?: string | null; description?: string }) =>
-      mediaLibraryApi.createFolder(params),
+      API.mediaLibrary.createFolder(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.folders() });
     },
@@ -167,7 +167,7 @@ export function useUpdateFolder() {
 
   return useMutation({
     mutationFn: ({ folderId, ...params }: { folderId: string; name?: string; description?: string }) =>
-      mediaLibraryApi.updateFolder(folderId, params),
+      API.mediaLibrary.updateFolder(folderId, params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.folders() });
     },
@@ -179,7 +179,7 @@ export function useDeleteFolder() {
 
   return useMutation({
     mutationFn: ({ folderId, recursive }: { folderId: string; recursive?: boolean }) =>
-      mediaLibraryApi.deleteFolder(folderId, recursive),
+      API.mediaLibrary.deleteFolder(folderId, recursive),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.folders() });
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
@@ -192,7 +192,7 @@ export function useMoveFolder() {
 
   return useMutation({
     mutationFn: ({ folderId, targetParentFolderId }: { folderId: string; targetParentFolderId: string | null }) =>
-      mediaLibraryApi.moveFolder(folderId, targetParentFolderId),
+      API.mediaLibrary.moveFolder(folderId, targetParentFolderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.folders() });
     },
@@ -206,7 +206,7 @@ export function useMoveFolder() {
 export function useTags(params?: { search?: string }, enabled = true) {
   return useQuery({
     queryKey: mediaLibraryKeys.tagList(params),
-    queryFn: () => mediaLibraryApi.getTags(params),
+    queryFn: () => API.mediaLibrary.getTags(params),
     enabled,
     staleTime: 1000 * 60 * 5,
   });
@@ -216,7 +216,7 @@ export function useCreateTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: { name: string; color?: string }) => mediaLibraryApi.createTag(params),
+    mutationFn: (params: { name: string; color?: string }) => API.mediaLibrary.createTag(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.tags() });
     },
@@ -228,7 +228,7 @@ export function useUpdateTag() {
 
   return useMutation({
     mutationFn: ({ tagId, ...params }: { tagId: string; name?: string; color?: string }) =>
-      mediaLibraryApi.updateTag(tagId, params),
+      API.mediaLibrary.updateTag(tagId, params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.tags() });
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
@@ -240,7 +240,7 @@ export function useDeleteTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (tagId: string) => mediaLibraryApi.deleteTag(tagId),
+    mutationFn: (tagId: string) => API.mediaLibrary.deleteTag(tagId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.tags() });
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
@@ -257,7 +257,7 @@ export function useUploadAsset() {
 
   return useMutation({
     mutationFn: ({ file, options }: { file: File; options?: { folderId?: string | null; makePublic?: boolean } }) =>
-      mediaLibraryApi.uploadAsset(file, options),
+      API.mediaLibrary.uploadAsset(file, options),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaLibraryKeys.assets() });
     },
