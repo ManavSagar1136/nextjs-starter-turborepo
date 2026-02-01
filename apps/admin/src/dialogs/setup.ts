@@ -11,10 +11,21 @@
  */
 
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
-import { MEDIA_LIBRARY_DIALOG_KEYS, MediaUploadDialog } from "@buildbase/dialog-manager";
 import type { DialogComponentMap } from "@buildbase/dialog-manager";
-import type { MediaUploadDialogProps } from "@buildbase/dialog-manager";
-import React from "react";
+
+// Media Library Dialogs
+import {
+  CreateFolderDialog,
+  EditFolderDialog,
+  MoveFolderDialog,
+  CreateTagDialog,
+  EditTagDialog,
+  AssignTagsDialog,
+  MoveAssetDialog,
+  MediaUploadDialog,
+  AssetPreviewDialog,
+  MEDIA_LIBRARY_DIALOG_KEYS,
+} from "@buildbase/dialog-manager/media-library";
 
 /**
  * Define your app's dialog component map type.
@@ -30,7 +41,15 @@ import React from "react";
  */
 export type AdminAppDialogs = {
   // Media library dialogs
-  [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: React.ComponentType<MediaUploadDialogProps>;
+  [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: typeof CreateFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: typeof EditFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER]: typeof MoveFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG]: typeof CreateTagDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG]: typeof EditTagDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS]: typeof AssignTagsDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: typeof MoveAssetDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: typeof MediaUploadDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: typeof AssetPreviewDialog;
   // Add your dialog keys here using ADMIN_DIALOG_KEYS constants
   // Example:
   // [ADMIN_DIALOG_KEYS.CREATE_USER]: typeof CreateUserDialog;
@@ -41,14 +60,31 @@ export type AdminAppDialogs = {
  * Setup dialogs for the admin app
  * This function should be called once when the app initializes
  */
+/**
+ * Setup dialogs for the admin app
+ * This function should be called once when the app initializes
+ */
 export function setupAdminDialogs() {
-  // Register frequently used dialogs (eager load)
-  // These dialogs are loaded immediately when the app starts
+  // Type assertion needed because dialog props have required callbacks
+  // that are provided when openDialog is called, not at registration time
+  const dialogs = {
+    // Media Library dialogs
+    [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: CreateFolderDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: EditFolderDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER]: MoveFolderDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG]: CreateTagDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG]: EditTagDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS]: AssignTagsDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
+    [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
+  } as unknown as DialogComponentMap;
+
   setupAppDialogs<AdminAppDialogs>({
-    dialogs: {
-      // Media/Asset upload dialog - reusable across admin app
-      [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog as any,
-    },
+    dialogs,
     initializeCommon: true, // Initialize confirmation & alert dialogs
   });
 }
+
+// Re-export dialog keys for convenience
+export { MEDIA_LIBRARY_DIALOG_KEYS };

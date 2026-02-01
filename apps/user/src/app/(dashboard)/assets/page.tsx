@@ -8,6 +8,8 @@ import {
   type CreateFolderDialogProps,
   type EditFolderDialogProps,
   type MoveFolderDialogProps,
+  type CreateTagDialogProps,
+  type EditTagDialogProps,
   type MoveAssetDialogProps,
   type AssignTagsDialogProps,
   type MediaUploadDialogProps,
@@ -15,7 +17,7 @@ import {
 } from "@buildbase/dialog-manager/media-library";
 import { useDialogManager, COMMON_DIALOG_KEYS, type ConfirmationDialogProps } from "@buildbase/dialog-manager";
 
-import { mediaLibraryApi } from "@/services/media-library";
+import { API } from "@/services";
 import {
   useAssets,
   useFolderTree,
@@ -29,6 +31,9 @@ import {
   useMoveAssetToFolder,
   useAssignTagsToAsset,
   useUploadAsset,
+  useCreateTag,
+  useUpdateTag,
+  useDeleteTag,
 } from "@/hooks/use-media-library";
 
 // ============================================================================
@@ -48,6 +53,9 @@ function AssetsPageContent() {
   const moveAssetToFolder = useMoveAssetToFolder();
   const assignTags = useAssignTagsToAsset();
   const uploadAsset = useUploadAsset();
+  const createTag = useCreateTag();
+  const updateTag = useUpdateTag();
+  const deleteTag = useDeleteTag();
 
   // Queries for dialogs
   const folderTreeQuery = useFolderTree();
@@ -122,6 +130,56 @@ function AssetsPageContent() {
       } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
     },
     [openDialog, deleteFolder]
+  );
+
+  // ============================================================================
+  // Tag Dialogs
+  // ============================================================================
+
+  const openCreateTag = useCallback(() => {
+    openDialog(MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG, {
+      isLoading: createTag.isPending,
+      onCreateTag: async (data: { name: string; color?: string }) => {
+        await createTag.mutateAsync(data);
+      },
+    } as Omit<CreateTagDialogProps, "open" | "onOpenChange">);
+  }, [openDialog, createTag]);
+
+  const openEditTag = useCallback(
+    (tag: { id: string; name: string; color?: string | null }) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG, {
+        tagId: tag.id,
+        currentName: tag.name,
+        currentColor: tag.color || undefined,
+        isLoading: updateTag.isPending,
+        onUpdateTag: async (data: { name?: string; color?: string }) => {
+          await updateTag.mutateAsync({ tagId: tag.id, ...data });
+        },
+      } as Omit<EditTagDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, updateTag]
+  );
+
+  const handleDeleteTag = useCallback(
+    (tag: { id: string; name: string }) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "tag",
+        itemName: tag.name,
+        actionPayload: tag,
+        confirmButtonProps: {
+          onAction: async () => {
+            try {
+              await deleteTag.mutateAsync(tag.id);
+              return { success: true, message: "Tag deleted successfully" };
+            } catch (error) {
+              return { success: false, message: "Failed to delete tag" };
+            }
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, deleteTag]
   );
 
   // ============================================================================
@@ -297,16 +355,46 @@ export default function AssetsPage() {
   const folderTreeQuery = useFolderTree();
   const tagsQuery = useTags();
 
+  // Mutations for provider handlers
+  const deleteAssetMutation = useDeleteAsset();
+  const togglePrivacyMutation = useToggleAssetPrivacy();
+  const moveAssetToFolderMutation = useMoveAssetToFolder();
+  const assignTagsMutation = useAssignTagsToAsset();
+
   const { openDialog } = useDialogManager();
 
   // Asset action handlers for provider
-  const handleDeleteAsset = useCallback((asset: IAsset) => {
-    // Will be handled by AssetsPageContent
-  }, []);
+  const handleDeleteAsset = useCallback(
+    (asset: IAsset) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "asset",
+        itemName: asset.filename || asset.name,
+        actionPayload: asset,
+        confirmButtonProps: {
+          onAction: async () => {
+            try {
+              await deleteAssetMutation.mutateAsync({ assetId: asset.id });
+              return { success: true, message: "Asset deleted successfully" };
+            } catch (error) {
+              return { success: false, message: "Failed to delete asset" };
+            }
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, deleteAssetMutation]
+  );
 
-  const handleTogglePrivacy = useCallback(async (asset: IAsset) => {
-    // Will be handled by AssetsPageContent
-  }, []);
+  const handleTogglePrivacy = useCallback(
+    async (asset: IAsset) => {
+      await togglePrivacyMutation.mutateAsync({
+        assetId: asset.id,
+        makePublic: !asset.isPublic,
+      });
+    },
+    [togglePrivacyMutation]
+  );
 
   const handlePreviewAsset = useCallback(
     (asset: IAsset) => {
@@ -331,10 +419,12 @@ export default function AssetsPage() {
         currentFolderPath: asset.folder?.name || "Root (No Folder)",
         folderTree: folderTreeQuery.data || [],
         isLoadingTree: folderTreeQuery.isLoading,
-        onMoveAsset: async () => {},
+        onMoveAsset: async (targetFolderId: string | null) => {
+          await moveAssetToFolderMutation.mutateAsync({ assetId: asset.id, folderId: targetFolderId });
+        },
       } as Omit<MoveAssetDialogProps, "open" | "onOpenChange">);
     },
-    [openDialog, folderTreeQuery]
+    [openDialog, folderTreeQuery, moveAssetToFolderMutation]
   );
 
   const handleAssignTags = useCallback(
@@ -344,15 +434,17 @@ export default function AssetsPage() {
         currentTags: asset.tags || [],
         allTags: tagsQuery.data?.docs || [],
         isLoadingTags: tagsQuery.isLoading,
-        onSaveTags: async () => {},
+        onSaveTags: async (tagIds: string[]) => {
+          await assignTagsMutation.mutateAsync({ assetId: asset.id, tagIds });
+        },
       } as Omit<AssignTagsDialogProps, "open" | "onOpenChange">);
     },
-    [openDialog, tagsQuery]
+    [openDialog, tagsQuery, assignTagsMutation]
   );
 
   return (
     <MediaLibraryProvider
-      api={mediaLibraryApi}
+      api={API.mediaLibrary}
       assets={assetsQuery.data || null}
       folderTree={folderTreeQuery.data || []}
       tags={tagsQuery.data?.docs || []}

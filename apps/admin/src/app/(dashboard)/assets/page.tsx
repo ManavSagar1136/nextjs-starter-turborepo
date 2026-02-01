@@ -1,635 +1,467 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@buildbase/ui/components/ui/button";
-import { Image, Plus, Trash2, Eye, Download, Search, Filter } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
-import { Badge } from "@buildbase/ui/components/ui/badge";
-import { Input } from "@buildbase/ui/components/ui/input";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
-import { useDialogManager, MEDIA_LIBRARY_DIALOG_KEYS } from "@buildbase/dialog-manager";
-import type { UploadedFile } from "@buildbase/dialog-manager/media-library";
-import { API } from "@/services";
-import type { Asset } from "@/services/assets";
+import { useState, useCallback } from "react";
+import { MediaLibrary, MediaLibraryProvider, type IAsset, type IFolderTreeItem } from "@buildbase/components/media-library";
+import {
+  MEDIA_LIBRARY_DIALOG_KEYS,
+  type UploadedFile,
+  type CreateFolderDialogProps,
+  type EditFolderDialogProps,
+  type MoveFolderDialogProps,
+  type CreateTagDialogProps,
+  type EditTagDialogProps,
+  type MoveAssetDialogProps,
+  type AssignTagsDialogProps,
+  type MediaUploadDialogProps,
+  type AssetPreviewDialogProps,
+} from "@buildbase/dialog-manager/media-library";
+import { useDialogManager, COMMON_DIALOG_KEYS, type ConfirmationDialogProps } from "@buildbase/dialog-manager";
 
-const AssetsPage = () => {
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshCounter, setRefreshCounter] = useState(0);
-  const [previewAsset, setPreviewAsset] = useState<Asset | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalDocs, setTotalDocs] = useState(0);
-  const [uploadFiles, setUploadFiles] = useState<UploadedFile[]>([]);
+import { API } from "@/services";
+import {
+  useAssets,
+  useFolderTree,
+  useTags,
+  useCreateFolder,
+  useUpdateFolder,
+  useDeleteFolder,
+  useMoveFolder,
+  useDeleteAsset,
+  useToggleAssetPrivacy,
+  useMoveAssetToFolder,
+  useAssignTagsToAsset,
+  useUploadAsset,
+  useCreateTag,
+  useUpdateTag,
+  useDeleteTag,
+} from "@/hooks/use-media-library";
+
+// ============================================================================
+// Assets Page Content (with provider context)
+// ============================================================================
+
+function AssetsPageContent() {
   const { openDialog } = useDialogManager();
 
-  const fetchAssets = async (page: number = 1, search?: string) => {
-    try {
-      setIsLoading(true);
-      const data = await API.assets.list({
-        page,
-        limit: 20,
-        search: search || undefined,
-      });
-      setAssets(data.docs || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalDocs(data.totalDocs || 0);
-    } catch (error) {
-      console.error("Failed to fetch assets:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Mutations
+  const createFolder = useCreateFolder();
+  const updateFolder = useUpdateFolder();
+  const deleteFolder = useDeleteFolder();
+  const moveFolder = useMoveFolder();
+  const deleteAsset = useDeleteAsset();
+  const togglePrivacy = useToggleAssetPrivacy();
+  const moveAssetToFolder = useMoveAssetToFolder();
+  const assignTags = useAssignTagsToAsset();
+  const uploadAsset = useUploadAsset();
+  const createTag = useCreateTag();
+  const updateTag = useUpdateTag();
+  const deleteTag = useDeleteTag();
 
-  useEffect(() => {
-    fetchAssets(currentPage, searchQuery);
-  }, [refreshCounter, currentPage]);
+  // Queries for dialogs
+  const folderTreeQuery = useFolderTree();
+  const tagsQuery = useTags();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchAssets(1, searchQuery);
-  };
+  // ============================================================================
+  // Folder Dialogs
+  // ============================================================================
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this asset?")) return;
-
-    try {
-      await API.assets.remove(id);
-      setRefreshCounter(prev => prev + 1);
-    } catch (error) {
-      console.error("Failed to delete asset:", error);
-      alert("Failed to delete asset. Please try again.");
-    }
-  };
-
-  const handlePreview = async (asset: Asset) => {
-    try {
-      const fullAsset = await API.assets.getById(asset.id);
-      setPreviewAsset(fullAsset);
-      setIsPreviewOpen(true);
-    } catch (error) {
-      console.error("Failed to fetch asset for preview:", error);
-    }
-  };
-
-  const handleDownload = (asset: Asset) => {
-    if (asset.url) {
-      window.open(asset.url, "_blank");
-    } else {
-      alert("Download URL not available for this asset");
-    }
-  };
-
-  // Handle file selection - initialize upload files state
-  const handleFilesSelected = (files: File[]) => {
-    const uploadedFiles: UploadedFile[] = files.map((file, index) => ({
-      id: `upload-${Date.now()}-${index}`,
-      file,
-      status: "pending",
-      progress: 0,
-    }));
-    setUploadFiles(uploadedFiles);
-  };
-
-  // Handle file removal
-  const handleFileRemove = (fileId: string) => {
-    setUploadFiles(prev => prev.filter(f => f.id !== fileId));
-  };
-
-  // Upload file with progress tracking
-  const uploadFileWithProgress = async (
-    file: File,
-    fileId: string,
-    onProgress: (progress: number) => void,
-    onStatusChange: (status: "uploading" | "completed" | "error", error?: string) => void
-  ): Promise<{ success: boolean; error?: string; result?: { id: string; url: string; path: string } }> => {
-    try {
-      // Step 1: Get signed upload URL
-      onStatusChange("uploading");
-      onProgress(10);
-
-      const uploadResponse = await fetch("/api/assets/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+  const openCreateFolder = useCallback(
+    (parentFolderId?: string | null, parentFolderName?: string | null) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER, {
+        parentFolderId,
+        parentFolderName,
+        isLoading: createFolder.isPending,
+        onCreateFolder: async (data: { name: string; description?: string; parentFolderId?: string | null }) => {
+          await createFolder.mutateAsync(data);
         },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-          size: file.size,
-        }),
-      });
+      } as Omit<CreateFolderDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, createFolder]
+  );
 
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to get upload URL");
-      }
+  const openEditFolder = useCallback(
+    (folder: IFolderTreeItem) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER, {
+        folderId: folder.id,
+        currentName: folder.name,
+        currentDescription: (folder as IFolderTreeItem & { description?: string | null }).description,
+        isLoading: updateFolder.isPending,
+        onUpdateFolder: async (data: { name: string; description?: string }) => {
+          await updateFolder.mutateAsync({ folderId: folder.id, ...data });
+        },
+      } as Omit<EditFolderDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, updateFolder]
+  );
 
-      const { data: uploadData } = await uploadResponse.json();
-      const { url: signedUrl, path } = uploadData;
-      onProgress(20);
+  const openMoveFolder = useCallback(
+    (folder: IFolderTreeItem) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER, {
+        folderId: folder.id,
+        folderName: folder.name,
+        folderTree: folderTreeQuery.data || [],
+        isLoadingTree: folderTreeQuery.isLoading,
+        isLoading: moveFolder.isPending,
+        onMoveFolder: async (targetParentFolderId: string | null) => {
+          await moveFolder.mutateAsync({ folderId: folder.id, targetParentFolderId });
+        },
+      } as Omit<MoveFolderDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, moveFolder, folderTreeQuery]
+  );
 
-      // Step 2: Upload directly to storage with progress tracking
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener("progress", e => {
-          if (e.lengthComputable) {
-            // Progress from 20% to 80% (uploading to storage)
-            const uploadProgress = 20 + (e.loaded / e.total) * 60;
-            onProgress(Math.round(uploadProgress));
-          }
-        });
-
-        xhr.addEventListener("load", async () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            onProgress(80);
-
+  const handleDeleteFolder = useCallback(
+    (folder: IFolderTreeItem) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "folder",
+        itemName: folder.name,
+        actionPayload: folder,
+        confirmButtonProps: {
+          onAction: async () => {
             try {
-              // Step 3: Complete upload (create asset record)
-              const completeResponse = await fetch("/api/assets/upload/complete", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  path,
-                  filename: file.name,
-                  contentType: file.type,
-                  size: file.size,
-                  makePublic: false,
-                }),
-              });
-
-              if (!completeResponse.ok) {
-                const errorData = await completeResponse.json().catch(() => ({}));
-                throw new Error(errorData.message || "Failed to complete upload");
-              }
-
-              const { data: completeData } = await completeResponse.json();
-              onProgress(100);
-              onStatusChange("completed");
-
-              resolve({
-                success: true,
-                result: {
-                  id: completeData.id,
-                  url: completeData.url,
-                  path: completeData.path,
-                },
-              });
+              await deleteFolder.mutateAsync({ folderId: folder.id, recursive: true });
+              return { success: true, message: "Folder deleted successfully" };
             } catch (error) {
-              onStatusChange("error", error instanceof Error ? error.message : "Failed to complete upload");
-              reject(error);
+              return { success: false, message: "Failed to delete folder" };
             }
-          } else {
-            onStatusChange("error", `Upload failed with status ${xhr.status}`);
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
-        });
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, deleteFolder]
+  );
 
-        xhr.addEventListener("error", () => {
-          onStatusChange("error", "Network error during upload");
-          reject(new Error("Network error during upload"));
-        });
+  // ============================================================================
+  // Tag Dialogs
+  // ============================================================================
 
-        xhr.addEventListener("abort", () => {
-          onStatusChange("error", "Upload aborted");
-          reject(new Error("Upload aborted"));
-        });
+  const openCreateTag = useCallback(() => {
+    openDialog(MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG, {
+      isLoading: createTag.isPending,
+      onCreateTag: async (data: { name: string; color?: string }) => {
+        await createTag.mutateAsync(data);
+      },
+    } as Omit<CreateTagDialogProps, "open" | "onOpenChange">);
+  }, [openDialog, createTag]);
 
-        xhr.open("PUT", signedUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.send(file);
-      });
-    } catch (error) {
-      onStatusChange("error", error instanceof Error ? error.message : "Unknown error");
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  };
+  const openEditTag = useCallback(
+    (tag: { id: string; name: string; color?: string | null }) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG, {
+        tagId: tag.id,
+        currentName: tag.name,
+        currentColor: tag.color || undefined,
+        isLoading: updateTag.isPending,
+        onUpdateTag: async (data: { name?: string; color?: string }) => {
+          await updateTag.mutateAsync({ tagId: tag.id, ...data });
+        },
+      } as Omit<EditTagDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, updateTag]
+  );
 
-  const handleOpenUploadDialog = () => {
-    // Reset upload files when opening dialog
-    setUploadFiles([]);
+  const handleDeleteTag = useCallback(
+    (tag: { id: string; name: string }) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "tag",
+        itemName: tag.name,
+        actionPayload: tag,
+        confirmButtonProps: {
+          onAction: async () => {
+            try {
+              await deleteTag.mutateAsync(tag.id);
+              return { success: true, message: "Tag deleted successfully" };
+            } catch (error) {
+              return { success: false, message: "Failed to delete tag" };
+            }
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, deleteTag]
+  );
 
-    openDialog(MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD, {
-      isUploading: uploadFiles.some(f => f.status === "uploading"),
-      acceptedTypes: "image/*,video/*,audio/*,application/pdf,application/*,text/*",
-      maxFileSize: 100 * 1024 * 1024, // 100MB
-      maxFiles: 10,
-      files: uploadFiles,
-      onFilesSelected: handleFilesSelected,
-      onRemoveFile: handleFileRemove,
-      onUpload: handleUpload,
-      onComplete: handleUploadComplete,
-    } as any);
-  };
+  // ============================================================================
+  // Asset Dialogs
+  // ============================================================================
 
-  const handleUpload = async (files: File[]) => {
-    // If files were just selected, initialize upload files state
-    if (uploadFiles.length === 0 && files.length > 0) {
-      const initialFiles: UploadedFile[] = files.map((file, index) => ({
-        id: `upload-${Date.now()}-${index}`,
+  const openMoveAsset = useCallback(
+    (asset: IAsset) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET, {
+        assetId: asset.id,
+        assetName: asset.filename || asset.name,
+        currentFolderId: asset.folder?.id,
+        currentFolderPath: asset.folder?.name || "Root (No Folder)",
+        folderTree: folderTreeQuery.data || [],
+        isLoadingTree: folderTreeQuery.isLoading,
+        isLoading: moveAssetToFolder.isPending,
+        onMoveAsset: async (targetFolderId: string | null) => {
+          await moveAssetToFolder.mutateAsync({ assetId: asset.id, folderId: targetFolderId });
+        },
+      } as Omit<MoveAssetDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, moveAssetToFolder, folderTreeQuery]
+  );
+
+  const openAssignTags = useCallback(
+    (asset: IAsset) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS, {
+        assetId: asset.id,
+        currentTags: asset.tags || [],
+        allTags: tagsQuery.data?.docs || [],
+        isLoadingTags: tagsQuery.isLoading,
+        tagsError: tagsQuery.error ? "Failed to load tags" : undefined,
+        onRetryLoadTags: () => tagsQuery.refetch(),
+        isLoading: assignTags.isPending,
+        onSaveTags: async (tagIds: string[]) => {
+          await assignTags.mutateAsync({ assetId: asset.id, tagIds });
+        },
+      } as Omit<AssignTagsDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, assignTags, tagsQuery]
+  );
+
+  const handleDeleteAsset = useCallback(
+    (asset: IAsset) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "asset",
+        itemName: asset.filename || asset.name,
+        actionPayload: asset,
+        confirmButtonProps: {
+          onAction: async () => {
+            try {
+              await deleteAsset.mutateAsync({ assetId: asset.id });
+              return { success: true, message: "Asset deleted successfully" };
+            } catch (error) {
+              return { success: false, message: "Failed to delete asset" };
+            }
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, deleteAsset]
+  );
+
+  // ============================================================================
+  // Upload Dialog
+  // ============================================================================
+
+  const openUpload = useCallback(() => {
+    let uploadFiles: UploadedFile[] = [];
+    let isUploading = false;
+
+    const handleUpload = async (files: File[]) => {
+      isUploading = true;
+
+      // Initialize upload files
+      uploadFiles = files.map((file, i) => ({
+        id: `upload-${Date.now()}-${i}`,
         file,
-        status: "pending",
+        status: "pending" as const,
         progress: 0,
       }));
-      setUploadFiles(initialFiles);
 
-      // Start uploading immediately
-      await uploadFilesToStorage(initialFiles);
-      return;
-    }
+      // Upload files sequentially
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]!;
 
-    // If upload files already exist, start uploading
-    if (uploadFiles.length > 0) {
-      await uploadFilesToStorage(uploadFiles);
-    }
-  };
+        try {
+          await uploadAsset.mutateAsync({ file });
+        } catch (error) {
+          console.error("Upload error:", error);
+        }
+      }
 
-  const uploadFilesToStorage = async (filesToUpload: UploadedFile[]) => {
-    // Upload all files with progress tracking
-    const uploadPromises = filesToUpload.map(async uploadedFile => {
-      const file = uploadedFile.file;
-      const fileId = uploadedFile.id;
+      isUploading = false;
+    };
 
-      return uploadFileWithProgress(
-        file,
-        fileId,
-        progress => {
-          // Update progress for this file
-          setUploadFiles(prev =>
-            prev.map(f => (f.id === fileId ? { ...f, progress, status: "uploading" as const } : f))
-          );
+    openDialog(MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD, {
+      isUploading,
+      files: uploadFiles,
+      onUpload: handleUpload,
+      onComplete: () => {
+        // Dialog will close automatically
+      },
+    } as Omit<MediaUploadDialogProps, "open" | "onOpenChange">);
+  }, [openDialog, uploadAsset]);
+
+  // ============================================================================
+  // Preview Dialog
+  // ============================================================================
+
+  const openPreview = useCallback(
+    (asset: IAsset) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW, {
+        asset,
+        onDownload: () => window.open(asset.url, "_blank"),
+        onMove: () => openMoveAsset(asset),
+        onAssignTags: () => openAssignTags(asset),
+        onTogglePrivacy: async () => {
+          await togglePrivacy.mutateAsync({
+            assetId: asset.id,
+            makePublic: !asset.isPublic,
+          });
         },
-        (status, error) => {
-          // Update status for this file
-          setUploadFiles(prev =>
-            prev.map(f =>
-              f.id === fileId
-                ? {
-                    ...f,
-                    status,
-                    progress: status === "completed" ? 100 : f.progress,
-                    error,
-                  }
-                : f
-            )
-          );
-        }
-      ).then(result => {
-        if (result.success && result.result) {
-          // Update file with result
-          setUploadFiles(prev =>
-            prev.map(f =>
-              f.id === fileId ? { ...f, result: result.result, status: "completed" as const, progress: 100 } : f
-            )
-          );
-        }
-        return result;
+        onDelete: () => handleDeleteAsset(asset),
+      } as Omit<AssetPreviewDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, openMoveAsset, openAssignTags, togglePrivacy, handleDeleteAsset]
+  );
+
+  // ============================================================================
+  // Toggle Privacy
+  // ============================================================================
+
+  const handleTogglePrivacy = useCallback(
+    async (asset: IAsset) => {
+      await togglePrivacy.mutateAsync({
+        assetId: asset.id,
+        makePublic: !asset.isPublic,
       });
-    });
-
-    try {
-      const results = await Promise.all(uploadPromises);
-      const successful = results.filter(r => r.success).length;
-      const failed = results.filter(r => !r.success);
-
-      if (failed.length > 0) {
-        console.error(
-          "Some uploads failed:",
-          results.filter(r => !r.success)
-        );
-      }
-
-      // Refresh assets list if any uploads succeeded
-      if (successful > 0) {
-        setRefreshCounter(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-    }
-  };
-
-  const handleUploadComplete = () => {
-    setUploadFiles([]);
-    setRefreshCounter(prev => prev + 1);
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
-
-  const getContentTypeBadge = (contentType: string) => {
-    if (contentType.startsWith("image/")) {
-      return <Badge variant="default">Image</Badge>;
-    }
-    if (contentType.startsWith("video/")) {
-      return <Badge variant="secondary">Video</Badge>;
-    }
-    if (contentType.startsWith("audio/")) {
-      return <Badge variant="outline">Audio</Badge>;
-    }
-    if (contentType.includes("pdf")) {
-      return <Badge variant="destructive">PDF</Badge>;
-    }
-    return <Badge variant="outline">{contentType.split("/")[0]}</Badge>;
-  };
+    },
+    [togglePrivacy]
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold">
-              <Image className="h-5 w-5" />
-              Assets
-            </h1>
-            <p className="text-muted-foreground mt-1">Manage and organize your assets</p>
-          </div>
-          <Button onClick={handleOpenUploadDialog}>
-            <Plus className="mr-2 h-4 w-4" />
-            Upload Asset
-          </Button>
-        </div>
-
-        {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-            <Input
-              type="text"
-              placeholder="Search assets by filename..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Button type="submit" variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
-            Search
-          </Button>
-        </form>
-
-        {isLoading ? (
-          <div className="text-muted-foreground py-8 text-center">Loading assets...</div>
-        ) : assets.length === 0 ? (
-          <div className="text-muted-foreground py-8 text-center">
-            No assets found. Upload your first asset to get started.
-          </div>
-        ) : (
-          <>
-            <div className="rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Filename</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Workspace</TableHead>
-                    <TableHead>Uploaded By</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {assets.map(asset => (
-                    <TableRow key={asset.id}>
-                      <TableCell className="max-w-xs truncate font-medium" title={asset.filename}>
-                        {asset.filename}
-                      </TableCell>
-                      <TableCell>{getContentTypeBadge(asset.contentType)}</TableCell>
-                      <TableCell>{formatFileSize(asset.size)}</TableCell>
-                      <TableCell>
-                        <Badge variant={asset.isPublic ? "default" : "secondary"}>
-                          {asset.isPublic ? "Public" : "Private"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {asset.workspace ? (
-                          <span className="text-sm">{asset.workspace.name || asset.workspace.id}</span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {asset.user ? (
-                          <span className="text-sm">{asset.user.name || asset.user.email || "-"}</span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {asset.createdAt && (
-                          <span title={new Date(asset.createdAt).toLocaleString()} className="text-sm">
-                            {new Date(asset.createdAt).toLocaleDateString()}{" "}
-                            {new Date(asset.createdAt).toLocaleTimeString()}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handlePreview(asset)} title="Preview">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-
-                          <Button variant="ghost" size="sm" onClick={() => handleDownload(asset)} title="Download">
-                            <Download className="h-4 w-4" />
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(asset.id)}
-                            className="text-destructive hover:text-destructive"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <div className="text-muted-foreground text-sm">
-                  Showing {assets.length} of {totalDocs} assets
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Preview Sheet */}
-      <Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl lg:max-w-4xl">
-          <SheetHeader>
-            <SheetTitle>{previewAsset?.filename || "Asset Preview"}</SheetTitle>
-            <SheetDescription>
-              {previewAsset && (
-                <>
-                  {previewAsset.contentType} • {formatFileSize(previewAsset.size)}
-                </>
-              )}
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="mt-6 space-y-4">
-            {previewAsset && (
-              <>
-                {/* Image Preview */}
-                {previewAsset.contentType.startsWith("image/") && previewAsset.url && (
-                  <div className="space-y-2">
-                    <div className="bg-muted/50 rounded-md border p-4">
-                      <div className="mb-4 flex items-center justify-between">
-                        <div className="text-sm font-medium">Image Preview</div>
-                        <Badge variant="outline" className="text-xs">
-                          {previewAsset.contentType}
-                        </Badge>
-                      </div>
-                      <div className="rounded border bg-white p-4 shadow-sm">
-                        <img
-                          src={previewAsset.url}
-                          alt={previewAsset.filename}
-                          className="max-h-[70vh] w-full object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Asset Details */}
-                <div className="space-y-2">
-                  <div className="bg-muted/50 rounded-md border p-4">
-                    <div className="mb-4 text-sm font-medium">Asset Details</div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Filename:</span>
-                        <span className="font-medium">{previewAsset.filename}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Size:</span>
-                        <span className="font-medium">{formatFileSize(previewAsset.size)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Content Type:</span>
-                        <span className="font-medium">{previewAsset.contentType}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Status:</span>
-                        <Badge variant={previewAsset.isPublic ? "default" : "secondary"}>
-                          {previewAsset.isPublic ? "Public" : "Private"}
-                        </Badge>
-                      </div>
-                      {previewAsset.workspace && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Workspace:</span>
-                          <span className="font-medium">
-                            {previewAsset.workspace.name || previewAsset.workspace.id}
-                          </span>
-                        </div>
-                      )}
-                      {previewAsset.user && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Uploaded By:</span>
-                          <span className="font-medium">
-                            {previewAsset.user.name || previewAsset.user.email || "-"}
-                          </span>
-                        </div>
-                      )}
-                      {previewAsset.folder && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Folder:</span>
-                          <span className="font-medium">{previewAsset.folder.name}</span>
-                        </div>
-                      )}
-                      {previewAsset.tags && previewAsset.tags.length > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Tags:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {previewAsset.tags.map(tag => (
-                              <Badge key={tag.id} variant="outline" style={{ borderColor: tag.color || undefined }}>
-                                {tag.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Created:</span>
-                        <span className="font-medium">{new Date(previewAsset.createdAt).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Updated:</span>
-                        <span className="font-medium">{new Date(previewAsset.updatedAt).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Download Link */}
-                {previewAsset.url && (
-                  <div className="flex justify-end">
-                    <Button onClick={() => handleDownload(previewAsset)}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download Asset
-                    </Button>
-                  </div>
-                )}
-
-                {/* Non-image preview message */}
-                {!previewAsset.contentType.startsWith("image/") && (
-                  <div className="text-muted-foreground py-8 text-center">
-                    Preview not available for this file type. Click download to view the file.
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+    <MediaLibrary
+      className="h-[calc(100vh-4rem)]"
+      onUpload={openUpload}
+      onCreateFolder={() => openCreateFolder()}
+      onEditFolder={openEditFolder}
+      onDeleteFolder={handleDeleteFolder}
+      onMoveFolder={openMoveFolder}
+    />
   );
-};
+}
 
-export default AssetsPage;
+// ============================================================================
+// Main Page (with data fetching)
+// ============================================================================
+
+export default function AssetsPage() {
+  // Fetch data
+  const [queryParams] = useState<{
+    folderId?: string | null;
+    tagIds?: string[];
+    search?: string;
+    contentType?: string[];
+    $page?: number;
+    $limit?: number;
+  }>({ $page: 1, $limit: 20 });
+
+  const assetsQuery = useAssets(queryParams);
+  const folderTreeQuery = useFolderTree();
+  const tagsQuery = useTags();
+
+  // Mutations for provider handlers
+  const deleteAssetMutation = useDeleteAsset();
+  const togglePrivacyMutation = useToggleAssetPrivacy();
+  const moveAssetToFolderMutation = useMoveAssetToFolder();
+  const assignTagsMutation = useAssignTagsToAsset();
+
+  const { openDialog } = useDialogManager();
+
+  // Asset action handlers for provider
+  const handleDeleteAsset = useCallback(
+    (asset: IAsset) => {
+      openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
+        variant: "delete",
+        entity: "asset",
+        itemName: asset.filename || asset.name,
+        actionPayload: asset,
+        confirmButtonProps: {
+          onAction: async () => {
+            try {
+              await deleteAssetMutation.mutateAsync({ assetId: asset.id });
+              return { success: true, message: "Asset deleted successfully" };
+            } catch (error) {
+              return { success: false, message: "Failed to delete asset" };
+            }
+          },
+        },
+      } as Omit<ConfirmationDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, deleteAssetMutation]
+  );
+
+  const handleTogglePrivacy = useCallback(
+    async (asset: IAsset) => {
+      await togglePrivacyMutation.mutateAsync({
+        assetId: asset.id,
+        makePublic: !asset.isPublic,
+      });
+    },
+    [togglePrivacyMutation]
+  );
+
+  const handlePreviewAsset = useCallback(
+    (asset: IAsset) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW, {
+        asset,
+        onDownload: () => window.open(asset.url, "_blank"),
+      } as Omit<AssetPreviewDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog]
+  );
+
+  const handleDownloadAsset = useCallback((asset: IAsset) => {
+    window.open(asset.url, "_blank");
+  }, []);
+
+  const handleMoveAsset = useCallback(
+    (asset: IAsset) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET, {
+        assetId: asset.id,
+        assetName: asset.filename || asset.name,
+        currentFolderId: asset.folder?.id,
+        currentFolderPath: asset.folder?.name || "Root (No Folder)",
+        folderTree: folderTreeQuery.data || [],
+        isLoadingTree: folderTreeQuery.isLoading,
+        onMoveAsset: async (targetFolderId: string | null) => {
+          await moveAssetToFolderMutation.mutateAsync({ assetId: asset.id, folderId: targetFolderId });
+        },
+      } as Omit<MoveAssetDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, folderTreeQuery, moveAssetToFolderMutation]
+  );
+
+  const handleAssignTags = useCallback(
+    (asset: IAsset) => {
+      openDialog(MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS, {
+        assetId: asset.id,
+        currentTags: asset.tags || [],
+        allTags: tagsQuery.data?.docs || [],
+        isLoadingTags: tagsQuery.isLoading,
+        onSaveTags: async (tagIds: string[]) => {
+          await assignTagsMutation.mutateAsync({ assetId: asset.id, tagIds });
+        },
+      } as Omit<AssignTagsDialogProps, "open" | "onOpenChange">);
+    },
+    [openDialog, tagsQuery, assignTagsMutation]
+  );
+
+  return (
+    <MediaLibraryProvider
+      api={API.mediaLibrary}
+      assets={assetsQuery.data || null}
+      folderTree={folderTreeQuery.data || []}
+      tags={tagsQuery.data?.docs || []}
+      isLoadingAssets={assetsQuery.isLoading}
+      isLoadingFolders={folderTreeQuery.isLoading}
+      isLoadingTags={tagsQuery.isLoading}
+      onRefreshAssets={() => assetsQuery.refetch()}
+      onRefreshFolders={() => folderTreeQuery.refetch()}
+      onRefreshTags={() => tagsQuery.refetch()}
+      onDeleteAsset={handleDeleteAsset}
+      onTogglePrivacy={handleTogglePrivacy}
+      onPreviewAsset={handlePreviewAsset}
+      onDownloadAsset={handleDownloadAsset}
+      onMoveAsset={handleMoveAsset}
+      onAssignTags={handleAssignTags}
+    >
+      <AssetsPageContent />
+    </MediaLibraryProvider>
+  );
+}
