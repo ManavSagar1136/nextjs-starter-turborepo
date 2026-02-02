@@ -114,7 +114,7 @@ describe("useAssetQueryParams", () => {
     );
 
     expect(screen.getByTestId("page")).toHaveTextContent("1");
-    expect(screen.getByTestId("limit")).toHaveTextContent("20");
+    expect(screen.getByTestId("limit")).toHaveTextContent("10");
     expect(screen.getByTestId("search")).toHaveTextContent("none");
   });
 });
