@@ -76,13 +76,15 @@ function AssetsPageContent() {
       openDialog(MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER, {
         parentFolderId,
         parentFolderName,
+        folderTree: folderTreeQuery.data || [],
+        isLoadingTree: folderTreeQuery.isLoading,
         isLoading: createFolder.isPending,
         onCreateFolder: async (data: { name: string; description?: string; parentFolderId?: string | null }) => {
           await createFolder.mutateAsync(data);
         },
       } as Omit<CreateFolderDialogProps, "open" | "onOpenChange">);
     },
-    [openDialog, createFolder]
+    [openDialog, createFolder, folderTreeQuery]
   );
 
   const openEditFolder = useCallback(

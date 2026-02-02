@@ -17,6 +17,7 @@ export interface IFolder {
   name: string;
   description?: string | null;
   parentFolderId?: string | null;
+  parent?: { id: string; name: string } | null;
   path?: Array<{ id: string; name: string }>;
   children?: IFolder[];
   _count?: {
@@ -28,6 +29,7 @@ export interface IFolder {
 export interface IFolderTreeItem {
   id: string;
   name: string;
+  parentFolderId?: string | null;
   children?: IFolderTreeItem[];
   _count?: {
     assets?: number;

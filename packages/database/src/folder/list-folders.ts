@@ -44,6 +44,9 @@ export async function listFolders(options: ListFoldersOptions): Promise<Paginate
             children: true,
           },
         },
+        parent: {
+          select: { id: true, name: true },
+        },
       },
       orderBy: { name: "asc" },
       skip,
@@ -57,6 +60,7 @@ export async function listFolders(options: ListFoldersOptions): Promise<Paginate
     name: folder.name,
     description: folder.description,
     parentFolderId: folder.parentFolderId,
+    parent: folder.parent,
     _count: folder._count,
     createdAt: folder.createdAt.toISOString(),
     updatedAt: folder.updatedAt.toISOString(),
