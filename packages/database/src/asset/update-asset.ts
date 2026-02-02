@@ -94,4 +94,14 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
       metadata: data.metadata,
     });
   }
+
+  // Update asset isPublic if provided
+  if (data.isPublic !== undefined) {
+    if (typeof data.isPublic !== "boolean") {
+      throw new Error("isPublic must be a boolean");
+    }
+    await AssetsRepository.update(id, {
+      isPublic: data.isPublic,
+    });
+  }
 }

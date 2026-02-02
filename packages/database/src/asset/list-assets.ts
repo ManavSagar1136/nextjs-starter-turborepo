@@ -116,12 +116,6 @@ export async function listAssets(options: ListAssetsOptions = {}): Promise<Pagin
           tag: { id: string; name: string; slug: string; color: string | null } | null
         ): tag is { id: string; name: string; slug: string; color: string | null } => tag !== null
       ),
-    user: {
-      id: asset.userId || "",
-      name: null,
-      email: null,
-    },
-    workspace: undefined,
     createdAt: asset.createdAt.toISOString(),
     updatedAt: asset.updatedAt.toISOString(),
   }));

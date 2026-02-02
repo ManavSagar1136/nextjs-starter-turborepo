@@ -85,12 +85,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     }
 
     const body = await request.json();
-    const { folderId, tagIds } = body;
+    const { folderId, tagIds, isPublic } = body;
 
     // Update asset using service
     await updateAsset(id, {
       folderId,
       tagIds,
+      isPublic,
     });
 
     // Get updated asset with details
