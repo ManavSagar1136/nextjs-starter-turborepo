@@ -25,8 +25,9 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
     if (!folder) {
       throw new Error("Folder not found");
     }
-    // Ensure folder is in the same workspace as the asset
-    if (folder.workspaceId !== asset.workspaceId) {
+    // Only enforce workspace validation if both asset and folder have workspaceIds
+    // For admin context (where workspaceId might be null), skip this validation
+    if (asset.workspaceId && folder.workspaceId && folder.workspaceId !== asset.workspaceId) {
       throw new Error("Folder must be in the same workspace as the asset");
     }
   }
@@ -45,18 +46,27 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
       throw new Error(`Maximum ${MAX_TAGS_PER_ASSET} tags per asset allowed`);
     }
 
-    // Validate all tags exist and are in the same workspace
+    // Validate all tags exist and are in the same workspace (if workspaceId exists)
     if (tagIdsArray.length > 0) {
       const uniqueTagIds = [...new Set(tagIdsArray)];
+      const tagWhere: any = {
+        id: { in: uniqueTagIds },
+      };
+
+      // Only filter by workspaceId if asset has a workspaceId (admin context may not have one)
+      if (asset.workspaceId) {
+        tagWhere.workspaceId = asset.workspaceId;
+      }
+
       const tags = await prisma.mediaTag.findMany({
-        where: {
-          id: { in: uniqueTagIds },
-          workspaceId: asset.workspaceId,
-        },
+        where: tagWhere,
       });
 
       if (tags.length !== uniqueTagIds.length) {
-        throw new Error("One or more tags not found or not in the same workspace");
+        const errorMessage = asset.workspaceId
+          ? "One or more tags not found or not in the same workspace"
+          : "One or more tags not found";
+        throw new Error(errorMessage);
       }
 
       // Update asset tags (replace all existing tags)

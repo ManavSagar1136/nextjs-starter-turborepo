@@ -154,6 +154,7 @@ interface MediaLibraryProviderProps {
   onPreviewAsset?: (asset: IAsset) => void;
   onDownloadAsset?: (asset: IAsset) => void;
   onEditAsset?: (asset: IAsset) => void;
+  onDuplicateAsset?: (asset: IAsset) => Promise<void>;
 
   // Initial state
   initialFolderId?: string | null;
@@ -184,6 +185,7 @@ export function MediaLibraryProvider({
   onPreviewAsset,
   onDownloadAsset,
   onEditAsset,
+  onDuplicateAsset,
   initialFolderId = null,
   initialViewMode,
 }: MediaLibraryProviderProps) {
@@ -386,8 +388,14 @@ export function MediaLibraryProvider({
           setActiveAssetAction(null);
           break;
         case "edit":
+        case "edit_metadata":
           onEditAsset?.(payload.asset);
           setActiveAssetAction(null);
+          break;
+        case "duplicate":
+          onDuplicateAsset?.(payload.asset).finally(() => {
+            setActiveAssetAction(null);
+          });
           break;
         case "tag_toggle":
           if (payload.tag) {
@@ -405,6 +413,7 @@ export function MediaLibraryProvider({
       onPreviewAsset,
       onDownloadAsset,
       onEditAsset,
+      onDuplicateAsset,
       handleCopyUrl,
       handleToggleTagId,
     ]
