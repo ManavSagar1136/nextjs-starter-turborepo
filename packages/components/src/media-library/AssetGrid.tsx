@@ -325,6 +325,43 @@ export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
     }
   }, [scrollContainerRef]);
 
+  // Prepare data for virtual scrolling - MUST be called before any early returns
+  const gridData = useMemo(
+    () => ({
+      assets: assets?.docs || [],
+      columns: virtualConfig.columns,
+      itemWidth: virtualConfig.itemWidth,
+      itemHeight: virtualConfig.itemHeight,
+      gap: 20, // gap-5 = 20px
+    }),
+    [assets?.docs, virtualConfig]
+  );
+
+  const listData = useMemo(
+    () => ({
+      assets: assets?.docs || [],
+    }),
+    [assets?.docs]
+  );
+
+  // Calculate row count for grid - MUST be called before any early returns
+  const rowCount = useMemo(() => {
+    if (!virtualConfig.enabled || virtualConfig.columns === 0 || !assets?.docs) return 0;
+    return Math.ceil(assets.docs.length / virtualConfig.columns);
+  }, [assets?.docs?.length, virtualConfig]);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+
+      // Scroll to top
+      if (scrollContainerRef?.current) {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    [setCurrentPage, scrollContainerRef]
+  );
+
   // Loading state
   if (isLoadingAssets && !assets) {
     return (
@@ -342,40 +379,6 @@ export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
       </div>
     );
   }
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-
-    // Scroll to top
-    if (scrollContainerRef?.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  // Prepare data for virtual scrolling
-  const gridData = useMemo(
-    () => ({
-      assets: assets.docs,
-      columns: virtualConfig.columns,
-      itemWidth: virtualConfig.itemWidth,
-      itemHeight: virtualConfig.itemHeight,
-      gap: 20, // gap-5 = 20px
-    }),
-    [assets.docs, virtualConfig]
-  );
-
-  const listData = useMemo(
-    () => ({
-      assets: assets.docs,
-    }),
-    [assets.docs]
-  );
-
-  // Calculate row count for grid
-  const rowCount = useMemo(() => {
-    if (!virtualConfig.enabled || virtualConfig.columns === 0) return 0;
-    return Math.ceil(assets.docs.length / virtualConfig.columns);
-  }, [assets.docs.length, virtualConfig]);
 
   return (
     <div className={cn("p-6", className)} role="region" aria-label="Asset library">

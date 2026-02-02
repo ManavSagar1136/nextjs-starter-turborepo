@@ -89,12 +89,6 @@ export async function listAssets(options: ListAssetsOptions = {}): Promise<Pagin
             },
           },
         },
-        user: {
-          select: { id: true, name: true, email: true },
-        },
-        workspace: {
-          select: { id: true, name: true },
-        },
       },
       orderBy,
       skip,
@@ -115,9 +109,19 @@ export async function listAssets(options: ListAssetsOptions = {}): Promise<Pagin
     isPublic: asset.isPublic,
     metadata: asset.metadata as Record<string, unknown> | null,
     folder: asset.folder,
-    tags: asset.assetTags.map(at => at.tag).filter((tag): tag is NonNullable<typeof tag> => tag !== null),
-    user: asset.user,
-    workspace: asset.workspace,
+    tags: asset.assetTags
+      .map((at: { tag: { id: string; name: string; slug: string; color: string | null } | null }) => at.tag)
+      .filter(
+        (
+          tag: { id: string; name: string; slug: string; color: string | null } | null
+        ): tag is { id: string; name: string; slug: string; color: string | null } => tag !== null
+      ),
+    user: {
+      id: asset.userId || "",
+      name: null,
+      email: null,
+    },
+    workspace: undefined,
     createdAt: asset.createdAt.toISOString(),
     updatedAt: asset.updatedAt.toISOString(),
   }));
