@@ -6,6 +6,25 @@ import type { SDKWorkspaceData } from "./types";
  */
 export const syncWorkspace = async (sdkWorkspaceData: SDKWorkspaceData) => {
   try {
+    // Validate required fields
+    if (!sdkWorkspaceData) {
+      return { success: false, error: "Workspace data is required" };
+    }
+
+    if (!sdkWorkspaceData.id) {
+      return { success: false, error: "Workspace ID is required" };
+    }
+
+    if (!sdkWorkspaceData.name) {
+      return { success: false, error: "Workspace name is required" };
+    }
+
+    console.log(`[syncWorkspace] Syncing workspace:`, {
+      id: sdkWorkspaceData.id,
+      name: sdkWorkspaceData.name,
+      slug: sdkWorkspaceData.slug,
+    });
+
     // First, check if workspace exists by sdkWorkspaceId
     const existingWorkspace = await prisma.workspace.findUnique({
       where: { sdkWorkspaceId: sdkWorkspaceData.id },
@@ -63,14 +82,18 @@ export const syncWorkspace = async (sdkWorkspaceData: SDKWorkspaceData) => {
       return { success: true, workspace };
     }
   } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error syncing workspace:", error);
+
+    // Check for Prisma-specific error codes
+    const isPrismaError = error && typeof error === "object" && "code" in error;
+    const prismaCode = isPrismaError ? (error as { code: string }).code : null;
 
     // If it's a unique constraint error on slug, try again without slug
     if (
+      prismaCode === "P2002" &&
       error &&
       typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002" &&
       "meta" in error &&
       error.meta &&
       typeof error.meta === "object" &&
@@ -113,11 +136,23 @@ export const syncWorkspace = async (sdkWorkspaceData: SDKWorkspaceData) => {
           return { success: true, workspace };
         }
       } catch (retryError) {
+        const retryErrorMessage = retryError instanceof Error ? retryError.message : String(retryError);
         console.error("Error retrying workspace sync without slug:", retryError);
-        return { success: false, error: "Failed to sync workspace" };
+        return { success: false, error: `Failed to sync workspace (retry): ${retryErrorMessage}` };
       }
     }
 
-    return { success: false, error: "Failed to sync workspace" };
+    // Handle other common Prisma errors
+    if (prismaCode === "P2002") {
+      return { success: false, error: `Workspace sync failed: duplicate key constraint violation` };
+    }
+    if (prismaCode === "P2025") {
+      return { success: false, error: `Workspace sync failed: record not found` };
+    }
+    if (prismaCode === "P1001" || prismaCode === "P1002") {
+      return { success: false, error: `Workspace sync failed: database connection error` };
+    }
+
+    return { success: false, error: `Failed to sync workspace: ${errorMessage}` };
   }
 };
