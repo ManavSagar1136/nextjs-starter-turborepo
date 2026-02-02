@@ -121,6 +121,9 @@ export function AssetsPageContent({
       onBulkDelete={handleBulkDelete}
       onBulkMove={handleBulkMove}
       onBulkAssignTags={handleBulkAssignTags}
+      onCreateTag={openCreateTag}
+      onEditTag={openEditTag}
+      onDeleteTag={handleDeleteTag}
     />
   );
 }

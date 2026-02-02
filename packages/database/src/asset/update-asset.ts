@@ -46,26 +46,36 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
       throw new Error(`Maximum ${MAX_TAGS_PER_ASSET} tags per asset allowed`);
     }
 
-    // Validate all tags exist and are in the same workspace (if workspaceId exists)
+    // Validate all tags exist
+    // For admin operations (skipWorkspaceValidation = true): allow any tag regardless of workspace
+    // For user operations: tags must be in the same workspace as the asset
     if (tagIdsArray.length > 0) {
       const uniqueTagIds = [...new Set(tagIdsArray)];
+
       const tagWhere: any = {
         id: { in: uniqueTagIds },
       };
 
-      // Only filter by workspaceId if asset has a workspaceId (admin context may not have one)
-      if (asset.workspaceId) {
+      // Only filter by workspaceId if:
+      // 1. This is NOT an admin operation (skipWorkspaceValidation is false/undefined)
+      // 2. AND the asset has a workspaceId
+      // For admin operations, skip workspace validation entirely
+      if (!data.skipWorkspaceValidation && asset.workspaceId) {
         tagWhere.workspaceId = asset.workspaceId;
       }
+      // If skipWorkspaceValidation is true (admin), we don't add workspaceId filter
+      // This allows admin to assign any tag to any asset, regardless of workspace
 
       const tags = await prisma.mediaTag.findMany({
         where: tagWhere,
       });
 
       if (tags.length !== uniqueTagIds.length) {
-        const errorMessage = asset.workspaceId
-          ? "One or more tags not found or not in the same workspace"
-          : "One or more tags not found";
+        // For admin, just check if tags exist (no workspace restriction)
+        // For user, check if tags exist and are in same workspace
+        const errorMessage = data.skipWorkspaceValidation
+          ? "One or more tags not found"
+          : "One or more tags not found or not in the same workspace";
         throw new Error(errorMessage);
       }
 

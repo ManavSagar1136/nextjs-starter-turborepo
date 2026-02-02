@@ -62,4 +62,6 @@ export interface UpdateAssetInput {
   filename?: string;
   metadata?: Record<string, unknown>;
   isPublic?: boolean;
+  /** Skip workspace validation for admin operations */
+  skipWorkspaceValidation?: boolean;
 }
