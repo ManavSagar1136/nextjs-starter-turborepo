@@ -294,7 +294,7 @@ const ListRow = ({ index, style, data }: ListRowProps) => {
 // ============================================================================
 
 export function AssetGrid({ className, scrollContainerRef }: AssetGridProps) {
-  const { config, assets, isLoadingAssets, viewMode, currentPage, setCurrentPage, hasActiveFilters, refreshAssets } =
+  const { config, assets, isLoadingAssets, viewMode, currentPage, setCurrentPage, hasActiveFilters } =
     useMediaLibrary();
 
   const [containerWidth, setContainerWidth] = useState(0);
