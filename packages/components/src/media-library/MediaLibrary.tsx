@@ -467,9 +467,22 @@ interface MinimalMediaLibraryProps {
   actions?: React.ReactNode;
   /** Callback when upload is requested */
   onUpload?: () => void;
+  /** Callback when create tag is requested */
+  onCreateTag?: () => void;
+  /** Callback when edit tag is requested */
+  onEditTag?: (tag: { id: string; name: string; color?: string | null }) => void;
+  /** Callback when delete tag is requested */
+  onDeleteTag?: (tag: { id: string; name: string; color?: string | null }) => void;
 }
 
-export function MinimalMediaLibrary({ className, actions, onUpload }: MinimalMediaLibraryProps) {
+export function MinimalMediaLibrary({
+  className,
+  actions,
+  onUpload,
+  onCreateTag,
+  onEditTag,
+  onDeleteTag,
+}: MinimalMediaLibraryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { config } = useMediaLibrary();
   const [isDragOver, setIsDragOver] = useState(false);
