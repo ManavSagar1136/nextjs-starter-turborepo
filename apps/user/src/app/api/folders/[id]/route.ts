@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { getFolderById, updateFolder, deleteFolder, verifyFolderOwnership } from "@buildbase/database";
 
 interface RouteParams {
@@ -9,14 +10,14 @@ interface RouteParams {
 /**
  * GET /api/folders/[id] - Get folder details
  */
-export async function GET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleGET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -49,14 +50,14 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 /**
  * PATCH /api/folders/[id] - Update folder
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handlePATCH(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -92,14 +93,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
 /**
  * DELETE /api/folders/[id] - Delete folder
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleDELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -120,3 +121,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     return NextResponse.json({ success: false, message: "Failed to delete folder" }, { status: 500 });
   }
 }
+
+export const GET = withAuth(handleGET, [APP_ROLES.USER]);
+export const PATCH = withAuth(handlePATCH, [APP_ROLES.USER]);
+export const DELETE = withAuth(handleDELETE, [APP_ROLES.USER]);

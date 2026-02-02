@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { updateAsset, getAssetById } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 
 /**
  * PATCH /api/assets/[id]/metadata - Update asset metadata
  */
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -80,3 +81,5 @@ export async function PATCH(
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
+
+export const PATCH = withAuth(handlePATCH, [APP_ROLES.USER]);

@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { listAssets } from "@buildbase/database";
 
 /**
  * GET /api/assets - List assets with filtering and pagination
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { workspaceId } = session.user;
-    if (!workspaceId) {
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
+
+    const { workspaceId } = authenticatedUser;
 
     const { searchParams } = new URL(request.url);
 
@@ -50,3 +48,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, message: "Failed to list assets" }, { status: 500 });
   }
 }
+
+export const GET = withAuth(handleGET, [APP_ROLES.USER]);

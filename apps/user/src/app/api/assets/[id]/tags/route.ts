@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { getAssetById, updateAsset } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 
@@ -10,17 +11,14 @@ interface RouteParams {
 /**
  * POST /api/assets/[id]/tags - Assign tags to asset
  */
-export async function POST(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handlePOST(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { workspaceId } = session.user;
-    if (!workspaceId) {
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
+
+    const { workspaceId } = authenticatedUser;
 
     const { id } = await params;
     const body = await request.json();
@@ -66,17 +64,14 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
 /**
  * DELETE /api/assets/[id]/tags - Remove tags from asset
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleDELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { workspaceId } = session.user;
-    if (!workspaceId) {
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
+
+    const { workspaceId } = authenticatedUser;
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -134,3 +129,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     return NextResponse.json({ success: false, message }, { status });
   }
 }
+
+export const POST = withAuth(handlePOST, [APP_ROLES.USER]);
+export const DELETE = withAuth(handleDELETE, [APP_ROLES.USER]);

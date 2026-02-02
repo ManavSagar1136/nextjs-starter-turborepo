@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withAuth } from "@buildbase/helpers/auth";
+import { APP_ROLES } from "@buildbase/database/user";
 import { getStorage } from "@buildbase/storage";
 import { bulkDeleteAssets, bulkMoveAssets, bulkAssignTags, bulkRemoveTags } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
@@ -7,14 +8,14 @@ import { AssetsRepository } from "@buildbase/database/assets";
 /**
  * POST /api/assets/bulk/delete - Bulk delete assets
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -110,3 +111,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, message }, { status });
   }
 }
+
+export const POST = withAuth(handlePOST, [APP_ROLES.USER]);
