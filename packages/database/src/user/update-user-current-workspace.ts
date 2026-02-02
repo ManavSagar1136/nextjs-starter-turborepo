@@ -5,7 +5,7 @@ import { prisma } from "../index";
  * Update user's current workspace preference
  * This can be stored in the user model or as a separate preference
  */
-export const updateUserCurrentWorkspace = async (sdkUserId: string, sdkWorkspaceId: string) => {
+export const updateUserCurrentWorkspace = async (sdkUserId: string, sdkWorkspaceId: string, userRole: string) => {
   try {
     const user = await prisma.user.findUnique({
       where: { sdkUserId },
@@ -24,7 +24,7 @@ export const updateUserCurrentWorkspace = async (sdkUserId: string, sdkWorkspace
     }
 
     // Ensure membership exists
-    const membershipResult = await addUserToWorkspace(sdkUserId, sdkWorkspaceId);
+    const membershipResult = await addUserToWorkspace(sdkUserId, sdkWorkspaceId, userRole);
 
     if (!membershipResult.success) {
       return { success: false, error: "Failed to create membership" };
