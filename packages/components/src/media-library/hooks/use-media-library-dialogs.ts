@@ -82,6 +82,26 @@ export function useMediaLibraryDialogs({
   tagsQuery,
 }: UseMediaLibraryDialogsOptions) {
   const { openDialog } = useDialogManager();
+  const { selectedFolderId, folderTree } = useMediaLibrary();
+
+  // Get current folder name for display (shared helper)
+  const getCurrentFolderName = useCallback(() => {
+    if (!selectedFolderId || !folderTree.length) return null;
+
+    const findFolder = (folders: IFolderTreeItem[], targetId: string): IFolderTreeItem | null => {
+      for (const folder of folders) {
+        if (folder.id === targetId) return folder;
+        if (folder.children) {
+          const found = findFolder(folder.children, targetId);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const folder = findFolder(folderTree, selectedFolderId);
+    return folder?.name || null;
+  }, [selectedFolderId, folderTree]);
 
   // ============================================================================
   // Folder Dialogs
@@ -89,9 +109,13 @@ export function useMediaLibraryDialogs({
 
   const openCreateFolder = useCallback(
     (parentFolderId?: string | null, parentFolderName?: string | null) => {
+      // If no parentFolderId provided, use current selected folder as default
+      const defaultParentFolderId = parentFolderId !== undefined ? parentFolderId : selectedFolderId;
+      const defaultParentFolderName = parentFolderName !== undefined ? parentFolderName : getCurrentFolderName();
+
       openDialog(MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER, {
-        parentFolderId,
-        parentFolderName,
+        parentFolderId: defaultParentFolderId,
+        parentFolderName: defaultParentFolderName,
         folderTree: folderTreeQuery.data || [],
         isLoadingTree: folderTreeQuery.isLoading,
         isLoading: createFolder.isPending,
@@ -100,7 +124,7 @@ export function useMediaLibraryDialogs({
         },
       } as Omit<CreateFolderDialogProps, "open" | "onOpenChange">);
     },
-    [openDialog, createFolder, folderTreeQuery]
+    [openDialog, createFolder, folderTreeQuery, selectedFolderId, getCurrentFolderName]
   );
 
   const openEditFolder = useCallback(
@@ -286,27 +310,6 @@ export function useMediaLibraryDialogs({
   // ============================================================================
   // Upload Dialog
   // ============================================================================
-
-  const { selectedFolderId, folderTree } = useMediaLibrary();
-
-  // Get current folder name for display
-  const getCurrentFolderName = useCallback(() => {
-    if (!selectedFolderId || !folderTree.length) return null;
-
-    const findFolder = (folders: IFolderTreeItem[], targetId: string): IFolderTreeItem | null => {
-      for (const folder of folders) {
-        if (folder.id === targetId) return folder;
-        if (folder.children) {
-          const found = findFolder(folder.children, targetId);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    const folder = findFolder(folderTree, selectedFolderId);
-    return folder?.name || null;
-  }, [selectedFolderId, folderTree]);
 
   const openUpload = useCallback(() => {
     let uploadFiles: UploadedFile[] = [];
