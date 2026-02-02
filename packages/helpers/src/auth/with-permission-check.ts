@@ -118,6 +118,9 @@ export function withPermissionCheck<T extends any[]>(
       }
 
       // Query membership using database IDs
+      // IMPORTANT: We always use the database as the source of truth for workspace roles.
+      // We do NOT use user.role (APP_ROLE) or the JWT's root-level role field.
+      // The database WorkspaceMember table is the authoritative source.
       const membership = await prisma.workspaceMember.findUnique({
         where: {
           userId_workspaceId: {
@@ -134,30 +137,33 @@ export function withPermissionCheck<T extends any[]>(
         );
       }
 
+      // Use membership.role from database (NOT user.role which is APP_ROLE)
+      const workspaceRole = membership.role as WorkspaceRole;
+
       // Check if workspace admin should bypass (if enabled and user is admin)
-      if (allowWorkspaceAdmin && membership.role === WORKSPACE_ROLES.ADMIN) {
+      if (allowWorkspaceAdmin && workspaceRole === WORKSPACE_ROLES.ADMIN) {
         (request as any).authenticatedUser = user;
         (request as any).workspaceRole = membership.role;
         return handler(request, ...args);
       }
 
       // Check if user's workspace role is in allowed list
-      if (!allowedWorkspaceRoles.includes(membership.role as WorkspaceRole)) {
-        console.error(
-          `User workspace role ${membership.role} not in allowed roles: ${allowedWorkspaceRoles.join(", ")}`
-        );
+      // Using workspaceRole from database (NOT user.role)
+      if (!allowedWorkspaceRoles.includes(workspaceRole)) {
+        console.error(`User workspace role ${workspaceRole} not in allowed roles: ${allowedWorkspaceRoles.join(", ")}`);
         return NextResponse.json(
           {
             error: "Forbidden",
-            message: `Insufficient permissions. Required workspace roles: ${allowedWorkspaceRoles.join(", ")}. User has: ${membership.role}`,
+            message: `Insufficient permissions. Required workspace roles: ${allowedWorkspaceRoles.join(", ")}. User has: ${workspaceRole}`,
           },
           { status: 403 }
         );
       }
 
       // Attach authenticated user and workspace role to request
+      // workspaceRole comes from database, not from JWT token
       (request as any).authenticatedUser = user;
-      (request as any).workspaceRole = membership.role;
+      (request as any).workspaceRole = workspaceRole;
 
       return handler(request, ...args);
     } catch (error) {
