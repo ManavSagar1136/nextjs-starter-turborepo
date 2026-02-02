@@ -50,7 +50,7 @@ export function AssetsQuerySync({ setQueryParams }: AssetsQuerySyncProps) {
       sortBy,
       sortOrder,
       $page: currentPage,
-      $limit: 20,
+      $limit: 10,
     });
   }, [
     selectedFolderId,

@@ -256,7 +256,7 @@ export const DEFAULT_MEDIA_LIBRARY_CONFIG: IResolvedMediaLibraryConfig = {
   enableUpload: true,
   enablePrivacyToggle: true,
   defaultViewMode: "grid",
-  pageSize: 20,
+  pageSize: 10,
   maxFileSize: 50 * 1024 * 1024, // 50MB
   allowedMimeTypes: [],
   labels: {

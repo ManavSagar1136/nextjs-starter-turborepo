@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useDebounce } from "@buildbase/ui/hooks/use-debounce";
 
@@ -297,6 +297,12 @@ export function MediaLibraryProvider({
     setSearchQuery("");
     setCurrentPage(1);
   }, [config.enableFolders, config.enableTags]);
+
+  // Reset page when debounced search query or MIME types change
+  // This matches org-based-saas-template behavior
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchQuery, selectedMimeTypes]);
 
   // Actions - Asset selection
   const handleToggleAssetSelection = useCallback((assetId: string) => {
