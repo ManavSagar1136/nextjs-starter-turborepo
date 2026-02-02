@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@buildbase/helpers/auth";
-import { APP_ROLES } from "@buildbase/database/user";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getAssetById, updateAsset } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 
@@ -78,4 +78,5 @@ async function handlePOST(request: NextRequest, { params }: RouteParams): Promis
   }
 }
 
-export const POST = withAuth(handlePOST, [APP_ROLES.USER]);
+// POST: Allow admins and editors to move assets
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

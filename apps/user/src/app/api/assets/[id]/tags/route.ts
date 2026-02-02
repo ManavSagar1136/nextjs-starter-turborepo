@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@buildbase/helpers/auth";
-import { APP_ROLES } from "@buildbase/database/user";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getAssetById, updateAsset } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 
@@ -130,5 +130,6 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
   }
 }
 
-export const POST = withAuth(handlePOST, [APP_ROLES.USER]);
-export const DELETE = withAuth(handleDELETE, [APP_ROLES.USER]);
+// POST/DELETE: Allow admins and editors to manage asset tags
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+export const DELETE = withPermissionCheck(handleDELETE, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@buildbase/helpers/auth";
-import { APP_ROLES } from "@buildbase/database/user";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { listFolders, createFolder } from "@buildbase/database";
 
 /**
@@ -101,5 +101,12 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export const GET = withAuth(handleGET, [APP_ROLES.USER]);
-export const POST = withAuth(handlePOST, [APP_ROLES.USER]);
+// GET: Allow all workspace members to list folders
+export const GET = withPermissionCheck(handleGET, [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+  WORKSPACE_ROLES.VIEWER,
+]);
+
+// POST: Allow admins and editors to create folders
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@buildbase/helpers/auth";
-import { APP_ROLES } from "@buildbase/database/user";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getAssetById } from "@buildbase/database";
 import { duplicateAsset } from "@buildbase/database/asset/server";
 import { AssetsRepository } from "@buildbase/database/assets";
@@ -65,4 +65,5 @@ async function handlePOST(
   }
 }
 
-export const POST = withAuth(handlePOST, [APP_ROLES.USER]);
+// POST: Allow admins and editors to duplicate assets
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

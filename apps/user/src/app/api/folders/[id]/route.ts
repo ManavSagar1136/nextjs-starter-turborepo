@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@buildbase/helpers/auth";
-import { APP_ROLES } from "@buildbase/database/user";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getFolderById, updateFolder, deleteFolder, verifyFolderOwnership } from "@buildbase/database";
 
 interface RouteParams {
@@ -122,6 +122,15 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
   }
 }
 
-export const GET = withAuth(handleGET, [APP_ROLES.USER]);
-export const PATCH = withAuth(handlePATCH, [APP_ROLES.USER]);
-export const DELETE = withAuth(handleDELETE, [APP_ROLES.USER]);
+// GET: Allow all workspace members to view folders
+export const GET = withPermissionCheck(handleGET, [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+  WORKSPACE_ROLES.VIEWER,
+]);
+
+// PATCH: Allow admins and editors to update folders
+export const PATCH = withPermissionCheck(handlePATCH, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+
+// DELETE: Allow admins and editors to delete folders
+export const DELETE = withPermissionCheck(handleDELETE, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

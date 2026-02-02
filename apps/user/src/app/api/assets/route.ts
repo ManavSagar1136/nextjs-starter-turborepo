@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@buildbase/helpers/auth";
-import { APP_ROLES } from "@buildbase/database/user";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { listAssets } from "@buildbase/database";
 
 /**
@@ -49,4 +49,9 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export const GET = withAuth(handleGET, [APP_ROLES.USER]);
+// Allow all workspace members (admin, editor, viewer) to list assets
+export const GET = withPermissionCheck(handleGET, [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+  WORKSPACE_ROLES.VIEWER,
+]);
