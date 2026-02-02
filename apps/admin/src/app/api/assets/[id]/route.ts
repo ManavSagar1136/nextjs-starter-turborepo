@@ -61,6 +61,66 @@ async function handlePATCH(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { folderId, tagIds, isPublic } = body;
 
+    // If isPublic is being changed, update storage permissions first
+    if (isPublic !== undefined) {
+      const asset = await AssetsRepository.findByIdAdmin(id);
+      if (!asset) {
+        return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
+      }
+
+      // Update storage permissions
+      const storage = await getStorage();
+      let storageUpdateSuccess = true;
+      try {
+        if (isPublic) {
+          await storage.makePublic(asset.path);
+        } else {
+          await storage.makePrivate(asset.path);
+        }
+      } catch (storageError) {
+        console.error("[API] Error updating storage permissions:", storageError);
+        storageUpdateSuccess = false;
+        // Don't continue if storage update fails - return error
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Failed to update storage permissions: ${storageError instanceof Error ? storageError.message : "Unknown error"}`,
+          },
+          { status: 500 }
+        );
+      }
+
+      // Update URL if privacy changed - ALWAYS update URL when privacy changes
+      let url = asset.url;
+      if (isPublic !== asset.isPublic && storageUpdateSuccess) {
+        if (isPublic) {
+          // For public assets, get permanent public URL
+          const publicUrl = await storage.getPublicUrl(asset.path);
+          if (publicUrl) {
+            url = publicUrl;
+          } else {
+            // Fallback to public URL format
+            url = `https://storage.googleapis.com/${storage.bucket}/${asset.path}`;
+          }
+        } else {
+          // For private assets, generate signed URL immediately
+          // This ensures the old public URL is replaced
+          try {
+            url = await storage.getSignedUrl(asset.path, { expiresInMinutes: 60 * 24 }); // 24 hours
+          } catch (urlError) {
+            console.error("[API] Error generating signed URL:", urlError);
+            // If signed URL generation fails, set to empty string
+            // The asset will need a new signed URL generated on access
+            url = "";
+          }
+        }
+
+        // ALWAYS update the URL in database when privacy changes
+        // This is critical to prevent using old public URLs
+        await AssetsRepository.update(id, { url });
+      }
+    }
+
     // Update asset using service
     await updateAsset(id, {
       folderId,
