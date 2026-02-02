@@ -40,9 +40,13 @@ async function handlePOST(request: NextRequest, { params }: RouteParams): Promis
     }
 
     // Move folder using service (update parentFolderId)
-    const folder = await updateFolder(id, {
-      parentFolderId: targetParentFolderId === null ? null : targetParentFolderId,
-    });
+    const folder = await updateFolder(
+      id,
+      {
+        parentFolderId: targetParentFolderId === null ? null : targetParentFolderId,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,

@@ -31,7 +31,7 @@ async function handleGET(request: NextRequest, { params }: RouteParams): Promise
     }
 
     // Get folder using service
-    const folder = await getFolderById(id);
+    const folder = await getFolderById(id, workspaceId);
 
     if (!folder) {
       return NextResponse.json({ success: false, message: "Folder not found" }, { status: 404 });
@@ -67,11 +67,15 @@ async function handlePATCH(request: NextRequest, { params }: RouteParams): Promi
     const { name, description, parentFolderId } = body;
 
     // Update folder using service
-    const folder = await updateFolder(id, {
-      name,
-      description,
-      parentFolderId,
-    });
+    const folder = await updateFolder(
+      id,
+      {
+        name,
+        description,
+        parentFolderId,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,
@@ -110,7 +114,7 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
     const recursive = searchParams.get("recursive") === "true";
 
     // Delete folder using service
-    await deleteFolder(id, recursive);
+    await deleteFolder(id, recursive, workspaceId);
 
     return NextResponse.json({
       success: true,

@@ -30,7 +30,7 @@ async function handleGET(request: NextRequest, { params }: RouteParams): Promise
     }
 
     // Get asset with details
-    const asset = await getAssetById(id);
+    const asset = await getAssetById(id, workspaceId);
     if (!asset) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
@@ -144,14 +144,18 @@ async function handlePATCH(request: NextRequest, { params }: RouteParams): Promi
     }
 
     // Update asset using service
-    await updateAsset(id, {
-      folderId,
-      tagIds,
-      isPublic,
-    });
+    await updateAsset(
+      id,
+      {
+        folderId,
+        tagIds,
+        isPublic,
+      },
+      workspaceId
+    );
 
     // Get updated asset with details
-    const updatedAsset = await getAssetById(id);
+    const updatedAsset = await getAssetById(id, workspaceId);
 
     return NextResponse.json({
       success: true,
@@ -212,7 +216,7 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
     }
 
     // Delete from database using service
-    await deleteAsset(id);
+    await deleteAsset(id, workspaceId);
 
     return NextResponse.json({
       success: true,

@@ -35,7 +35,7 @@ async function handlePOST(
     const newAssetId = await duplicateAsset(id, workspaceId);
 
     // Get the duplicated asset with details
-    const duplicatedAsset = await getAssetById(newAssetId);
+    const duplicatedAsset = await getAssetById(newAssetId, workspaceId);
 
     return NextResponse.json({
       success: true,

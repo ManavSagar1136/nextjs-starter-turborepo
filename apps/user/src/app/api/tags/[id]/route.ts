@@ -31,7 +31,7 @@ async function handleGET(request: NextRequest, { params }: RouteParams): Promise
     }
 
     // Get tag using service
-    const tag = await getTagById(id);
+    const tag = await getTagById(id, workspaceId);
 
     if (!tag) {
       return NextResponse.json({ success: false, message: "Tag not found" }, { status: 404 });
@@ -74,10 +74,14 @@ async function handlePATCH(request: NextRequest, { params }: RouteParams): Promi
     const { name, color } = body;
 
     // Update tag using service
-    const tag = await updateTag(id, {
-      name,
-      color,
-    });
+    const tag = await updateTag(
+      id,
+      {
+        name,
+        color,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,
@@ -120,7 +124,7 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
     }
 
     // Delete tag using service
-    await deleteTag(id);
+    await deleteTag(id, workspaceId);
 
     return NextResponse.json({
       success: true,

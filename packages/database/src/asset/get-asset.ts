@@ -8,8 +8,8 @@ import type { AssetWithDetails } from "./types";
 /**
  * Get asset by ID with full details (admin context - no workspace filter)
  */
-export async function getAssetById(id: string): Promise<AssetWithDetails | null> {
-  const asset = await AssetsRepository.findWithDetails(id);
+export async function getAssetById(id: string, workspaceId?: string): Promise<AssetWithDetails | null> {
+  const asset = await AssetsRepository.findWithDetails(id, workspaceId);
 
   if (!asset) {
     return null;

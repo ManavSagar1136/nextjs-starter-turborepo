@@ -7,10 +7,15 @@ import { prisma } from "../index";
 /**
  * Delete a folder by ID
  */
-export async function deleteFolder(id: string, recursive: boolean = false): Promise<void> {
+export async function deleteFolder(id: string, recursive: boolean = false, workspaceId?: string): Promise<void> {
   // Verify folder exists
-  const folder = await prisma.assetFolder.findUnique({
-    where: { id },
+  const where: Record<string, unknown> = { id };
+  if (workspaceId !== undefined) {
+    where.workspaceId = workspaceId;
+  }
+
+  const folder = await prisma.assetFolder.findFirst({
+    where,
     include: {
       _count: {
         select: { assets: true, children: true },

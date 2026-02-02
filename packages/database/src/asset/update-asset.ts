@@ -10,9 +10,12 @@ import { MAX_TAGS_PER_ASSET } from "./constants";
 /**
  * Update an asset (folderId, tagIds)
  */
-export async function updateAsset(id: string, data: UpdateAssetInput): Promise<void> {
+export async function updateAsset(id: string, data: UpdateAssetInput, workspaceId?: string): Promise<void> {
   // Get asset before update
-  const asset = await AssetsRepository.findByIdAdmin(id);
+  const asset = workspaceId
+    ? await AssetsRepository.findById(id, workspaceId)
+    : await AssetsRepository.findByIdAdmin(id);
+
   if (!asset) {
     throw new Error("Asset not found");
   }

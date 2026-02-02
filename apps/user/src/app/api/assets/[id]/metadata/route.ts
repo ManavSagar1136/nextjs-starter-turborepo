@@ -46,13 +46,17 @@ async function handlePATCH(
     }
 
     // Update asset metadata using service
-    await updateAsset(id, {
-      filename: filename !== undefined ? filename.trim() : undefined,
-      metadata: metadata !== undefined ? metadata : undefined,
-    });
+    await updateAsset(
+      id,
+      {
+        filename: filename !== undefined ? filename.trim() : undefined,
+        metadata: metadata !== undefined ? metadata : undefined,
+      },
+      workspaceId
+    );
 
     // Get updated asset with details
-    const updatedAsset = await getAssetById(id);
+    const updatedAsset = await getAssetById(id, workspaceId);
 
     return NextResponse.json({
       success: true,

@@ -35,12 +35,16 @@ async function handlePOST(request: NextRequest, { params }: RouteParams): Promis
     }
 
     // Assign tags using service (replace all existing tags)
-    await updateAsset(id, {
-      tagIds,
-    });
+    await updateAsset(
+      id,
+      {
+        tagIds,
+      },
+      workspaceId
+    );
 
     // Get updated asset with tags
-    const updatedAsset = await getAssetById(id);
+    const updatedAsset = await getAssetById(id, workspaceId);
 
     return NextResponse.json({
       success: true,
@@ -99,7 +103,7 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
     }
 
     // Get current asset with tags
-    const existingAsset = await getAssetById(id);
+    const existingAsset = await getAssetById(id, workspaceId);
     if (!existingAsset) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
@@ -109,9 +113,13 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
     const remainingTagIds = currentTagIds.filter(tagId => !tagIds.includes(tagId));
 
     // Update asset with remaining tags
-    await updateAsset(id, {
-      tagIds: remainingTagIds,
-    });
+    await updateAsset(
+      id,
+      {
+        tagIds: remainingTagIds,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,

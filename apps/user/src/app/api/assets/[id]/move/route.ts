@@ -38,12 +38,16 @@ async function handlePOST(request: NextRequest, { params }: RouteParams): Promis
     }
 
     // Move asset using service
-    await updateAsset(id, {
-      folderId: folderId === null ? null : folderId,
-    });
+    await updateAsset(
+      id,
+      {
+        folderId: folderId === null ? null : folderId,
+      },
+      workspaceId
+    );
 
     // Get updated asset
-    const updatedAsset = await getAssetById(id);
+    const updatedAsset = await getAssetById(id, workspaceId);
 
     return NextResponse.json({
       success: true,
