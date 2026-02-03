@@ -3,8 +3,6 @@ import type {
   ApiResponse,
   NewsletterSubscribeRequest,
   NewsletterUnsubscribeRequest,
-  WaitlistSubscribeRequest,
-  WaitlistUnsubscribeRequest,
 } from "@/types/api";
 
 export class PublicApi extends BaseApiController {
@@ -27,30 +25,6 @@ export class PublicApi extends BaseApiController {
   ): Promise<ApiResponse> {
     const result = await this.post<ApiResponse>(
       `${this.urlPath}/newsletter/unsubscribe`,
-      {},
-      {},
-      data,
-    );
-    return result.data;
-  }
-
-  async subscribeToWaitlist(
-    data: WaitlistSubscribeRequest,
-  ): Promise<ApiResponse> {
-    const result = await this.post<ApiResponse>(
-      `${this.urlPath}/waitlist`,
-      {},
-      {},
-      data,
-    );
-    return result.data;
-  }
-
-  async unsubscribeFromWaitlist(
-    data: WaitlistUnsubscribeRequest,
-  ): Promise<ApiResponse> {
-    const result = await this.post<ApiResponse>(
-      `${this.urlPath}/waitlist/unsubscribe`,
       {},
       {},
       data,

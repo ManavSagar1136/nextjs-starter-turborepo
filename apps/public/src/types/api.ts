@@ -22,20 +22,7 @@ export interface NewsletterSubscribeRequest {
   };
 }
 
-export interface WaitlistSubscribeRequest {
-  email: string;
-  html?: {
-    thankYouHTML?: string;
-    infoHTML?: string;
-  };
-}
-
 export interface NewsletterUnsubscribeRequest {
-  email?: string;
-  token?: string;
-}
-
-export interface WaitlistUnsubscribeRequest {
   email?: string;
   token?: string;
 }
