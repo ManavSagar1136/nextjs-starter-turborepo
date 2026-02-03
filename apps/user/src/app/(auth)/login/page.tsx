@@ -36,10 +36,23 @@ const LoginPage = () => {
         setVerifiedAuth(false);
         await signOut();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[LoginPage] Error verifying server auth:", error);
-      // On error, trust the SDK state
-      setVerifiedAuth(isAuthenticated);
+      // On network error, assume not authenticated to break potential loops
+      // This forces a fresh login which will get a proper token
+      // Network errors often happen when redirects abort pending requests
+      if (error?.code === "ERR_NETWORK" || error?.message?.includes("Network Error")) {
+        console.log("[LoginPage] Network error during verification, assuming not authenticated");
+        setVerifiedAuth(false);
+        try {
+          await signOut();
+        } catch {
+          // Ignore signOut errors
+        }
+      } else {
+        // For other errors (like 401), also assume not authenticated
+        setVerifiedAuth(false);
+      }
     } finally {
       setIsVerifying(false);
     }
