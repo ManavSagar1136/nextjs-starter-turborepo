@@ -73,8 +73,8 @@ export class AuthApis extends BaseApiPaginationController<IAuth> {
    */
   async getSession(): Promise<ISessionResponse> {
     try {
-      const response = await this.get<ISessionResponse>(`${this.urlPath}/session`);
-      return response.data;
+      const response = await this.get(`${this.urlPath}/session`, {}, {});
+      return response.data as ISessionResponse;
     } catch (error: any) {
       // Return not authenticated for 401 errors
       if (error?.response?.status === 401) {
