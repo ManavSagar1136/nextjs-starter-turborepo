@@ -1191,10 +1191,10 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-7.1.1.tgz#15e19737d946559289b915e5dad3b4c28407735e"
   integrity sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==
 
-"@buildbase/sdk@0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@buildbase/sdk/-/sdk-0.0.13.tgz#c18f7ca735c303f44436370cc8c3af62527ac4c4"
-  integrity sha512-S2B4LrVWF+KBdsSttQ2sJg424j63nxQGPZa9FXpbWloP5LC6rmTiauKYWK+dLAjhI2Mfv3Uz7fiYJYd5KCrCIw==
+"@buildbase/sdk@0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@buildbase/sdk/-/sdk-0.0.16.tgz#adb8ba872eb3d664101fce220431af9b19f94155"
+  integrity sha512-t/HXWqDVOFj+R/1KftmixLc0SMJL7eqcAHiPlhe0KZjgZSOB8JWM6rFSvD7rsXRVNP6g3rjbsSM/fHEOWnX55g==
   dependencies:
     "@radix-ui/react-alert-dialog" "^1.1.13"
     "@radix-ui/react-avatar" "^1.1.9"

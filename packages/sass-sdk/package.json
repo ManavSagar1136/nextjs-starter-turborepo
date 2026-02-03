@@ -24,7 +24,7 @@
     "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js"
   },
   "dependencies": {
-    "@buildbase/sdk": "0.0.13",
+    "@buildbase/sdk": "0.0.16",
     "@buildbase/env": "*"
   },
   "peerDependencies": {
