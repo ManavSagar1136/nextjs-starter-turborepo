@@ -9,22 +9,28 @@ import { cn } from "@buildbase/ui/lib/utils";
 /**
  * Stable trigger function defined outside component to prevent re-creation
  * This ensures the function reference never changes, preventing infinite re-renders
+ *
+ * Note: We use asChild on SidebarMenuButton to avoid nested <button> elements.
+ * The SDK's WorkspaceSwitcher wraps this with a DialogTrigger which renders a button,
+ * so we need our component to NOT render a button itself.
  */
 const createTriggerComponent = (isLoading: boolean, currentWorkspace: any) => {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
+          asChild
           className={cn("w-full justify-between", isLoading && "cursor-not-allowed opacity-50")}
-          disabled={isLoading}
         >
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Building2 className="size-4 shrink-0" />
-            <span className="truncate text-sm font-medium">
-              {isLoading ? "Switching..." : currentWorkspace?.name || "Select workspace"}
-            </span>
+          <div className={cn(isLoading && "pointer-events-none")}>
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <Building2 className="size-4 shrink-0" />
+              <span className="truncate text-sm font-medium">
+                {isLoading ? "Switching..." : currentWorkspace?.name || "Select workspace"}
+              </span>
+            </div>
+            <ChevronDown className="ml-auto size-4 shrink-0" />
           </div>
-          <ChevronDown className="ml-auto size-4 shrink-0" />
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
