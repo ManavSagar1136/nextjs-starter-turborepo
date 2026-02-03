@@ -1,0 +1,69 @@
+// Contact Submission model - stores contact form entries
+// Tracks status, allows admin management
+
+enum ContactSubmissionStatus {
+  NEW // Unread
+  READ // Viewed by admin
+  REPLIED // Response sent
+  ARCHIVED // Closed/archived
+  SPAM // Marked as spam
+}
+
+model ContactSubmission {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Contact info
+  email     String
+  firstName String?
+  lastName  String?
+  phone     String?
+  company   String?
+
+  // Message content
+  subject String?
+  message String
+
+  // Categorization
+  category String? // sales, support, general, partnership, etc.
+  priority String? // low, normal, high, urgent
+
+  // Status
+  status ContactSubmissionStatus @default(NEW)
+
+  // Source tracking
+  source   String? // website, landing-page, etc.
+  sourceIp String?
+  referrer String?
+  pageUrl  String? // Which page the form was on
+
+  // UTM tracking
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  // Admin handling
+  assignedTo   String?   @db.ObjectId // User ID of assigned admin
+  readAt       DateTime?
+  repliedAt    DateTime?
+  archivedAt   DateTime?
+  replyContent String? // Admin's reply (for reference)
+
+  // Multi-tenant
+  workspaceId String?    @db.ObjectId
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
+  // Additional metadata (JSON) - form fields, custom data
+  metadata Json?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@index([workspaceId])
+  @@index([assignedTo])
+  @@map("contact_submissions")
+}

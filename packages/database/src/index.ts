@@ -37,3 +37,9 @@ export * from "./folder";
 
 // Export tag service functions
 export * from "./tag";
+
+// Export newsletter subscriber service functions
+export * from "./newsletter-subscriber";
+
+// Export contact submission service functions
+export * from "./contact-submission";

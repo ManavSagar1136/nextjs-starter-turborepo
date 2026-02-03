@@ -2,13 +2,13 @@
 model Asset {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
   filename    String
-  path        String  // Storage path (e.g., "org123/abc123-image.png")
-  url         String  // Public URL (empty for private assets)
-  size        Int     // File size in bytes
-  contentType String  // MIME type
-  bucket      String  // Storage bucket name
+  path        String // Storage path (e.g., "org123/abc123-image.png")
+  url         String // Public URL (empty for private assets)
+  size        Int // File size in bytes
+  contentType String // MIME type
+  bucket      String // Storage bucket name
   isPublic    Boolean @default(false)
-  metadata    Json?   // Arbitrary metadata (width, height, aspectRatio, etc.)
+  metadata    Json? // Arbitrary metadata (width, height, aspectRatio, etc.)
 
   // Organization/Workspace relationship
   workspaceId String    @db.ObjectId

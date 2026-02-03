@@ -1,0 +1,57 @@
+// Newsletter Subscriber model - stores newsletter signups
+// Tracks subscription status, source, and metadata
+
+enum NewsletterSubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+model NewsletterSubscriber {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Identity
+  email String @unique
+
+  // Status
+  status NewsletterSubscriberStatus @default(ACTIVE)
+
+  // Source tracking
+  source   String? // website, api, import, landing-page
+  sourceIp String? // IP at subscription time
+  referrer String? // Referrer URL
+
+  // UTM tracking
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+
+  // Timestamps
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+  confirmedAt    DateTime? // For double opt-in
+
+  // Double opt-in
+  confirmToken String? @unique
+  isConfirmed  Boolean @default(false)
+
+  // Multi-tenant
+  workspaceId String?    @db.ObjectId
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
+  // Additional metadata (JSON)
+  metadata Json?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([subscribedAt])
+  @@index([workspaceId])
+  @@index([source])
+  @@map("newsletter_subscribers")
+}
