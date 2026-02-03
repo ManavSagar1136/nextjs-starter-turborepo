@@ -35,8 +35,8 @@ model NewsletterSubscriber {
   confirmedAt    DateTime? // For double opt-in
 
   // Double opt-in
-  confirmToken   String?   @unique
-  isConfirmed    Boolean   @default(false)
+  confirmToken String? @unique
+  isConfirmed  Boolean @default(false)
 
   // Multi-tenant
   workspaceId String?    @db.ObjectId

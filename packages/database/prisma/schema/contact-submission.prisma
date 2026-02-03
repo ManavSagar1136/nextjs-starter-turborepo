@@ -2,11 +2,11 @@
 // Tracks status, allows admin management
 
 enum ContactSubmissionStatus {
-  NEW       // Unread
-  READ      // Viewed by admin
-  REPLIED   // Response sent
-  ARCHIVED  // Closed/archived
-  SPAM      // Marked as spam
+  NEW // Unread
+  READ // Viewed by admin
+  REPLIED // Response sent
+  ARCHIVED // Closed/archived
+  SPAM // Marked as spam
 }
 
 model ContactSubmission {
@@ -46,7 +46,7 @@ model ContactSubmission {
   readAt       DateTime?
   repliedAt    DateTime?
   archivedAt   DateTime?
-  replyContent String?   // Admin's reply (for reference)
+  replyContent String? // Admin's reply (for reference)
 
   // Multi-tenant
   workspaceId String?    @db.ObjectId
