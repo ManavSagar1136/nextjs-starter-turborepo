@@ -82,6 +82,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create response with auth token set as HTTP-only cookie
+    // IMPORTANT: role must be at top level for withServerAuth to work correctly
+    const userRole = syncResult.user?.role || userData.role || APP_ROLES.USER;
+
     return createResponseWithAuthToken(
       {
         success: true,
@@ -99,6 +102,8 @@ export async function POST(request: NextRequest) {
         sessionId: sessionId,
         sdkUserId: userData.id || userData._id,
         userId: syncResult.user?.id,
+        email: userData.email,
+        role: userRole, // Must be at top level for withServerAuth role check
         user: userData,
         workspaceId: userData.workspaceId || userData.currentWorkspaceId,
         workspaceName: userData.workspaceName,

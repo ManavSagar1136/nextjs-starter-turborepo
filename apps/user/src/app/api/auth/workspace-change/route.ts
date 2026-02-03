@@ -100,11 +100,14 @@ async function postHandler(request: NextRequest) {
     console.log(`[workspace-change] User's current workspace updated`);
 
     // 4. Create updated user data with new workspace context
+    // IMPORTANT: Keep the app role (user/admin) separate from workspace role (viewer/editor/admin)
+    // The app role is used by withServerAuth, workspace role is for permission checks
     const updatedUserData = {
       ...userData,
       workspaceId: workspaceId,
       workspaceName: workspace.name || syncedWorkspace.name,
-      role: userRole,
+      workspaceRole: userRole, // Workspace-level role for permission checks
+      // role: userData.role is preserved from spread - this is the app role (user/admin)
     };
 
     // 5. Generate new auth token with updated workspace context
