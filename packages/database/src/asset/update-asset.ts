@@ -10,9 +10,12 @@ import { MAX_TAGS_PER_ASSET } from "./constants";
 /**
  * Update an asset (folderId, tagIds)
  */
-export async function updateAsset(id: string, data: UpdateAssetInput): Promise<void> {
+export async function updateAsset(id: string, data: UpdateAssetInput, workspaceId?: string): Promise<void> {
   // Get asset before update
-  const asset = await AssetsRepository.findByIdAdmin(id);
+  const asset = workspaceId
+    ? await AssetsRepository.findById(id, workspaceId)
+    : await AssetsRepository.findByIdAdmin(id);
+
   if (!asset) {
     throw new Error("Asset not found");
   }
@@ -25,8 +28,9 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
     if (!folder) {
       throw new Error("Folder not found");
     }
-    // Ensure folder is in the same workspace as the asset
-    if (folder.workspaceId !== asset.workspaceId) {
+    // Only enforce workspace validation if both asset and folder have workspaceIds
+    // For admin context (where workspaceId might be null), skip this validation
+    if (asset.workspaceId && folder.workspaceId && folder.workspaceId !== asset.workspaceId) {
       throw new Error("Folder must be in the same workspace as the asset");
     }
   }
@@ -45,18 +49,37 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
       throw new Error(`Maximum ${MAX_TAGS_PER_ASSET} tags per asset allowed`);
     }
 
-    // Validate all tags exist and are in the same workspace
+    // Validate all tags exist
+    // For admin operations (skipWorkspaceValidation = true): allow any tag regardless of workspace
+    // For user operations: tags must be in the same workspace as the asset
     if (tagIdsArray.length > 0) {
       const uniqueTagIds = [...new Set(tagIdsArray)];
+
+      const tagWhere: any = {
+        id: { in: uniqueTagIds },
+      };
+
+      // Only filter by workspaceId if:
+      // 1. This is NOT an admin operation (skipWorkspaceValidation is false/undefined)
+      // 2. AND the asset has a workspaceId
+      // For admin operations, skip workspace validation entirely
+      if (!data.skipWorkspaceValidation && asset.workspaceId) {
+        tagWhere.workspaceId = asset.workspaceId;
+      }
+      // If skipWorkspaceValidation is true (admin), we don't add workspaceId filter
+      // This allows admin to assign any tag to any asset, regardless of workspace
+
       const tags = await prisma.mediaTag.findMany({
-        where: {
-          id: { in: uniqueTagIds },
-          workspaceId: asset.workspaceId,
-        },
+        where: tagWhere,
       });
 
       if (tags.length !== uniqueTagIds.length) {
-        throw new Error("One or more tags not found or not in the same workspace");
+        // For admin, just check if tags exist (no workspace restriction)
+        // For user, check if tags exist and are in same workspace
+        const errorMessage = data.skipWorkspaceValidation
+          ? "One or more tags not found"
+          : "One or more tags not found or not in the same workspace";
+        throw new Error(errorMessage);
       }
 
       // Update asset tags (replace all existing tags)
@@ -92,6 +115,16 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<v
     }
     await AssetsRepository.update(id, {
       metadata: data.metadata,
+    });
+  }
+
+  // Update asset isPublic if provided
+  if (data.isPublic !== undefined) {
+    if (typeof data.isPublic !== "boolean") {
+      throw new Error("isPublic must be a boolean");
+    }
+    await AssetsRepository.update(id, {
+      isPublic: data.isPublic,
     });
   }
 }

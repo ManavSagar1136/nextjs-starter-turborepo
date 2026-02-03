@@ -116,21 +116,9 @@ export class AssetsRepository {
           },
         },
       },
-      user: {
-        select: USER_SELECT_FIELDS,
-      },
     };
 
-    // Include workspace relation for admin context
-    if (workspaceId === undefined) {
-      include.workspace = {
-        select: {
-          id: true,
-          name: true,
-        },
-      };
-    }
-
+    // Note: user and workspace are not included as they're not required
     const asset = await prisma.asset.findFirst({
       where,
       include,
@@ -146,7 +134,6 @@ export class AssetsRepository {
       assetTags?: Array<{
         tag: { id: string; name: string; slug: string; color: string | null } | null;
       }>;
-      workspace?: { id: string; name: string };
     };
 
     const folder = assetWithRelations.folder

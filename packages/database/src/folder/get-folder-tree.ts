@@ -37,6 +37,7 @@ export async function getFolderTree(workspaceId?: string | null): Promise<Folder
     folderMap.set(folder.id, {
       id: folder.id,
       name: folder.name,
+      parentFolderId: folder.parentFolderId,
       children: [],
       _count: folder._count,
     });

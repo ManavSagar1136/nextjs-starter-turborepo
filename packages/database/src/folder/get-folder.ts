@@ -8,9 +8,14 @@ import type { FolderWithDetails } from "./types";
 /**
  * Find folder by ID with full details
  */
-export async function getFolderById(id: string): Promise<FolderWithDetails | null> {
-  const folder = await prisma.assetFolder.findUnique({
-    where: { id },
+export async function getFolderById(id: string, workspaceId?: string): Promise<FolderWithDetails | null> {
+  const where: Record<string, unknown> = { id };
+  if (workspaceId !== undefined) {
+    where.workspaceId = workspaceId;
+  }
+
+  const folder = await prisma.assetFolder.findFirst({
+    where,
     include: {
       _count: {
         select: {

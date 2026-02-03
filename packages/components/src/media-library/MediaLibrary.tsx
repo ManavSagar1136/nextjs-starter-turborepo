@@ -44,6 +44,12 @@ interface MediaLibraryProps {
   onBulkMove?: (assetIds: string[]) => void;
   /** Callback when bulk assign tags is requested */
   onBulkAssignTags?: (assetIds: string[]) => void;
+  /** Callback when create tag is requested */
+  onCreateTag?: () => void;
+  /** Callback when edit tag is requested */
+  onEditTag?: (tag: { id: string; name: string; color?: string | null }) => void;
+  /** Callback when delete tag is requested */
+  onDeleteTag?: (tag: { id: string; name: string; color?: string | null }) => void;
 }
 
 // ============================================================================
@@ -62,6 +68,9 @@ export function MediaLibrary({
   onBulkDelete,
   onBulkMove,
   onBulkAssignTags,
+  onCreateTag,
+  onEditTag,
+  onDeleteTag,
 }: MediaLibraryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -427,7 +436,12 @@ export function MediaLibrary({
             </div>
 
             {/* Search and Filters */}
-            <SearchAndFilters searchInputRef={searchInputRef} />
+            <SearchAndFilters
+              searchInputRef={searchInputRef}
+              onCreateTag={onCreateTag}
+              onEditTag={onEditTag}
+              onDeleteTag={onDeleteTag}
+            />
           </div>
         </div>
 
@@ -453,9 +467,22 @@ interface MinimalMediaLibraryProps {
   actions?: React.ReactNode;
   /** Callback when upload is requested */
   onUpload?: () => void;
+  /** Callback when create tag is requested */
+  onCreateTag?: () => void;
+  /** Callback when edit tag is requested */
+  onEditTag?: (tag: { id: string; name: string; color?: string | null }) => void;
+  /** Callback when delete tag is requested */
+  onDeleteTag?: (tag: { id: string; name: string; color?: string | null }) => void;
 }
 
-export function MinimalMediaLibrary({ className, actions, onUpload }: MinimalMediaLibraryProps) {
+export function MinimalMediaLibrary({
+  className,
+  actions,
+  onUpload,
+  onCreateTag,
+  onEditTag,
+  onDeleteTag,
+}: MinimalMediaLibraryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { config } = useMediaLibrary();
   const [isDragOver, setIsDragOver] = useState(false);
@@ -524,7 +551,7 @@ export function MinimalMediaLibrary({ className, actions, onUpload }: MinimalMed
           </div>
 
           {/* Search and Filters */}
-          <SearchAndFilters />
+          <SearchAndFilters onCreateTag={onCreateTag} onEditTag={onEditTag} onDeleteTag={onDeleteTag} />
         </div>
       </div>
 

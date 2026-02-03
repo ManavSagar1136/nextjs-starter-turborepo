@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getFolderById, updateFolder, deleteFolder, verifyFolderOwnership } from "@buildbase/database";
 
 interface RouteParams {
@@ -9,14 +10,14 @@ interface RouteParams {
 /**
  * GET /api/folders/[id] - Get folder details
  */
-export async function GET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleGET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
     }
 
     // Get folder using service
-    const folder = await getFolderById(id);
+    const folder = await getFolderById(id, workspaceId);
 
     if (!folder) {
       return NextResponse.json({ success: false, message: "Folder not found" }, { status: 404 });
@@ -49,14 +50,14 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 /**
  * PATCH /api/folders/[id] - Update folder
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handlePATCH(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -66,11 +67,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     const { name, description, parentFolderId } = body;
 
     // Update folder using service
-    const folder = await updateFolder(id, {
-      name,
-      description,
-      parentFolderId,
-    });
+    const folder = await updateFolder(
+      id,
+      {
+        name,
+        description,
+        parentFolderId,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,
@@ -92,14 +97,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
 /**
  * DELETE /api/folders/[id] - Delete folder
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleDELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -109,7 +114,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     const recursive = searchParams.get("recursive") === "true";
 
     // Delete folder using service
-    await deleteFolder(id, recursive);
+    await deleteFolder(id, recursive, workspaceId);
 
     return NextResponse.json({
       success: true,
@@ -120,3 +125,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     return NextResponse.json({ success: false, message: "Failed to delete folder" }, { status: 500 });
   }
 }
+
+// GET: Allow all workspace members to view folders
+export const GET = withPermissionCheck(handleGET, [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+  WORKSPACE_ROLES.VIEWER,
+]);
+
+// PATCH: Allow admins and editors to update folders
+export const PATCH = withPermissionCheck(handlePATCH, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+
+// DELETE: Allow admins and editors to delete folders
+export const DELETE = withPermissionCheck(handleDELETE, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

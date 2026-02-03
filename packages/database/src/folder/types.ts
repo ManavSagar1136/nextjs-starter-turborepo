@@ -32,6 +32,7 @@ export interface PaginatedFolders {
     name: string;
     description: string | null;
     parentFolderId: string | null;
+    parent: { id: string; name: string } | null;
     _count: {
       assets: number;
       children: number;
@@ -50,6 +51,7 @@ export interface PaginatedFolders {
 export interface FolderTreeItem {
   id: string;
   name: string;
+  parentFolderId?: string | null;
   children: FolderTreeItem[];
   _count?: {
     assets: number;

@@ -23,16 +23,19 @@ export function AssignTagsDialog({
 }: AssignTagsDialogProps) {
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(currentTags.map(t => t.id));
   const [isPending, setIsPending] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Sync selection when dialog opens or tags change
   useEffect(() => {
     if (open) {
       setSelectedTagIds(currentTags.map(t => t.id));
+      setSaveError(null); // Clear error when dialog opens
     }
   }, [open, currentTags]);
 
   const handleToggle = (tagId: string) => {
     setSelectedTagIds(prev => (prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]));
+    setSaveError(null); // Clear error when user makes changes
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,9 +43,14 @@ export function AssignTagsDialog({
     if (isPending) return;
 
     setIsPending(true);
+    setSaveError(null);
     try {
       await onSaveTags(selectedTagIds);
       onOpenChange(false);
+    } catch (error) {
+      // Display error to user instead of silently closing
+      const errorMessage = error instanceof Error ? error.message : "Failed to save tags. Please try again.";
+      setSaveError(errorMessage);
     } finally {
       setIsPending(false);
     }
@@ -68,7 +76,7 @@ export function AssignTagsDialog({
               </div>
             )}
 
-            {/* Error state */}
+            {/* Error state - Tags loading error */}
             {tagsError && !isLoadingTags && (
               <div className="flex flex-col items-center justify-center gap-3 rounded-lg border p-4 text-center">
                 <AlertCircle className="text-destructive h-8 w-8" />
@@ -78,6 +86,14 @@ export function AssignTagsDialog({
                     Retry
                   </Button>
                 )}
+              </div>
+            )}
+
+            {/* Error state - Save error */}
+            {saveError && !tagsError && (
+              <div className="border-destructive/50 bg-destructive/10 mb-4 flex items-center gap-2 rounded-lg border p-3">
+                <AlertCircle className="text-destructive h-4 w-4 shrink-0" />
+                <span className="text-destructive text-sm">{saveError}</span>
               </div>
             )}
 

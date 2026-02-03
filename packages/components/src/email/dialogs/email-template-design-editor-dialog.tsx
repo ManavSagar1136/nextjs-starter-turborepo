@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
-import { UnlayerEditor } from "@buildbase/components";
-import type { DialogOrSheetBaseProps } from "../base-props";
+import { UnlayerEditor } from "../unlayer-editor";
+import type { DialogOrSheetBaseProps } from "@buildbase/dialog-manager";
 
 /**
  * Props for the EmailTemplateDesignEditorDialog

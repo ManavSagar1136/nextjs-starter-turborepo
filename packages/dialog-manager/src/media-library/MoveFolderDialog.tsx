@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Folder } from "lucide-react";
 
 import { Button } from "@buildbase/ui/button";
@@ -22,6 +22,13 @@ export function MoveFolderDialog({
 }: MoveFolderDialogProps) {
   const [targetParentFolderId, setTargetParentFolderId] = useState<string | null>(currentParentFolderId ?? null);
   const [isPending, setIsPending] = useState(false);
+
+  // Reset target when dialog opens or current parent changes
+  useEffect(() => {
+    if (open) {
+      setTargetParentFolderId(currentParentFolderId ?? null);
+    }
+  }, [open, currentParentFolderId]);
 
   const isSameLocation = targetParentFolderId === (currentParentFolderId ?? null);
 

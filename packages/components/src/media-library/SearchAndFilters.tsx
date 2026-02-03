@@ -1,7 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
-import { ArrowDown, ArrowUp, Filter, Grid3X3, List, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  Edit,
+  Filter,
+  Grid3X3,
+  List,
+  Plus,
+  Search,
+  Tag as TagIcon,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { Badge } from "@buildbase/ui/badge";
 import { Button } from "@buildbase/ui/button";
@@ -14,10 +27,13 @@ import {
   DropdownMenuTrigger,
 } from "@buildbase/ui/dropdown-menu";
 import { Input } from "@buildbase/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@buildbase/ui/popover";
+import { ScrollArea } from "@buildbase/ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@buildbase/ui/toggle-group";
 import { cn } from "@buildbase/ui/lib/utils";
 
 import { useMediaLibrary } from "./context";
+import type { ITag } from "./types";
 import { MIME_TYPE_FILTERS } from "./utils";
 
 // ============================================================================
@@ -31,54 +47,209 @@ interface SearchAndFiltersProps {
   onMobileSidebarToggle?: () => void;
   /** Ref for search input (for keyboard shortcuts) */
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
+  /** Tag management callbacks */
+  onCreateTag?: () => void;
+  onEditTag?: (tag: ITag) => void;
+  onDeleteTag?: (tag: ITag) => void;
 }
 
 // ============================================================================
 // Tag Filter Pills
 // ============================================================================
 
-function TagFilterPills() {
-  const { config, tags, selectedTagIds, toggleTagId, setSelectedTagIds } = useMediaLibrary();
+interface TagFilterPillsProps {
+  onCreateTag?: () => void;
+  onEditTag?: (tag: ITag) => void;
+  onDeleteTag?: (tag: ITag) => void;
+}
 
-  if (!config.enableTags || tags.length === 0) {
+function TagFilterPills({ onCreateTag, onEditTag, onDeleteTag }: TagFilterPillsProps) {
+  const { config, tags, selectedTagIds, toggleTagId, setSelectedTagIds } = useMediaLibrary();
+  const [tagsPopoverOpen, setTagsPopoverOpen] = useState(false);
+
+  if (!config.enableTags) {
     return null;
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {tags.slice(0, 10).map(tag => {
-        const isSelected = selectedTagIds.includes(tag.id);
-        return (
-          <Badge
-            key={tag.id}
-            variant={isSelected ? "default" : "outline"}
-            className={cn("cursor-pointer transition-all hover:opacity-80", isSelected && "pr-1")}
-            onClick={() => toggleTagId(tag.id)}
-            style={
-              tag.color && isSelected
-                ? {
-                    backgroundColor: tag.color,
-                    borderColor: tag.color,
-                    color: "white",
-                  }
-                : tag.color
-                  ? {
-                      borderColor: tag.color + "60",
-                      color: tag.color,
-                    }
-                  : undefined
-            }
-          >
-            {tag.name}
-            {isSelected && <X className="ml-1 h-3 w-3" />}
-          </Badge>
-        );
-      })}
-
-      {selectedTagIds.length > 0 && (
-        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setSelectedTagIds([])}>
-          Clear tags
+    <Popover open={tagsPopoverOpen} onOpenChange={setTagsPopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <TagIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">Tags</span>
+          {selectedTagIds.length > 0 && (
+            <Badge variant="secondary" className="ml-0.5 h-5 px-1.5 text-xs font-semibold">
+              {selectedTagIds.length}
+            </Badge>
+          )}
+          <ChevronDown className="h-3.5 w-3.5 opacity-50" />
         </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <div className="flex items-center justify-between border-b p-2">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 rounded-md p-1.5">
+              <TagIcon className="text-primary h-4 w-4" />
+            </div>
+            <h3 className="text-sm font-semibold tracking-tight">Tags</h3>
+            {selectedTagIds.length > 0 && (
+              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                {selectedTagIds.length} selected
+              </Badge>
+            )}
+          </div>
+          {selectedTagIds.length > 0 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelectedTagIds([])}
+              className="text-muted-foreground hover:text-foreground h-8 gap-1.5 text-xs"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+        <ScrollArea className="max-h-[400px]">
+          <div className="space-y-2 p-2">
+            {/* Create Tag Button */}
+            {onCreateTag && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 w-full gap-2 shadow-sm transition-shadow hover:shadow"
+                onClick={() => {
+                  onCreateTag();
+                  setTagsPopoverOpen(false);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Create Tag
+              </Button>
+            )}
+
+            {/* Tags List */}
+            {tags.length === 0 ? (
+              <div className="bg-muted/30 flex flex-col items-center justify-center gap-3 rounded-lg border p-4 py-8 text-center">
+                <TagIcon className="text-muted-foreground h-5 w-5" />
+                <p className="text-muted-foreground text-sm">No tags found. Create tags to organize your assets.</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {tags.map(tag => {
+                  const isSelected = selectedTagIds.includes(tag.id);
+                  return (
+                    <TagItem
+                      key={tag.id}
+                      tag={tag}
+                      isSelected={isSelected}
+                      onToggle={() => toggleTagId(tag.id)}
+                      onEdit={
+                        onEditTag
+                          ? () => {
+                              onEditTag(tag);
+                              setTagsPopoverOpen(false);
+                            }
+                          : undefined
+                      }
+                      onDelete={
+                        onDeleteTag
+                          ? () => {
+                              onDeleteTag(tag);
+                              setTagsPopoverOpen(false);
+                            }
+                          : undefined
+                      }
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ============================================================================
+// Tag Item Component
+// ============================================================================
+
+interface TagItemProps {
+  tag: ITag;
+  isSelected: boolean;
+  onToggle: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}
+
+function TagItem({ tag, isSelected, onToggle, onEdit, onDelete }: TagItemProps) {
+  return (
+    <div
+      className={cn(
+        "group flex cursor-pointer items-center gap-2.5 rounded-lg border p-2.5 transition-all duration-200",
+        isSelected
+          ? "bg-primary/10 border-primary shadow-sm"
+          : "bg-background border-border hover:bg-accent/50 hover:border-accent-foreground/20"
+      )}
+      onClick={onToggle}
+      tabIndex={0}
+      aria-pressed={isSelected}
+      role="button"
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
+    >
+      <div
+        className={cn(
+          "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
+          isSelected ? "border-primary bg-primary" : "border-muted-foreground/40 bg-transparent"
+        )}
+      >
+        {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+      </div>
+      <span className={cn("flex-1 truncate text-sm font-medium", isSelected ? "text-primary" : "text-foreground")}>
+        {tag.name}
+      </span>
+      {(onEdit || onDelete) && (
+        <div
+          className="flex items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+          onClick={e => e.stopPropagation()}
+        >
+          {onEdit && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className={cn(
+                "h-7 w-7 p-0",
+                isSelected
+                  ? "text-primary hover:bg-primary/20"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              )}
+              onClick={onEdit}
+              tabIndex={-1}
+            >
+              <Edit className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className={cn(
+                "h-7 w-7 p-0",
+                isSelected ? "text-destructive hover:bg-destructive/20" : "text-destructive hover:bg-destructive/10"
+              )}
+              onClick={onDelete}
+              tabIndex={-1}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -224,6 +395,9 @@ export function SearchAndFilters({
   showMobileSidebarToggle,
   onMobileSidebarToggle,
   searchInputRef,
+  onCreateTag,
+  onEditTag,
+  onDeleteTag,
 }: SearchAndFiltersProps) {
   const { config, searchQuery, setSearchQuery, hasActiveFilters, activeFilterCount, clearFilters } = useMediaLibrary();
 
@@ -258,6 +432,9 @@ export function SearchAndFilters({
         <div className="flex items-center gap-2">
           <SortDropdown />
           <MimeTypeFilter />
+          {config.enableTags && (
+            <TagFilterPills onCreateTag={onCreateTag} onEditTag={onEditTag} onDeleteTag={onDeleteTag} />
+          )}
           <ViewModeToggle />
 
           {/* Clear all filters */}
@@ -272,9 +449,6 @@ export function SearchAndFilters({
           )}
         </div>
       </div>
-
-      {/* Tag pills row */}
-      <TagFilterPills />
     </div>
   );
 }

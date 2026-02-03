@@ -2,12 +2,12 @@
 
 import React from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
-import { UnlayerEditor } from "@buildbase/components";
+import { UnlayerEditor } from "../unlayer-editor";
 import { Button } from "@buildbase/ui/components/ui/button";
 import { Textarea } from "@buildbase/ui/textarea";
 import { Label } from "@buildbase/ui/components/ui/label";
 import { EmailTemplateType } from "@buildbase/database";
-import type { DialogOrSheetBaseProps } from "../base-props";
+import type { DialogOrSheetBaseProps } from "@buildbase/dialog-manager";
 
 /**
  * Props for the EmailTemplateEditorSheet

@@ -20,10 +20,15 @@ function generateSlug(name: string): string {
 /**
  * Update an existing tag
  */
-export async function updateTag(id: string, data: UpdateTagInput): Promise<MediaTag> {
+export async function updateTag(id: string, data: UpdateTagInput, workspaceId?: string): Promise<MediaTag> {
   // Verify tag exists
-  const existingTag = await prisma.mediaTag.findUnique({
-    where: { id },
+  const where: Record<string, unknown> = { id };
+  if (workspaceId !== undefined) {
+    where.workspaceId = workspaceId;
+  }
+
+  const existingTag = await prisma.mediaTag.findFirst({
+    where,
   });
 
   if (!existingTag) {

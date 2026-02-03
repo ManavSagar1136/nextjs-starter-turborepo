@@ -7,10 +7,15 @@ import { prisma } from "../index";
 /**
  * Delete a tag by ID
  */
-export async function deleteTag(id: string): Promise<void> {
+export async function deleteTag(id: string, workspaceId?: string): Promise<void> {
   // Verify tag exists
-  const tag = await prisma.mediaTag.findUnique({
-    where: { id },
+  const where: Record<string, unknown> = { id };
+  if (workspaceId !== undefined) {
+    where.workspaceId = workspaceId;
+  }
+
+  const tag = await prisma.mediaTag.findFirst({
+    where,
   });
 
   if (!tag) {

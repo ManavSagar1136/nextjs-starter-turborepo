@@ -1,14 +1,10 @@
 import { prisma } from "../index";
-import { DEFAULT_ROLE, type WorkspaceRole } from "./constants";
+import { type WorkspaceRole } from "./constants";
 
 /**
  * Add user to workspace (create workspace membership)
  */
-export const addUserToWorkspace = async (
-  userId: string,
-  workspaceId: string,
-  role: WorkspaceRole | string = DEFAULT_ROLE
-) => {
+export const addUserToWorkspace = async (userId: string, workspaceId: string, role: WorkspaceRole | string) => {
   try {
     // First, get the user and workspace by their SDK IDs
     const user = await prisma.user.findUnique({

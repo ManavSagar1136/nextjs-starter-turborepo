@@ -330,7 +330,7 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
     return response.data.data;
   }
 
-  async completeUpload(params: { path: string; makePublic: boolean }): Promise<IAsset> {
+  async completeUpload(params: { path: string; makePublic: boolean; folderId?: string | null }): Promise<IAsset> {
     const response = await this.post("/assets/upload/complete", {}, {}, params);
     return response.data.data;
   }
@@ -356,6 +356,7 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
     return this.completeUpload({
       path,
       makePublic: options?.makePublic ?? false,
+      folderId: options?.folderId,
     });
   }
 }

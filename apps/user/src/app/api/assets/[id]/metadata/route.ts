@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { updateAsset, getAssetById } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 
 /**
  * PATCH /api/assets/[id]/metadata - Update asset metadata
  */
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -45,13 +46,17 @@ export async function PATCH(
     }
 
     // Update asset metadata using service
-    await updateAsset(id, {
-      filename: filename !== undefined ? filename.trim() : undefined,
-      metadata: metadata !== undefined ? metadata : undefined,
-    });
+    await updateAsset(
+      id,
+      {
+        filename: filename !== undefined ? filename.trim() : undefined,
+        metadata: metadata !== undefined ? metadata : undefined,
+      },
+      workspaceId
+    );
 
     // Get updated asset with details
-    const updatedAsset = await getAssetById(id);
+    const updatedAsset = await getAssetById(id, workspaceId);
 
     return NextResponse.json({
       success: true,
@@ -80,3 +85,6 @@ export async function PATCH(
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
+
+// PATCH: Allow admins and editors to update asset metadata
+export const PATCH = withPermissionCheck(handlePATCH, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

@@ -28,8 +28,10 @@ async function handlePOST(request: NextRequest, { params }: RouteParams): Promis
     }
 
     // Assign tags using service (replace all existing tags)
+    // Skip workspace validation for admin operations
     await updateAsset(id, {
       tagIds,
+      skipWorkspaceValidation: true,
     });
 
     // Get updated asset with tags
@@ -90,8 +92,10 @@ async function handleDELETE(request: NextRequest, { params }: RouteParams): Prom
     const remainingTagIds = currentTagIds.filter(tagId => !tagIds.includes(tagId));
 
     // Update asset with remaining tags
+    // Skip workspace validation for admin operations
     await updateAsset(id, {
       tagIds: remainingTagIds,
+      skipWorkspaceValidation: true,
     });
 
     return NextResponse.json({
