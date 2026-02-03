@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { NotLoggedIn } from "@buildbase/components";
 import { useSDKAuth } from "@/hooks/useSDKAuth";
 import { Routes } from "@/data/routes";
+import { API } from "@/services";
 
 const LoginPage = () => {
   const { isAuthenticated, isLoading, signIn, signOut } = useSDKAuth();
@@ -24,16 +25,13 @@ const LoginPage = () => {
     try {
       // Check if server session is valid by calling the session endpoint
       // This endpoint validates the HTTP-only cookie on the server
-      const response = await fetch("/api/auth/session", {
-        method: "GET",
-        credentials: "include",
-      });
+      const session = await API.auth.getSession();
 
-      if (response.ok) {
+      if (session.authenticated) {
         // Server confirmed we're authenticated
         setVerifiedAuth(true);
       } else {
-        // Server says we're not authenticated (401) - clear SDK state
+        // Server says we're not authenticated - clear SDK state
         console.log("[LoginPage] Server session invalid, clearing SDK auth state");
         setVerifiedAuth(false);
         await signOut();
