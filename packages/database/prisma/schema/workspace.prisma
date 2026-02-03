@@ -18,6 +18,11 @@ model Workspace {
   // Email templates
   emailTemplates EmailTemplate[]
 
+  // Subscriber management
+  newsletterSubscribers NewsletterSubscriber[]
+  waitlistSubscribers   WaitlistSubscriber[]
+  contactSubmissions    ContactSubmission[]
+
   // Asset relationships
   assets       Asset[]
   assetFolders AssetFolder[]
