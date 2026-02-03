@@ -20,7 +20,6 @@ model Workspace {
 
   // Subscriber management
   newsletterSubscribers NewsletterSubscriber[]
-  waitlistSubscribers   WaitlistSubscriber[]
   contactSubmissions    ContactSubmission[]
 
   // Asset relationships
