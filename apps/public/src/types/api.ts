@@ -16,10 +16,6 @@ export interface ContactFormRequest {
 
 export interface NewsletterSubscribeRequest {
   email: string;
-  html?: {
-    thankYouHTML?: string;
-    infoHTML?: string;
-  };
 }
 
 export interface NewsletterUnsubscribeRequest {
