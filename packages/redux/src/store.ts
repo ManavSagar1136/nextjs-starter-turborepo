@@ -55,6 +55,7 @@ export const createStore = (additionalReducers?: Record<string, any>, persistCon
   // Configure store
   const store = configureStore({
     reducer: persistedReducer,
+    // @ts-expect-error - redux-persist middleware type compatibility
     middleware: getDefaultMiddleware =>
       getDefaultMiddleware({
         serializableCheck: {
