@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, unsubscribeNewsletterByEmail, getNewsletterSubscriberByEmail } from "@buildbase/database";
-import { EmailService } from "@buildbase/email";
+import { prisma, unsubscribeNewsletterByEmail } from "@buildbase/database";
+import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
 import type { NewsletterUnsubscribeRequest } from "@/types/api";
 
 // Initialize email service
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     // Send unsubscribe confirmation email
     if (subscriberEmail) {
       try {
-        await EmailService.sendTemplate("newsletter-unsubscribe", {
+        await EmailService.sendTemplate(EMAIL_TEMPLATES.NEWSLETTER_UNSUBSCRIBE, {
           to: subscriberEmail,
           variables: {
             email: subscriberEmail,

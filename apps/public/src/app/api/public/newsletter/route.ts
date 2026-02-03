@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, createNewsletterSubscriber } from "@buildbase/database";
-import { EmailService } from "@buildbase/email";
+import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
 import type { NewsletterSubscribeRequest } from "@/types/api";
 
 // Initialize email service
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // Send welcome email to subscriber
     try {
-      await EmailService.sendTemplate("newsletter-welcome", {
+      await EmailService.sendTemplate(EMAIL_TEMPLATES.NEWSLETTER_WELCOME, {
         to: subscriber.email,
         variables: {
           email: subscriber.email,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (adminEmail && isNew) {
       try {
-        await EmailService.sendTemplate("newsletter-admin-notification", {
+        await EmailService.sendTemplate(EMAIL_TEMPLATES.NEWSLETTER_ADMIN_NOTIFICATION, {
           to: adminEmail,
           variables: {
             email: subscriber.email,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, createContactSubmission } from "@buildbase/database";
-import { EmailService } from "@buildbase/email";
+import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
 import type { ContactFormData } from "@/types/contact";
 
 // Initialize email service
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to user
     try {
-      await EmailService.sendTemplate("contact-confirmation", {
+      await EmailService.sendTemplate(EMAIL_TEMPLATES.CONTACT_CONFIRMATION, {
         to: data.email,
         variables: {
           firstName: data.firstName || "",
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (adminEmail) {
       try {
-        await EmailService.sendTemplate("contact-admin-notification", {
+        await EmailService.sendTemplate(EMAIL_TEMPLATES.CONTACT_ADMIN_NOTIFICATION, {
           to: adminEmail,
           variables: {
             firstName: data.firstName || "-",

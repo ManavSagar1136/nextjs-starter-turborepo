@@ -4,6 +4,7 @@
  */
 
 import type { TemplateVariable } from "./types.js";
+import { EMAIL_TEMPLATES } from "../constants.js";
 
 // Import JSON templates (resolveJsonModule enabled)
 import newsletterWelcome from "./newsletter-welcome.json";
@@ -28,13 +29,14 @@ export interface DefaultTemplate {
 
 /**
  * Registry of all default templates
+ * Uses EMAIL_TEMPLATES constants as keys for consistency
  */
 export const defaultTemplates: Record<string, DefaultTemplate> = {
-  "newsletter-welcome": newsletterWelcome as unknown as DefaultTemplate,
-  "newsletter-unsubscribe": newsletterUnsubscribe as unknown as DefaultTemplate,
-  "newsletter-admin-notification": newsletterAdminNotification as unknown as DefaultTemplate,
-  "contact-confirmation": contactConfirmation as unknown as DefaultTemplate,
-  "contact-admin-notification": contactAdminNotification as unknown as DefaultTemplate,
+  [EMAIL_TEMPLATES.NEWSLETTER_WELCOME]: newsletterWelcome as unknown as DefaultTemplate,
+  [EMAIL_TEMPLATES.NEWSLETTER_UNSUBSCRIBE]: newsletterUnsubscribe as unknown as DefaultTemplate,
+  [EMAIL_TEMPLATES.NEWSLETTER_ADMIN_NOTIFICATION]: newsletterAdminNotification as unknown as DefaultTemplate,
+  [EMAIL_TEMPLATES.CONTACT_CONFIRMATION]: contactConfirmation as unknown as DefaultTemplate,
+  [EMAIL_TEMPLATES.CONTACT_ADMIN_NOTIFICATION]: contactAdminNotification as unknown as DefaultTemplate,
 };
 
 /**
