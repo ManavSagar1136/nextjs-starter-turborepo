@@ -1,26 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { WaitlistUnsubscribeRequest } from "@/types/api";
 
+/**
+ * Waitlist Unsubscribe API - Deprecated
+ * 
+ * Waitlist functionality is now handled by Buildbase SDK.
+ * This endpoint is kept for backwards compatibility and redirects to newsletter unsubscribe.
+ */
 export async function POST(request: NextRequest) {
   try {
-    const data: WaitlistUnsubscribeRequest = await request.json();
+    const data = await request.json();
 
-    // Log the request
-    console.log("[Waitlist Unsubscribe API] Received unsubscribe request:", {
+    console.log("[Waitlist Unsubscribe API] Deprecated endpoint called. Redirecting to newsletter unsubscribe.", {
       email: data.email,
-      token: data.token ? "provided" : "not provided",
       timestamp: new Date().toISOString(),
     });
 
-    // TODO: Implement database update here
-    // TODO: Implement email sending logic here
+    // Redirect to newsletter unsubscribe endpoint
+    const unsubscribeResponse = await fetch(new URL("/api/public/newsletter/unsubscribe", request.url), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: data.email, token: data.token }),
+    });
+
+    const result = await unsubscribeResponse.json();
 
     return NextResponse.json(
       {
-        success: true,
-        message: "Successfully unsubscribed from waitlist",
+        ...result,
+        _deprecated: true,
+        _notice: "Waitlist API is deprecated. Use Buildbase SDK for waitlist management.",
       },
-      { status: 200 },
+      { status: unsubscribeResponse.status }
     );
   } catch (error) {
     console.error("[Waitlist Unsubscribe API] Error:", error);
@@ -29,8 +39,23 @@ export async function POST(request: NextRequest) {
         success: false,
         message: "Failed to unsubscribe from waitlist",
         error: error instanceof Error ? error.message : "Unknown error",
+        _deprecated: true,
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
+}
+
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const email = url.searchParams.get("email");
+  const token = url.searchParams.get("token");
+
+  const fakeRequest = new NextRequest(request.url, {
+    method: "POST",
+    body: JSON.stringify({ email, token }),
+    headers: { "Content-Type": "application/json" },
+  });
+
+  return POST(fakeRequest);
 }

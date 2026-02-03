@@ -1,25 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { WaitlistSubscribeRequest } from "@/types/api";
 
+/**
+ * Waitlist API - Deprecated
+ * 
+ * Waitlist functionality is now handled by Buildbase SDK.
+ * This endpoint is kept for backwards compatibility and redirects to newsletter.
+ * 
+ * For waitlist management, use the Buildbase SDK:
+ * @see https://docs.buildbase.io/waitlist
+ */
 export async function POST(request: NextRequest) {
   try {
-    const data: WaitlistSubscribeRequest = await request.json();
+    const data = await request.json();
 
-    // Log the request
-    console.log("[Waitlist API] Received waitlist subscription:", {
+    console.log("[Waitlist API] Deprecated endpoint called. Redirecting to newsletter.", {
       email: data.email,
       timestamp: new Date().toISOString(),
     });
 
-    // TODO: Implement database storage here
-    // TODO: Implement email sending logic here
+    // Redirect to newsletter subscribe endpoint
+    const newsletterResponse = await fetch(new URL("/api/public/newsletter", request.url), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: data.email }),
+    });
+
+    const result = await newsletterResponse.json();
 
     return NextResponse.json(
       {
-        success: true,
-        message: "Successfully added to waitlist",
+        ...result,
+        message: result.success 
+          ? "Successfully added to waitlist (redirected to newsletter)" 
+          : result.message,
+        _deprecated: true,
+        _notice: "Waitlist API is deprecated. Use Buildbase SDK for waitlist management.",
       },
-      { status: 200 },
+      { status: newsletterResponse.status }
     );
   } catch (error) {
     console.error("[Waitlist API] Error:", error);
@@ -28,8 +45,9 @@ export async function POST(request: NextRequest) {
         success: false,
         message: "Failed to add to waitlist",
         error: error instanceof Error ? error.message : "Unknown error",
+        _deprecated: true,
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
