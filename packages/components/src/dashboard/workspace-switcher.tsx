@@ -1,6 +1,6 @@
 "use client";
 
-import { WorkspaceSwitcher as SDKWorkspaceSwitcher } from "@buildbase/saas-sdk";
+import { WorkspaceSwitcher as SDKWorkspaceSwitcher, useSaaSAuth } from "@buildbase/saas-sdk";
 import { memo } from "react";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@buildbase/ui/components/ui/sidebar";
 import { Building2, ChevronDown } from "lucide-react";
@@ -45,6 +45,11 @@ const createTriggerComponent = (isLoading: boolean, currentWorkspace: any) => {
  * through its event system. The callback can be used for additional custom logic.
  */
 const WorkspaceSwitcherComponent = () => {
+  const { isLoading, isAuthenticated, isRedirecting } = useSaaSAuth();
+
+  if (isLoading || !isAuthenticated || isRedirecting) {
+    return null;
+  }
   // Use the stable function defined outside - this reference never changes
   // This prevents the SDK from re-rendering due to function reference changes
   return <SDKWorkspaceSwitcher trigger={createTriggerComponent} />;
