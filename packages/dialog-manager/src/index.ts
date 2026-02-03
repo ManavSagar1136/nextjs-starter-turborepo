@@ -38,10 +38,6 @@ export {
   CONFIRMATION_DIALOG_VARIANTS,
   AlertDialog,
   ALERT_DIALOG_VARIANTS,
-  EmailTemplateDialog,
-  EmailTemplateDesignEditorDialog,
-  EmailTemplateEditorSheet,
-  EmailProviderDialog,
   TestEmailDialog,
 } from "./common";
 export type {
@@ -49,12 +45,12 @@ export type {
   ConfirmationDialogVariant,
   AlertDialogProps,
   AlertDialogVariant,
-  EmailTemplateDialogProps,
-  EmailTemplateDesignEditorDialogProps,
-  EmailTemplateEditorSheetProps,
-  EmailProviderDialogProps,
   TestEmailDialogProps,
 } from "./common";
+
+// NOTE: Email dialogs (EmailTemplateDialog, EmailTemplateDesignEditorDialog,
+// EmailTemplateEditorSheet, EmailProviderDialog) have been moved to @buildbase/components/email
+// to break the cyclic dependency. Import them from "@buildbase/components/email" instead.
 
 // Initialize
 export { initializeCommonDialogs } from "./initialize";
