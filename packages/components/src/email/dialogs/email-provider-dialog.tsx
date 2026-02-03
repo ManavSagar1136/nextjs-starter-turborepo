@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
-import { EmailProviderForm } from "@buildbase/components";
-import type { DialogOrSheetBaseProps } from "../base-props";
+import { EmailProviderForm } from "../email-provider-form";
+import type { DialogOrSheetBaseProps } from "@buildbase/dialog-manager";
 
 /**
  * Props for the EmailProviderDialog

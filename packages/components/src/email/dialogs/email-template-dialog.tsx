@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@buildbase/ui/dialog";
-import { EmailTemplateForm } from "@buildbase/components";
+import { EmailTemplateForm } from "../email-template-form";
 import { EmailTemplateType } from "@buildbase/database";
-import { useDialogManager, COMMON_DIALOG_KEYS } from "../index";
-import type { DialogOrSheetBaseProps } from "../base-props";
+import { useDialogManager, COMMON_DIALOG_KEYS, type DialogOrSheetBaseProps } from "@buildbase/dialog-manager";
 
 /**
  * Props for the EmailTemplateDialog
