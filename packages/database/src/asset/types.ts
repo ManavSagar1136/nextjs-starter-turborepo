@@ -30,8 +30,6 @@ export interface PaginatedAssets {
     metadata: Record<string, unknown> | null;
     folder: { id: string; name: string } | null;
     tags: Array<{ id: string; name: string; slug: string; color: string | null }>;
-    user: { id: string; name: string | null; email: string | null };
-    workspace?: { id: string; name: string };
     createdAt: string;
     updatedAt: string;
   }>;
@@ -63,4 +61,7 @@ export interface UpdateAssetInput {
   tagIds?: string[];
   filename?: string;
   metadata?: Record<string, unknown>;
+  isPublic?: boolean;
+  /** Skip workspace validation for admin operations */
+  skipWorkspaceValidation?: boolean;
 }

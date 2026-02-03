@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useDebounce } from "@buildbase/ui/hooks/use-debounce";
 
@@ -154,6 +154,7 @@ interface MediaLibraryProviderProps {
   onPreviewAsset?: (asset: IAsset) => void;
   onDownloadAsset?: (asset: IAsset) => void;
   onEditAsset?: (asset: IAsset) => void;
+  onDuplicateAsset?: (asset: IAsset) => Promise<void>;
 
   // Initial state
   initialFolderId?: string | null;
@@ -184,6 +185,7 @@ export function MediaLibraryProvider({
   onPreviewAsset,
   onDownloadAsset,
   onEditAsset,
+  onDuplicateAsset,
   initialFolderId = null,
   initialViewMode,
 }: MediaLibraryProviderProps) {
@@ -298,6 +300,12 @@ export function MediaLibraryProvider({
     setCurrentPage(1);
   }, [config.enableFolders, config.enableTags]);
 
+  // Reset page when debounced search query or MIME types change
+  // This matches org-based-saas-template behavior
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchQuery, selectedMimeTypes]);
+
   // Actions - Asset selection
   const handleToggleAssetSelection = useCallback((assetId: string) => {
     setSelectedAssetIds(prev => (prev.includes(assetId) ? prev.filter(id => id !== assetId) : [...prev, assetId]));
@@ -380,8 +388,14 @@ export function MediaLibraryProvider({
           setActiveAssetAction(null);
           break;
         case "edit":
+        case "edit_metadata":
           onEditAsset?.(payload.asset);
           setActiveAssetAction(null);
+          break;
+        case "duplicate":
+          onDuplicateAsset?.(payload.asset).finally(() => {
+            setActiveAssetAction(null);
+          });
           break;
         case "tag_toggle":
           if (payload.tag) {
@@ -399,6 +413,7 @@ export function MediaLibraryProvider({
       onPreviewAsset,
       onDownloadAsset,
       onEditAsset,
+      onDuplicateAsset,
       handleCopyUrl,
       handleToggleTagId,
     ]

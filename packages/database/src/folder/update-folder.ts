@@ -37,10 +37,15 @@ async function calculateFolderDepth(folderId: string | null): Promise<number> {
 /**
  * Update an existing folder
  */
-export async function updateFolder(id: string, data: UpdateFolderInput): Promise<AssetFolder> {
+export async function updateFolder(id: string, data: UpdateFolderInput, workspaceId?: string): Promise<AssetFolder> {
   // Verify folder exists
-  const existingFolder = await prisma.assetFolder.findUnique({
-    where: { id },
+  const where: Record<string, unknown> = { id };
+  if (workspaceId !== undefined) {
+    where.workspaceId = workspaceId;
+  }
+
+  const existingFolder = await prisma.assetFolder.findFirst({
+    where,
   });
 
   if (!existingFolder) {

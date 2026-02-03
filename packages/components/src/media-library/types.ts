@@ -17,6 +17,7 @@ export interface IFolder {
   name: string;
   description?: string | null;
   parentFolderId?: string | null;
+  parent?: { id: string; name: string } | null;
   path?: Array<{ id: string; name: string }>;
   children?: IFolder[];
   _count?: {
@@ -28,6 +29,7 @@ export interface IFolder {
 export interface IFolderTreeItem {
   id: string;
   name: string;
+  parentFolderId?: string | null;
   children?: IFolderTreeItem[];
   _count?: {
     assets?: number;
@@ -162,6 +164,23 @@ export interface IMediaLibraryApi {
   assignTagsToAsset: (assetId: string, tagIds: string[]) => Promise<IAsset>;
   removeTagsFromAsset: (assetId: string, tagIds: string[]) => Promise<IAsset>;
 
+  // Bulk operations
+  bulkDeleteAssets?: (
+    assetIds: string[]
+  ) => Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }>;
+  bulkMoveAssets?: (
+    assetIds: string[],
+    folderId: string | null
+  ) => Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }>;
+  bulkAssignTags?: (
+    assetIds: string[],
+    tagIds: string[]
+  ) => Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }>;
+  bulkRemoveTags?: (
+    assetIds: string[],
+    tagIds: string[]
+  ) => Promise<{ successCount: number; failureCount: number; errors?: Array<{ assetId: string; error: string }> }>;
+
   // Upload
   uploadAsset?: (file: File, options?: { folderId?: string | null; makePublic?: boolean }) => Promise<IAsset>;
   getUploadSignedUrl?: (params: { filename: string; contentType: string; size: number }) => Promise<{
@@ -237,7 +256,7 @@ export const DEFAULT_MEDIA_LIBRARY_CONFIG: IResolvedMediaLibraryConfig = {
   enableUpload: true,
   enablePrivacyToggle: true,
   defaultViewMode: "grid",
-  pageSize: 20,
+  pageSize: 10,
   maxFileSize: 50 * 1024 * 1024, // 50MB
   allowedMimeTypes: [],
   labels: {

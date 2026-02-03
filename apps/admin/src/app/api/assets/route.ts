@@ -16,7 +16,8 @@ async function handleGET(request: NextRequest) {
     const page = parseInt(searchParams.get("$page") || "1", 10);
     const limit = parseInt(searchParams.get("$limit") || "20", 10);
 
-    // Build filters (no workspaceId - admin sees all assets)
+    // Build filters (no workspaceId - admin sees all assets, but can filter by workspaceId)
+    const workspaceId = searchParams.get("workspaceId");
     const folderId = searchParams.get("folderId");
     const tagIds = searchParams.get("tagIds");
     const search = searchParams.get("search");
@@ -27,6 +28,7 @@ async function handleGET(request: NextRequest) {
 
     // List assets using service
     const result = await listAssets({
+      workspaceId: workspaceId || undefined, // Optional - if provided, filters by workspace
       folderId: folderId !== null ? (folderId === "null" ? null : folderId) : undefined,
       tagIds: tagIds ? tagIds.split(",").filter(Boolean) : undefined,
       search: search || undefined,

@@ -96,7 +96,7 @@ async function postHandler(request: NextRequest) {
     }
 
     // 3. Update user's current workspace preference
-    await updateUserCurrentWorkspace(userData.sdkUserId, workspaceId);
+    await updateUserCurrentWorkspace(userData.sdkUserId, workspaceId, userRole);
     console.log(`[workspace-change] User's current workspace updated`);
 
     // 4. Create updated user data with new workspace context

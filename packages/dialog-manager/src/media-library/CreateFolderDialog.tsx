@@ -9,27 +9,39 @@ import { Input } from "@buildbase/ui/input";
 import { Label } from "@buildbase/ui/label";
 import { Textarea } from "@buildbase/ui/textarea";
 
+import { FolderTreeSelect } from "./FolderTreeSelect";
 import type { CreateFolderDialogProps } from "./types";
 
 export function CreateFolderDialog({
   open,
   onOpenChange,
-  parentFolderId,
+  parentFolderId: initialParentFolderId,
   parentFolderName,
+  folderTree,
+  isLoadingTree = false,
   isLoading = false,
   onCreateFolder,
 }: CreateFolderDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedParentFolderId, setSelectedParentFolderId] = useState<string | null>(initialParentFolderId ?? null);
   const [isPending, setIsPending] = useState(false);
 
-  // Reset form when dialog closes
+  // Reset form when dialog closes or initial parent changes
   useEffect(() => {
     if (!open) {
       setName("");
       setDescription("");
+      setSelectedParentFolderId(initialParentFolderId ?? null);
     }
-  }, [open]);
+  }, [open, initialParentFolderId]);
+
+  // Update selected parent when initial parent changes
+  useEffect(() => {
+    if (open) {
+      setSelectedParentFolderId(initialParentFolderId ?? null);
+    }
+  }, [initialParentFolderId, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +52,11 @@ export function CreateFolderDialog({
       await onCreateFolder({
         name: name.trim(),
         description: description.trim() || undefined,
-        parentFolderId: parentFolderId ?? null,
+        parentFolderId: selectedParentFolderId,
       });
       setName("");
       setDescription("");
+      setSelectedParentFolderId(null);
       onOpenChange(false);
     } finally {
       setIsPending(false);
@@ -51,30 +64,45 @@ export function CreateFolderDialog({
   };
 
   const loading = isLoading || isPending;
+  const canSelectParent = folderTree !== undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{parentFolderName ? "Create Subfolder" : "Create Folder"}</DialogTitle>
+          <DialogTitle>Create Folder</DialogTitle>
           <DialogDescription>
-            {parentFolderName
-              ? "Create a subfolder in the parent folder."
-              : "Create a new folder to organize your assets."}
+            Create a new folder to organize your assets.{" "}
+            {canSelectParent ? "Select a parent folder or create at root level." : ""}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            {/* Parent folder indicator */}
-            {parentFolderId && parentFolderName && (
-              <div className="bg-muted/50 border-border rounded-lg border p-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Folder className="text-muted-foreground h-4 w-4" />
-                  <span className="text-muted-foreground">Parent folder:</span>
-                  <span className="text-foreground font-medium">{parentFolderName}</span>
-                </div>
+            {/* Parent folder selection */}
+            {canSelectParent ? (
+              <div className="space-y-2">
+                <Label htmlFor="parent-folder">Parent Folder (Optional)</Label>
+                <FolderTreeSelect
+                  value={selectedParentFolderId}
+                  onChange={setSelectedParentFolderId}
+                  folders={folderTree}
+                  isLoading={isLoadingTree}
+                  rootLabel="Root (Top Level)"
+                />
               </div>
+            ) : (
+              /* Legacy: Show parent folder indicator if provided but no tree available */
+              initialParentFolderId &&
+              parentFolderName && (
+                <div className="bg-muted/50 border-border rounded-lg border p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Folder className="text-muted-foreground h-4 w-4" />
+                    <span className="text-muted-foreground">Parent folder:</span>
+                    <span className="text-foreground font-medium">{parentFolderName}</span>
+                  </div>
+                </div>
+              )
             )}
 
             {/* Folder name */}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { updateFolder, verifyFolderOwnership } from "@buildbase/database";
 
 interface RouteParams {
@@ -9,14 +10,14 @@ interface RouteParams {
 /**
  * POST /api/folders/[id]/move - Move folder to a different parent
  */
-export async function POST(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handlePOST(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -39,9 +40,13 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
     }
 
     // Move folder using service (update parentFolderId)
-    const folder = await updateFolder(id, {
-      parentFolderId: targetParentFolderId === null ? null : targetParentFolderId,
-    });
+    const folder = await updateFolder(
+      id,
+      {
+        parentFolderId: targetParentFolderId === null ? null : targetParentFolderId,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,
@@ -70,3 +75,6 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
     return NextResponse.json({ success: false, message }, { status });
   }
 }
+
+// POST: Allow admins and editors to move folders
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

@@ -64,3 +64,12 @@ export { useErrorRecovery } from "./hooks/useErrorRecovery";
 export { useOfflineDetection, useOfflineQueue } from "./hooks/useOfflineDetection";
 export { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 export { useVirtualScrolling } from "./hooks/useVirtualScrolling";
+export { createMediaLibraryHooks, mediaLibraryKeys } from "./hooks/use-media-library-queries";
+export { useMediaLibraryDialogs } from "./hooks/use-media-library-dialogs";
+
+// Components
+export { AssetsQuerySync } from "./components/AssetsQuerySync";
+export type { AssetsQueryParams } from "./components/AssetsQuerySync";
+export { AssetsPageContent } from "./components/AssetsPageContent";
+export { AssetsPage } from "./components/AssetsPage";
+export type { AssetsPageProps } from "./components/AssetsPage";

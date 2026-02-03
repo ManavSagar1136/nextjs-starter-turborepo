@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getFolderTree } from "@buildbase/database";
 
 /**
  * GET /api/folders/tree - Get folder tree structure
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -32,3 +33,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
+
+// GET: Allow all workspace members to view folder tree
+export const GET = withPermissionCheck(handleGET, [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+  WORKSPACE_ROLES.VIEWER,
+]);

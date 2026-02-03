@@ -163,14 +163,13 @@ function FolderItem({
     <div>
       <div
         className={cn(
-          "flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5",
+          "group flex items-center gap-1 rounded-md px-2 py-1.5",
           "hover:bg-accent transition-colors",
           isSelected && "bg-accent",
           isDragOver && "bg-primary/20 ring-primary ring-2",
           isDragging && "opacity-50"
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        onClick={() => onSelect(folder.id)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         draggable={!!onMoveFolder}
@@ -182,7 +181,11 @@ function FolderItem({
       >
         {/* Expand/collapse button */}
         {hasChildren ? (
-          <button onClick={handleToggleExpand} className="hover:bg-accent-foreground/10 shrink-0 rounded p-0.5">
+          <button
+            onClick={handleToggleExpand}
+            onMouseDown={e => e.stopPropagation()}
+            className="hover:bg-accent-foreground/10 shrink-0 rounded p-0.5"
+          >
             {isExpanded ? (
               <ChevronDown className="text-muted-foreground h-4 w-4" />
             ) : (
@@ -193,24 +196,38 @@ function FolderItem({
           <span className="w-5" /> // Spacer
         )}
 
-        {/* Folder icon */}
-        {isExpanded && hasChildren ? (
-          <FolderOpen className="text-primary h-4 w-4 shrink-0" />
-        ) : (
-          <Folder className="text-muted-foreground h-4 w-4 shrink-0" />
-        )}
+        {/* Folder clickable area */}
+        <button
+          onClick={() => onSelect(folder.id)}
+          className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden text-left"
+        >
+          {/* Folder icon */}
+          {isExpanded && hasChildren ? (
+            <FolderOpen className="text-primary h-4 w-4 shrink-0" />
+          ) : (
+            <Folder className="text-muted-foreground h-4 w-4 shrink-0" />
+          )}
 
-        {/* Folder name */}
-        <span className="flex-1 truncate text-sm">{folder.name}</span>
+          {/* Folder name */}
+          <span className="flex-1 truncate text-sm">{folder.name}</span>
 
-        {/* Asset count */}
-        {assetCount > 0 && <span className="text-muted-foreground text-xs">{assetCount}</span>}
+          {/* Asset count */}
+          {assetCount > 0 && <span className="text-muted-foreground text-xs">{assetCount}</span>}
+        </button>
 
         {/* Actions menu */}
-        {isHovered && (onEditFolder || onDeleteFolder || onMoveFolder) && (
+        {(onEditFolder || onDeleteFolder || onMoveFolder) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={e => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-6 w-6 shrink-0 p-0 opacity-0 transition-opacity group-hover:opacity-100",
+                  isSelected && "opacity-100"
+                )}
+                onClick={e => e.stopPropagation()}
+              >
                 <MoreVertical className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>

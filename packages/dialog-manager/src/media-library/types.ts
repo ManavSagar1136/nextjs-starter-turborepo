@@ -36,10 +36,14 @@ export interface FolderInfo {
 // ============================================================================
 
 export interface CreateFolderDialogProps extends DialogOrSheetBaseProps {
-  /** Parent folder ID (null for root) */
+  /** Parent folder ID (null for root) - initial value, can be changed if folderTree is provided */
   parentFolderId?: string | null;
-  /** Parent folder name (for display) */
+  /** Parent folder name (for display) - used when folderTree is not provided */
   parentFolderName?: string | null;
+  /** Folder tree for parent selection (optional - if provided, allows selecting parent) */
+  folderTree?: FolderTreeItem[];
+  /** Loading state for folder tree */
+  isLoadingTree?: boolean;
   /** Loading state */
   isLoading?: boolean;
   /** Callback when folder is created */

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getAssetById, updateAsset } from "@buildbase/database";
 import { AssetsRepository } from "@buildbase/database/assets";
 
@@ -10,17 +11,14 @@ interface RouteParams {
 /**
  * POST /api/assets/[id]/tags - Assign tags to asset
  */
-export async function POST(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handlePOST(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { workspaceId } = session.user;
-    if (!workspaceId) {
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
+
+    const { workspaceId } = authenticatedUser;
 
     const { id } = await params;
     const body = await request.json();
@@ -37,12 +35,16 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
     }
 
     // Assign tags using service (replace all existing tags)
-    await updateAsset(id, {
-      tagIds,
-    });
+    await updateAsset(
+      id,
+      {
+        tagIds,
+      },
+      workspaceId
+    );
 
     // Get updated asset with tags
-    const updatedAsset = await getAssetById(id);
+    const updatedAsset = await getAssetById(id, workspaceId);
 
     return NextResponse.json({
       success: true,
@@ -66,17 +68,14 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
 /**
  * DELETE /api/assets/[id]/tags - Remove tags from asset
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleDELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { workspaceId } = session.user;
-    if (!workspaceId) {
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
+
+    const { workspaceId } = authenticatedUser;
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -104,7 +103,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     }
 
     // Get current asset with tags
-    const existingAsset = await getAssetById(id);
+    const existingAsset = await getAssetById(id, workspaceId);
     if (!existingAsset) {
       return NextResponse.json({ success: false, message: "Asset not found" }, { status: 404 });
     }
@@ -114,9 +113,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     const remainingTagIds = currentTagIds.filter(tagId => !tagIds.includes(tagId));
 
     // Update asset with remaining tags
-    await updateAsset(id, {
-      tagIds: remainingTagIds,
-    });
+    await updateAsset(
+      id,
+      {
+        tagIds: remainingTagIds,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,
@@ -134,3 +137,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     return NextResponse.json({ success: false, message }, { status });
   }
 }
+
+// POST/DELETE: Allow admins and editors to manage asset tags
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+export const DELETE = withPermissionCheck(handleDELETE, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

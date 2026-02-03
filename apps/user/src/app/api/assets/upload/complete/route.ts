@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getStorage } from "@buildbase/storage";
 import { AssetsRepository } from "@buildbase/database/assets";
 import { env } from "@buildbase/env";
@@ -7,14 +8,19 @@ import { env } from "@buildbase/env";
 /**
  * POST /api/assets/upload/complete - Complete upload and create asset record
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as
+      | { workspaceId?: string; userId?: string }
+      | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
+    }
+    if (!authenticatedUser?.userId) {
+      return NextResponse.json({ success: false, message: "User ID not found" }, { status: 400 });
     }
 
-    const { workspaceId, userId } = session.user;
+    const { workspaceId, userId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -97,3 +103,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: false, message: "Failed to complete upload" }, { status: 500 });
   }
 }
+
+// POST: Allow admins and editors to complete asset uploads
+export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);

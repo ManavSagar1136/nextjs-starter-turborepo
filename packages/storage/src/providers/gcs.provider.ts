@@ -186,7 +186,41 @@ export class GcsStorageProvider extends BaseStorageProvider {
 
   async makePrivate(path: string): Promise<void> {
     const file = this.bucketInstance.file(path);
-    await file.makePrivate({ strict: true });
+
+    // First, explicitly remove public access by deleting allUsers ACL
+    // This is critical to ensure the public URL stops working
+    try {
+      await file.acl.delete({ entity: "allUsers" });
+    } catch (aclError: any) {
+      // If ACL deletion fails, it might be because:
+      // 1. The file doesn't have allUsers ACL (already private)
+      // 2. Uniform bucket-level access is enabled (ACLs are managed at bucket level)
+      // In either case, we'll proceed with makePrivate
+      if (!aclError?.message?.includes("No such entity") && aclError?.code !== 400) {
+        console.warn(`Could not remove allUsers ACL for ${path}:`, aclError?.message);
+      }
+    }
+
+    // Then make the file private using the standard method
+    try {
+      // Try with strict mode first (requires explicit ACLs)
+      await file.makePrivate({ strict: true });
+    } catch (error: any) {
+      // If strict mode fails (e.g., uniform bucket-level access), try without strict
+      if (error?.code === 400 || error?.message?.includes("ACL") || error?.message?.includes("uniform")) {
+        try {
+          await file.makePrivate({ strict: false });
+        } catch (nonStrictError: any) {
+          // If both fail, log but don't throw - the ACL deletion above should have removed public access
+          console.warn(
+            `makePrivate failed for ${path}, but ACL deletion was attempted:`,
+            nonStrictError?.message || String(nonStrictError)
+          );
+        }
+      } else {
+        throw error;
+      }
+    }
   }
 
   async list(options: ListOptions = {}): Promise<ListResult> {

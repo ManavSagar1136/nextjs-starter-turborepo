@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@buildbase/helpers/auth";
+import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getTagById, updateTag, deleteTag, verifyTagOwnership } from "@buildbase/database";
 
 interface RouteParams {
@@ -9,14 +10,14 @@ interface RouteParams {
 /**
  * GET /api/tags/[id] - Get tag details
  */
-export async function GET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleGET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
     }
 
     // Get tag using service
-    const tag = await getTagById(id);
+    const tag = await getTagById(id, workspaceId);
 
     if (!tag) {
       return NextResponse.json({ success: false, message: "Tag not found" }, { status: 404 });
@@ -49,14 +50,14 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 /**
  * PATCH /api/tags/[id] - Update tag
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handlePATCH(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -73,10 +74,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
     const { name, color } = body;
 
     // Update tag using service
-    const tag = await updateTag(id, {
-      name,
-      color,
-    });
+    const tag = await updateTag(
+      id,
+      {
+        name,
+        color,
+      },
+      workspaceId
+    );
 
     return NextResponse.json({
       success: true,
@@ -98,14 +103,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams): Prom
 /**
  * DELETE /api/tags/[id] - Delete tag
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+async function handleDELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authenticatedUser = (request as any).authenticatedUser as { workspaceId?: string } | undefined;
+    if (!authenticatedUser?.workspaceId) {
+      return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
 
-    const { workspaceId } = session.user;
+    const { workspaceId } = authenticatedUser;
     if (!workspaceId) {
       return NextResponse.json({ success: false, message: "No workspace selected" }, { status: 400 });
     }
@@ -119,7 +124,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     }
 
     // Delete tag using service
-    await deleteTag(id);
+    await deleteTag(id, workspaceId);
 
     return NextResponse.json({
       success: true,
@@ -130,3 +135,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
     return NextResponse.json({ success: false, message: "Failed to delete tag" }, { status: 500 });
   }
 }
+
+// GET: Allow all workspace members to view tags
+export const GET = withPermissionCheck(handleGET, [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+  WORKSPACE_ROLES.VIEWER,
+]);
+
+// PATCH: Allow admins and editors to update tags
+export const PATCH = withPermissionCheck(handlePATCH, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+
+// DELETE: Allow admins and editors to delete tags
+export const DELETE = withPermissionCheck(handleDELETE, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
