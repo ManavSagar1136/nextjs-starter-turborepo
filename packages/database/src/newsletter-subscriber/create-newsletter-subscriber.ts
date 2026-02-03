@@ -3,7 +3,7 @@
  */
 
 import { randomBytes } from "crypto";
-import type { PrismaClient, NewsletterSubscriber } from "../generated/client";
+import type { PrismaClient, NewsletterSubscriber, Prisma } from "../generated/client";
 import type { CreateNewsletterSubscriberInput } from "./types";
 
 /**
@@ -67,7 +67,7 @@ export async function createNewsletterSubscriber(
       utmTerm: data.utmTerm,
       utmContent: data.utmContent,
       workspaceId: data.workspaceId,
-      metadata: data.metadata ?? undefined,
+      metadata: (data.metadata as Prisma.InputJsonValue) ?? undefined,
       confirmToken,
       isConfirmed: !data.requireConfirmation,
       confirmedAt: data.requireConfirmation ? null : new Date(),

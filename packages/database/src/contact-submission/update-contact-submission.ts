@@ -2,7 +2,7 @@
  * @buildbase/database - Update Contact Submission
  */
 
-import type { PrismaClient, ContactSubmission } from "../generated/client";
+import type { PrismaClient, ContactSubmission, Prisma } from "../generated/client";
 import type { UpdateContactSubmissionInput } from "./types";
 
 /**
@@ -17,7 +17,7 @@ export async function updateContactSubmission(
     where: { id },
     data: {
       ...data,
-      metadata: data.metadata ?? undefined,
+      metadata: (data.metadata as Prisma.InputJsonValue) ?? undefined,
     },
   });
 }

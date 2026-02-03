@@ -2,7 +2,7 @@
  * @buildbase/database - Create Contact Submission
  */
 
-import type { PrismaClient, ContactSubmission } from "../generated/client";
+import type { PrismaClient, ContactSubmission, Prisma } from "../generated/client";
 import type { CreateContactSubmissionInput } from "./types";
 
 /**
@@ -34,7 +34,7 @@ export async function createContactSubmission(
       utmMedium: data.utmMedium,
       utmCampaign: data.utmCampaign,
       workspaceId: data.workspaceId,
-      metadata: data.metadata ?? undefined,
+      metadata: (data.metadata as Prisma.InputJsonValue) ?? undefined,
     },
   });
 }

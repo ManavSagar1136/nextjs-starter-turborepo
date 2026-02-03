@@ -2,7 +2,7 @@
  * @buildbase/database - Update Newsletter Subscriber
  */
 
-import type { PrismaClient, NewsletterSubscriber } from "../generated/client";
+import type { PrismaClient, NewsletterSubscriber, Prisma } from "../generated/client";
 import type { UpdateNewsletterSubscriberInput } from "./types";
 
 /**
@@ -17,7 +17,7 @@ export async function updateNewsletterSubscriber(
     where: { id },
     data: {
       ...data,
-      metadata: data.metadata ?? undefined,
+      metadata: (data.metadata as Prisma.InputJsonValue) ?? undefined,
     },
   });
 }
