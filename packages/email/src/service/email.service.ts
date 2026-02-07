@@ -97,6 +97,11 @@ export class EmailService {
       const bccArray = options.bcc ? (Array.isArray(options.bcc) ? options.bcc : [options.bcc]) : [];
       const fromAddress = options.from?.email ?? provider.fromEmail;
 
+      // Check if provider ID is a valid MongoDB ObjectID (24 hex characters)
+      // Console provider uses "console-dev" which is not a valid ObjectID
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(provider.id);
+      const providerId = isValidObjectId ? provider.id : undefined;
+
       await createSentEmail(prisma, {
         trackingId,
         to: toArray,
@@ -107,7 +112,7 @@ export class EmailService {
         subject: options.subject,
         html: options.html, // Store original HTML without tracking
         text: options.text,
-        providerId: provider.id,
+        providerId,
         providerName: provider.name,
         messageId: result.messageId,
         status: result.success ? "SENT" : "FAILED",
@@ -132,11 +137,14 @@ export class EmailService {
         }
       }
 
-      // Update provider stats
-      try {
-        await factory.getProviderService().incrementEmailsSent(provider.id);
-      } catch {
-        // Non-critical - don't fail the send
+      // Update provider stats (only for database providers with valid ObjectID)
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(provider.id);
+      if (isValidObjectId) {
+        try {
+          await factory.getProviderService().incrementEmailsSent(provider.id);
+        } catch {
+          // Non-critical - don't fail the send
+        }
       }
     }
 
@@ -218,6 +226,11 @@ export class EmailService {
               : [];
             const fromAddress = originalEmail?.from?.email ?? provider.fromEmail;
 
+            // Check if provider ID is a valid MongoDB ObjectID (24 hex characters)
+            // Console provider uses "console-dev" which is not a valid ObjectID
+            const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(provider.id);
+            const providerId = isValidObjectId ? provider.id : undefined;
+
             await createSentEmail(prisma, {
               trackingId: success.trackingId,
               to: toArray,
@@ -228,7 +241,7 @@ export class EmailService {
               subject: originalEmail?.subject ?? "",
               html: originalEmail?.html,
               text: originalEmail?.text,
-              providerId: provider.id,
+              providerId,
               providerName: provider.name,
               messageId: success.messageId,
               status: "SENT",
