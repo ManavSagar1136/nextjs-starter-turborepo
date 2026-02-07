@@ -91,3 +91,26 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Also support GET for one-click unsubscribe links
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const email = url.searchParams.get("email");
+  const token = url.searchParams.get("token");
+
+  if (!email && !token) {
+    return NextResponse.json(
+      { success: false, message: "Email or token parameter is required" },
+      { status: 400 }
+    );
+  }
+
+  // Reuse POST logic
+  const fakeRequest = new NextRequest(request.url, {
+    method: "POST",
+    body: JSON.stringify({ email, token }),
+    headers: { "Content-Type": "application/json" },
+  });
+
+  return POST(fakeRequest);
+}
