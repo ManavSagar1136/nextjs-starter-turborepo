@@ -414,4 +414,328 @@ describe("TemplateService", () => {
       });
     });
   });
+
+  describe("Default Template Methods", () => {
+    describe("hasDefaultTemplate", () => {
+      it("should return true for existing default template", () => {
+        expect(templateService.hasDefaultTemplate("newsletter-welcome")).toBe(true);
+        expect(templateService.hasDefaultTemplate("contact-confirmation")).toBe(true);
+      });
+
+      it("should return false for non-existing default template", () => {
+        expect(templateService.hasDefaultTemplate("unknown-template")).toBe(false);
+        expect(templateService.hasDefaultTemplate("")).toBe(false);
+      });
+
+      it("should return true for all standard template slugs", () => {
+        expect(templateService.hasDefaultTemplate("newsletter-welcome")).toBe(true);
+        expect(templateService.hasDefaultTemplate("newsletter-unsubscribe")).toBe(true);
+        expect(templateService.hasDefaultTemplate("newsletter-admin-notification")).toBe(true);
+        expect(templateService.hasDefaultTemplate("contact-confirmation")).toBe(true);
+        expect(templateService.hasDefaultTemplate("contact-admin-notification")).toBe(true);
+      });
+    });
+
+    describe("getDefaultTemplates", () => {
+      it("should return array of all default templates", () => {
+        const templates = templateService.getDefaultTemplates();
+
+        expect(Array.isArray(templates)).toBe(true);
+        expect(templates.length).toBeGreaterThan(0);
+      });
+
+      it("should return templates with valid structure", () => {
+        const templates = templateService.getDefaultTemplates();
+
+        for (const template of templates) {
+          expect(template).toHaveProperty("slug");
+          expect(template).toHaveProperty("name");
+          expect(template).toHaveProperty("subject");
+          expect(template).toHaveProperty("html");
+          expect(template).toHaveProperty("variables");
+        }
+      });
+
+      it("should include newsletter-welcome template", () => {
+        const templates = templateService.getDefaultTemplates();
+        const welcomeTemplate = templates.find(t => t.slug === "newsletter-welcome");
+
+        expect(welcomeTemplate).toBeDefined();
+        expect(welcomeTemplate?.name).toBe("Newsletter Welcome");
+      });
+    });
+
+    describe("copyDefaultToDb", () => {
+      it("should copy default template to database", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+        (dbModule.createEmailTemplate as ReturnType<typeof vi.fn>).mockImplementation(async (_prisma, data) => ({
+          ...createMockTemplate(),
+          ...data,
+          id: "new-template-id",
+        }));
+
+        const result = await templateService.copyDefaultToDb("newsletter-welcome");
+
+        expect(dbModule.createEmailTemplate).toHaveBeenCalledWith(
+          prisma,
+          expect.objectContaining({
+            slug: "newsletter-welcome",
+            name: "Newsletter Welcome",
+          }),
+          undefined
+        );
+        expect(result).toBeDefined();
+      });
+
+      it("should return existing template if already in DB", async () => {
+        const dbModule = await import("@buildbase/database");
+        const existingTemplate = createMockTemplate({ slug: "newsletter-welcome" });
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(existingTemplate);
+
+        const result = await templateService.copyDefaultToDb("newsletter-welcome");
+
+        expect(dbModule.createEmailTemplate).not.toHaveBeenCalled();
+        expect(result).toEqual(existingTemplate);
+      });
+
+      it("should throw TemplateNotFoundError for non-existing default", async () => {
+        await expect(templateService.copyDefaultToDb("unknown-template")).rejects.toThrow(TemplateNotFoundError);
+      });
+
+      it("should pass userId when provided", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+        (dbModule.createEmailTemplate as ReturnType<typeof vi.fn>).mockResolvedValue(createMockTemplate());
+
+        await templateService.copyDefaultToDb("newsletter-welcome", "user-123");
+
+        expect(dbModule.createEmailTemplate).toHaveBeenCalledWith(prisma, expect.any(Object), "user-123");
+      });
+    });
+
+    describe("copyAllDefaultsToDb", () => {
+      it("should copy all default templates to database", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+        (dbModule.createEmailTemplate as ReturnType<typeof vi.fn>).mockImplementation(async (_prisma, data) => ({
+          ...createMockTemplate(),
+          ...data,
+          id: `template-${data.slug}`,
+        }));
+
+        const results = await templateService.copyAllDefaultsToDb();
+
+        expect(Array.isArray(results)).toBe(true);
+        expect(results.length).toBe(5); // 5 default templates
+      });
+
+      it("should skip templates already in database", async () => {
+        const dbModule = await import("@buildbase/database");
+        // First template exists, rest don't
+        let callCount = 0;
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+          callCount++;
+          if (callCount === 1) {
+            return createMockTemplate({ slug: "newsletter-welcome" });
+          }
+          return null;
+        });
+        (dbModule.createEmailTemplate as ReturnType<typeof vi.fn>).mockImplementation(async (_prisma, data) => ({
+          ...createMockTemplate(),
+          ...data,
+        }));
+
+        const results = await templateService.copyAllDefaultsToDb();
+
+        // Should have 5 results (1 existing + 4 created)
+        expect(results.length).toBe(5);
+        // createEmailTemplate should be called 4 times (not for existing one)
+        expect(dbModule.createEmailTemplate).toHaveBeenCalledTimes(4);
+      });
+
+      it("should pass userId to all template creations", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+        (dbModule.createEmailTemplate as ReturnType<typeof vi.fn>).mockResolvedValue(createMockTemplate());
+
+        await templateService.copyAllDefaultsToDb("user-456");
+
+        const calls = (dbModule.createEmailTemplate as ReturnType<typeof vi.fn>).mock.calls;
+        for (const call of calls) {
+          expect(call[2]).toBe("user-456");
+        }
+      });
+    });
+  });
+
+  describe("Default Template Fallback", () => {
+    describe("renderBySlug with fallback", () => {
+      it("should fallback to default template when not in DB", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        const result = await templateService.renderBySlug("newsletter-welcome", {
+          email: "test@example.com",
+          companyName: "Test Corp",
+          siteUrl: "https://test.com",
+        });
+
+        expect(result.subject).toContain("Test Corp");
+        expect(result.html).toContain("Test Corp");
+        expect(result.templateSlug).toBe("newsletter-welcome");
+        expect(result.isDefault).toBe(true);
+      });
+
+      it("should use DB template when available", async () => {
+        const dbTemplate = createMockTemplate({
+          slug: "newsletter-welcome",
+          subject: "DB Welcome, {{name}}!",
+          html: "<p>DB Template: {{name}}</p>",
+        });
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(dbTemplate);
+
+        const result = await templateService.renderBySlug("newsletter-welcome", {
+          name: "John",
+          company: "DB Corp",
+        });
+
+        expect(result.subject).toBe("DB Welcome, John!");
+        expect(result.html).toContain("DB Template: John");
+        expect(result.isDefault).toBeFalsy();
+      });
+
+      it("should throw TemplateNotFoundError when neither DB nor default exists", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        await expect(templateService.renderBySlug("completely-unknown", {})).rejects.toThrow(TemplateNotFoundError);
+      });
+
+      it("should apply default values for optional variables in default template", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        const result = await templateService.renderBySlug("newsletter-welcome", {
+          email: "test@example.com",
+          // Not providing companyName - should use default "Our Company"
+        });
+
+        expect(result.html).toContain("Our Company");
+      });
+
+      it("should throw MissingVariablesError for missing required variables in default template", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        // newsletter-welcome requires 'email' variable
+        await expect(templateService.renderBySlug("newsletter-welcome", {})).rejects.toThrow(MissingVariablesError);
+      });
+    });
+
+    describe("contact templates fallback", () => {
+      it("should render contact-confirmation with fallback", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        const result = await templateService.renderBySlug("contact-confirmation", {
+          firstName: "Jane",
+          lastName: "Doe",
+          email: "jane@example.com",
+          companyName: "Contact Corp",
+        });
+
+        expect(result.templateSlug).toBe("contact-confirmation");
+        expect(result.isDefault).toBe(true);
+        expect(result.html).toBeDefined();
+      });
+
+      it("should render contact-admin-notification with fallback", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        const result = await templateService.renderBySlug("contact-admin-notification", {
+          firstName: "User",
+          lastName: "Test",
+          email: "user@test.com",
+          phone: "123-456-7890",
+          subject: "Test Subject",
+          message: "This is a test message",
+          submittedAt: new Date().toISOString(),
+          adminUrl: "https://admin.example.com",
+        });
+
+        expect(result.templateSlug).toBe("contact-admin-notification");
+        expect(result.isDefault).toBe(true);
+      });
+    });
+
+    describe("newsletter templates fallback", () => {
+      it("should render newsletter-unsubscribe with fallback", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        const result = await templateService.renderBySlug("newsletter-unsubscribe", {
+          email: "unsubscribe@example.com",
+          companyName: "Newsletter Corp",
+          resubscribeUrl: "https://example.com/resubscribe",
+        });
+
+        expect(result.templateSlug).toBe("newsletter-unsubscribe");
+        expect(result.isDefault).toBe(true);
+      });
+
+      it("should render newsletter-admin-notification with fallback", async () => {
+        const dbModule = await import("@buildbase/database");
+        (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+        const result = await templateService.renderBySlug("newsletter-admin-notification", {
+          email: "newsubscriber@example.com",
+          source: "website",
+          subscribedAt: new Date().toISOString(),
+          adminUrl: "https://admin.example.com",
+        });
+
+        expect(result.templateSlug).toBe("newsletter-admin-notification");
+        expect(result.isDefault).toBe(true);
+      });
+    });
+  });
+
+  describe("RenderedEmail isDefault flag", () => {
+    it("should set isDefault to true for default template", async () => {
+      const dbModule = await import("@buildbase/database");
+      (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      const result = await templateService.renderBySlug("newsletter-welcome", {
+        email: "test@example.com",
+      });
+
+      expect(result.isDefault).toBe(true);
+    });
+
+    it("should not set isDefault for DB template", async () => {
+      const dbModule = await import("@buildbase/database");
+      (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(createMockTemplate());
+
+      const result = await templateService.renderBySlug("welcome-email", {
+        name: "Test",
+        company: "Test Corp",
+      });
+
+      expect(result.isDefault).toBeUndefined();
+    });
+
+    it("should set templateId with default: prefix for default templates", async () => {
+      const dbModule = await import("@buildbase/database");
+      (dbModule.getEmailTemplateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      const result = await templateService.renderBySlug("newsletter-welcome", {
+        email: "test@example.com",
+      });
+
+      expect(result.templateId).toBe("default:newsletter-welcome");
+    });
+  });
 });

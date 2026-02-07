@@ -37,6 +37,8 @@ export interface RenderedEmail {
   templateSlug: string;
   /** Variables used for rendering */
   variables: Record<string, unknown>;
+  /** Whether this was rendered from a default (fallback) template */
+  isDefault?: boolean;
 }
 
 /**

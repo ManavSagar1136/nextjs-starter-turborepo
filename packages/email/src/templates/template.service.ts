@@ -22,6 +22,12 @@ import {
 } from "@buildbase/database";
 import type { RenderedEmail, VariableValidationResult } from "./types.js";
 import { renderTemplate, extractVariables, validateVariables, applyDefaults, htmlToText } from "./renderer.js";
+import {
+  getDefaultTemplate,
+  hasDefaultTemplate,
+  getAllDefaultTemplates,
+  type DefaultTemplate,
+} from "./defaults/index.js";
 
 /**
  * Error thrown when template is not found
@@ -134,14 +140,22 @@ export class TemplateService {
 
   /**
    * Render a template by slug
+   * Falls back to default template if not found in DB
    */
   async renderBySlug(slug: string, variables: Record<string, unknown>): Promise<RenderedEmail> {
+    // First try DB
     const template = await this.findBySlug(slug);
-    if (!template) {
-      throw new TemplateNotFoundError(slug);
+    if (template) {
+      return this.renderTemplate(template, variables);
     }
 
-    return this.renderTemplate(template, variables);
+    // Fallback to default template
+    const defaultTemplate = getDefaultTemplate(slug);
+    if (defaultTemplate) {
+      return this.renderDefaultTemplate(defaultTemplate, variables);
+    }
+
+    throw new TemplateNotFoundError(slug);
   }
 
   /**
@@ -187,7 +201,102 @@ export class TemplateService {
     return this.parseVariables(template);
   }
 
+  // ===== Default Template Methods =====
+
+  /**
+   * Check if a default template exists for a slug
+   */
+  hasDefaultTemplate(slug: string): boolean {
+    return hasDefaultTemplate(slug);
+  }
+
+  /**
+   * Get all available default templates
+   */
+  getDefaultTemplates(): DefaultTemplate[] {
+    return getAllDefaultTemplates();
+  }
+
+  /**
+   * Copy a default template to the database for customization
+   */
+  async copyDefaultToDb(slug: string, userId?: string): Promise<EmailTemplate> {
+    const defaultTemplate = getDefaultTemplate(slug);
+    if (!defaultTemplate) {
+      throw new TemplateNotFoundError(`Default template not found: ${slug}`);
+    }
+
+    // Check if already exists in DB
+    const existing = await this.findBySlug(slug);
+    if (existing) {
+      return existing;
+    }
+
+    // Create in DB
+    return this.create(
+      {
+        slug: defaultTemplate.slug,
+        name: defaultTemplate.name,
+        description: defaultTemplate.description,
+        subject: defaultTemplate.subject,
+        html: defaultTemplate.html,
+        text: defaultTemplate.text,
+        category: defaultTemplate.category as EmailTemplateCategory,
+        variables: defaultTemplate.variables,
+      },
+      userId
+    );
+  }
+
+  /**
+   * Copy all default templates to the database
+   */
+  async copyAllDefaultsToDb(userId?: string): Promise<EmailTemplate[]> {
+    const defaults = getAllDefaultTemplates();
+    const results: EmailTemplate[] = [];
+
+    for (const template of defaults) {
+      const created = await this.copyDefaultToDb(template.slug, userId);
+      results.push(created);
+    }
+
+    return results;
+  }
+
   // ===== Private Methods =====
+
+  /**
+   * Render a default template (not from DB)
+   */
+  private renderDefaultTemplate(template: DefaultTemplate, variables: Record<string, unknown>): RenderedEmail {
+    const templateVars = template.variables;
+
+    // Validate variables
+    const validation = validateVariables(templateVars, variables);
+    if (!validation.valid && validation.missing.length > 0) {
+      throw new MissingVariablesError(validation.missing);
+    }
+
+    // Apply defaults
+    const finalVars = applyDefaults(templateVars, variables);
+
+    // Render subject and HTML
+    const subject = renderTemplate(template.subject, finalVars);
+    const html = renderTemplate(template.html, finalVars);
+
+    // Render or generate text
+    const text = template.text ? renderTemplate(template.text, finalVars) : htmlToText(html);
+
+    return {
+      subject,
+      html,
+      text,
+      templateId: `default:${template.slug}`,
+      templateSlug: template.slug,
+      variables: finalVars,
+      isDefault: true,
+    };
+  }
 
   /**
    * Render a template entity

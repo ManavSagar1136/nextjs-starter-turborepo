@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  prisma,
-  unsubscribeNewsletterByEmail,
-  getNewsletterSubscriberByEmail,
-  confirmNewsletterSubscriber,
-} from "@buildbase/database";
-import { EmailService, sendEmail } from "@buildbase/email";
+import { prisma, unsubscribeNewsletterByEmail } from "@buildbase/database";
+import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
 import type { NewsletterUnsubscribeRequest } from "@/types/api";
 
-const COMPANY_NAME = process.env.COMPANY_NAME || "Our Company";
+// Initialize email service
+let emailInitialized = false;
+async function initEmail() {
+  if (!emailInitialized) {
+    await EmailService.initialize(prisma);
+    emailInitialized = true;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,77 +23,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let subscriber = null;
+    let subscriberEmail: string | null = null;
 
-    // Handle token-based confirmation (for double opt-in flows)
-    if (data.token) {
-      subscriber = await confirmNewsletterSubscriber(prisma, data.token);
-      if (subscriber) {
-        return NextResponse.json(
-          {
-            success: true,
-            message: "Email confirmed successfully",
-            data: { email: subscriber.email, confirmed: true },
-          },
-          { status: 200 }
-        );
-      }
-    }
-
-    // Handle email-based unsubscribe
     if (data.email) {
-      // Check if subscriber exists
-      const existing = await getNewsletterSubscriberByEmail(prisma, data.email);
+      // Unsubscribe by email
+      const subscriber = await unsubscribeNewsletterByEmail(prisma, data.email);
       
-      if (!existing) {
+      if (!subscriber) {
         return NextResponse.json(
           { success: false, message: "Email not found in our newsletter list" },
           { status: 404 }
         );
       }
 
-      if (existing.status === "UNSUBSCRIBED") {
-        return NextResponse.json(
-          {
-            success: true,
-            message: "You are already unsubscribed from our newsletter",
-            data: { email: existing.email },
+      subscriberEmail = subscriber.email;
+
+      console.log("[Newsletter Unsubscribe API] Unsubscribed:", {
+        email: subscriber.email,
+        id: subscriber.id,
+      });
+    } else if (data.token) {
+      // TODO: Implement token-based unsubscribe if needed
+      // For now, token unsubscribe not implemented
+      return NextResponse.json(
+        { success: false, message: "Token-based unsubscribe not yet implemented" },
+        { status: 501 }
+      );
+    }
+
+    // Initialize email service
+    await initEmail();
+
+    // Send unsubscribe confirmation email
+    if (subscriberEmail) {
+      try {
+        await EmailService.sendTemplate(EMAIL_TEMPLATES.NEWSLETTER_UNSUBSCRIBE, {
+          to: subscriberEmail,
+          variables: {
+            email: subscriberEmail,
+            companyName: process.env.COMPANY_NAME || "Our Company",
+            resubscribeUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || ""}/#newsletter`,
           },
-          { status: 200 }
-        );
-      }
-
-      // Unsubscribe
-      subscriber = await unsubscribeNewsletterByEmail(prisma, data.email);
-
-      if (subscriber) {
-        // Send unsubscribe confirmation email
-        try {
-          await EmailService.initialize(prisma);
-
-          await sendEmail({
-            to: subscriber.email,
-            subject: `You've been unsubscribed from ${COMPANY_NAME}`,
-            html: generateUnsubscribeConfirmationEmail(subscriber.email),
-          });
-        } catch (emailError) {
-          console.error("[Newsletter Unsubscribe API] Failed to send confirmation email:", emailError);
-        }
-
-        return NextResponse.json(
-          {
-            success: true,
-            message: "Successfully unsubscribed from newsletter",
-            data: { email: subscriber.email },
-          },
-          { status: 200 }
-        );
+        });
+        console.log("[Newsletter Unsubscribe API] Confirmation email sent to:", subscriberEmail);
+      } catch (emailError) {
+        // Log but don't fail the unsubscription
+        console.error("[Newsletter Unsubscribe API] Failed to send confirmation email:", emailError);
       }
     }
 
     return NextResponse.json(
-      { success: false, message: "Unable to process unsubscribe request" },
-      { status: 400 }
+      {
+        success: true,
+        message: "Successfully unsubscribed from newsletter",
+      },
+      { status: 200 }
     );
   } catch (error) {
     console.error("[Newsletter Unsubscribe API] Error:", error);
@@ -127,27 +113,4 @@ export async function GET(request: NextRequest) {
   });
 
   return POST(fakeRequest);
-}
-
-function generateUnsubscribeConfirmationEmail(email: string): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #333;">You've been unsubscribed</h1>
-      <p>We've removed <strong>${email}</strong> from our newsletter list.</p>
-      <p>We're sorry to see you go! If you unsubscribed by mistake, you can always <a href="${siteUrl}/newsletter" style="color: #2563eb;">resubscribe here</a>.</p>
-      <p>If you have any feedback about why you unsubscribed, we'd love to hear it — just reply to this email.</p>
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-      <p style="color: #6b7280; font-size: 12px;">
-        © ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.
-      </p>
-    </body>
-    </html>
-  `;
 }
