@@ -55,6 +55,8 @@ export const createStore = (additionalReducers?: Record<string, any>, persistCon
   // Configure store
   const store = configureStore({
     reducer: persistedReducer,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - redux-persist middleware type compatibility (varies by TS version)
     middleware: getDefaultMiddleware =>
       getDefaultMiddleware({
         serializableCheck: {

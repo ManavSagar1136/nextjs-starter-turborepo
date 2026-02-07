@@ -78,6 +78,11 @@ export const env = createEnv({
     // Local Storage (dev)
     LOCAL_STORAGE_PATH: z.string().optional(),
     LOCAL_STORAGE_URL: z.string().optional(),
+
+    // Email Configuration
+    COMPANY_NAME: z.string().optional(),
+    ADMIN_EMAIL: z.string().email().optional(),
+    ADMIN_URL: z.string().url().optional(),
   },
 
   /**
@@ -174,6 +179,11 @@ export const env = createEnv({
     // Local Storage
     LOCAL_STORAGE_PATH: process.env.LOCAL_STORAGE_PATH,
     LOCAL_STORAGE_URL: process.env.LOCAL_STORAGE_URL,
+
+    // Email Configuration
+    COMPANY_NAME: process.env.COMPANY_NAME,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+    ADMIN_URL: process.env.ADMIN_URL,
   },
 
   /**

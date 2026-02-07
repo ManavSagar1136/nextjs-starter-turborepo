@@ -50,6 +50,7 @@ export { ProviderService } from "./service/provider.service.js";
 
 // Template exports
 export * from "./templates/types.js";
+export * from "./templates/constants.js";
 export {
   renderTemplate,
   extractVariables,
@@ -59,6 +60,7 @@ export {
   generateSlug,
 } from "./templates/renderer.js";
 export { TemplateService, TemplateNotFoundError, MissingVariablesError } from "./templates/template.service.js";
+export { getDefaultTemplate, hasDefaultTemplate, getAllDefaultTemplates } from "./templates/defaults/index.js";
 
 // Queue exports
 export * from "./queue/types.js";

@@ -11,7 +11,6 @@ import { isProductLaunched } from "@/lib/utils/launch-status";
 import { useGetStarted } from "@/hooks/use-get-started";
 
 import { RainbowButton } from "@buildbase/magicui/components/rainbow-button";
-import { JoinWaitlistButton } from "@/components/waitlist/JoinWaitlistButton";
 import HeaderNavigationMenu from "./HeaderNavigationMenu";
 import HeaderSideMenubar from "./HeaderSideMenubar";
 import { ThemeToggle } from "@buildbase/ui/components/ui/theme-toggle";
@@ -41,23 +40,15 @@ const Header = () => {
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center justify-end flex-1 space-x-8 text-sm font-medium">
           <HeaderNavigationMenu isProductLive={isProductLive} />
-          {isProductLive ? (
-            <>
-              <RainbowButton
-                size="sm"
-                onClick={onGetStartedClick}
-                disabled={isLoadingCta || isLoginLoading}
-                progress={isLoginLoading}
-              >
-                {isLogged ? "Go to app" : "Get started"}
-              </RainbowButton>
-              <ThemeToggle />
-            </>
-          ) : (
-            <div className="hidden sm:block">
-              <JoinWaitlistButton />
-            </div>
-          )}
+          <RainbowButton
+            size="sm"
+            onClick={onGetStartedClick}
+            disabled={isLoadingCta || isLoginLoading}
+            progress={isLoginLoading}
+          >
+            {isLogged ? "Go to app" : "Get started"}
+          </RainbowButton>
+          <ThemeToggle />
         </div>
 
         <HeaderSideMenubar

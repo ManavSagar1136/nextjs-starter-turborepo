@@ -10,8 +10,6 @@ import { SparklesSiteNameText } from "@buildbase/components/common/SparklesSiteN
 import { SiteConfig } from "@/config";
 import { isProductLaunched } from "@/lib/utils/launch-status";
 
-import { Waitlist } from "../waitlist/Waitlist";
-
 const FOOTER_CONFIG = {
   navItems: [
     {
@@ -60,7 +58,6 @@ export const Footer = () => {
 
   return (
     <div className="mt-10 w-full space-y-10 px-6 md:space-y-16 lg:mt-16 lg:space-y-20">
-      <Waitlist />
       <footer className="mb-10 flex w-full flex-col items-center *:justify-center">
         <div className="border-border mb-20 flex w-full max-w-[1280px] items-center justify-center border-t pt-8">
           <div className="flex w-full flex-col justify-between gap-6 md:flex-row">

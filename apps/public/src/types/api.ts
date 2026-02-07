@@ -16,26 +16,9 @@ export interface ContactFormRequest {
 
 export interface NewsletterSubscribeRequest {
   email: string;
-  html?: {
-    thankYouHTML?: string;
-    infoHTML?: string;
-  };
-}
-
-export interface WaitlistSubscribeRequest {
-  email: string;
-  html?: {
-    thankYouHTML?: string;
-    infoHTML?: string;
-  };
 }
 
 export interface NewsletterUnsubscribeRequest {
-  email?: string;
-  token?: string;
-}
-
-export interface WaitlistUnsubscribeRequest {
   email?: string;
   token?: string;
 }

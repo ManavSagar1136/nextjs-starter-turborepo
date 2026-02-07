@@ -18,7 +18,8 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export const sharedVitestConfig = defineConfig({
-  plugins: [react(), tsconfigPaths()],
+  // Cast plugins to any to avoid vite version mismatch issues in monorepo
+  plugins: [react(), tsconfigPaths()] as any,
   test: {
     // Enable globals (describe, it, expect, vi)
     globals: true,

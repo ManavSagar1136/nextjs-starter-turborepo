@@ -20,7 +20,6 @@ import { Logo } from "@/components/logo/Logo";
 import { SparklesText } from "@buildbase/components/common/sparkles-text";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@buildbase/ui/accordion";
 import { ScrollArea } from "@buildbase/ui/components/ui/scroll-area";
-import { JoinWaitlistButton } from "@/components/waitlist/JoinWaitlistButton";
 import BlogDropdownContent from "./BlogDropdownContent";
 import DocsDropdownContent from "./DocsDropdownContent";
 import { ThemeToggle } from "@buildbase/ui/components/ui/theme-toggle";
@@ -163,16 +162,6 @@ const HeaderSideMenubar: React.FC<IHeaderSideMenubarProps> = ({
             ))}
           </Accordion>
         </ScrollArea>
-        {!isProductLive && (
-          <div className="flex border-t p-4 *:w-full *:max-w-72 *:mx-auto">
-            <JoinWaitlistButton
-              closeMenu={true}
-              onMenuClose={() => onOpenChange?.(false)}
-              size="lg"
-              className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-            />
-          </div>
-        )}
       </SheetContent>
     </Sheet>
   );

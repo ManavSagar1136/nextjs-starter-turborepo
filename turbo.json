@@ -50,7 +50,11 @@
     "AWS_SECRET_ACCESS_KEY",
     "S3_BUCKET_NAME",
     "LOCAL_STORAGE_PATH",
-    "LOCAL_STORAGE_URL"
+    "LOCAL_STORAGE_URL",
+
+    "COMPANY_NAME",
+    "ADMIN_EMAIL",
+    "ADMIN_URL"
   ],
   "globalDependencies": [],
   "tasks": {

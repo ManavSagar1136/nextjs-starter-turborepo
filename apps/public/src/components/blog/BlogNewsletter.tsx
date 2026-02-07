@@ -25,14 +25,8 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
     e.preventDefault();
     if (!email) return;
 
-    const html = {
-      thankYouHTML: "<p>Thank you for subscribing to our newsletter!</p>",
-      infoHTML: "<p>Thank you for subscribing to our newsletter!</p>",
-    };
-
     await subscribe({
       email,
-      html,
       onSuccess: () => {
         setEmail("");
       },

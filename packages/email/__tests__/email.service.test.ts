@@ -39,8 +39,12 @@ vi.mock("../src/queue/queue.service.js", () => ({
 }));
 
 describe("EmailService", () => {
+  // Use valid MongoDB ObjectID format (24 hex chars) for provider ID
+  // The service validates ObjectID format before updating stats
+  const MOCK_PROVIDER_ID = "507f1f77bcf86cd799439011";
+
   const mockProvider = new ConsoleProvider({
-    id: "test-provider",
+    id: MOCK_PROVIDER_ID,
     name: "Test Provider",
     type: "CONSOLE",
     fromName: "Test",
@@ -201,7 +205,7 @@ describe("EmailService", () => {
     it("should increment provider stats on success", async () => {
       await EmailService.sendDirect(testEmail);
 
-      expect(mockProviderService.incrementEmailsSent).toHaveBeenCalledWith("test-provider");
+      expect(mockProviderService.incrementEmailsSent).toHaveBeenCalledWith(MOCK_PROVIDER_ID);
     });
 
     it("should use specific provider when providerId is specified", async () => {
