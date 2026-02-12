@@ -22,7 +22,12 @@ import {
 } from "@buildbase/database";
 import type { RenderedEmail, VariableValidationResult } from "./types.js";
 import { renderTemplate, extractVariables, validateVariables, applyDefaults, htmlToText } from "./renderer.js";
-import { getDefaultTemplate, hasDefaultTemplate, getAllDefaultTemplates, type DefaultTemplate } from "./defaults/index.js";
+import {
+  getDefaultTemplate,
+  hasDefaultTemplate,
+  getAllDefaultTemplates,
+  type DefaultTemplate,
+} from "./defaults/index.js";
 
 /**
  * Error thrown when template is not found

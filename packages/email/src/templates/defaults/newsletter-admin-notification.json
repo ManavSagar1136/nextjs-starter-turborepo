@@ -5,10 +5,33 @@
   "subject": "New Newsletter Subscriber: {{email}}",
   "category": "NOTIFICATION",
   "variables": [
-    { "name": "email", "type": "string", "required": true, "description": "Subscriber email" },
-    { "name": "source", "type": "string", "required": false, "default": "website", "description": "Subscription source" },
-    { "name": "subscribedAt", "type": "string", "required": false, "default": "", "description": "Subscription timestamp" },
-    { "name": "adminUrl", "type": "string", "required": false, "default": "#", "description": "Link to admin panel" }
+    {
+      "name": "email",
+      "type": "string",
+      "required": true,
+      "description": "Subscriber email"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "required": false,
+      "default": "website",
+      "description": "Subscription source"
+    },
+    {
+      "name": "subscribedAt",
+      "type": "string",
+      "required": false,
+      "default": "",
+      "description": "Subscription timestamp"
+    },
+    {
+      "name": "adminUrl",
+      "type": "string",
+      "required": false,
+      "default": "#",
+      "description": "Link to admin panel"
+    }
   ],
   "html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>New Newsletter Subscriber</title></head><body style=\"margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin:0 auto;background-color:#ffffff\"><tr><td style=\"padding:40px 30px;text-align:center;background-color:#17a2b8\"><h1 style=\"color:#ffffff;margin:0;font-size:24px\">📧 New Newsletter Subscriber</h1></td></tr><tr><td style=\"padding:40px 30px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background-color:#f8f9fa;border-radius:8px;padding:20px\"><tr><td style=\"padding:10px 20px;border-bottom:1px solid #dee2e6\"><strong style=\"color:#495057\">Email:</strong><br><span style=\"color:#212529\">{{email}}</span></td></tr><tr><td style=\"padding:10px 20px;border-bottom:1px solid #dee2e6\"><strong style=\"color:#495057\">Source:</strong><br><span style=\"color:#212529\">{{source}}</span></td></tr><tr><td style=\"padding:10px 20px\"><strong style=\"color:#495057\">Subscribed At:</strong><br><span style=\"color:#212529\">{{subscribedAt}}</span></td></tr></table><table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin:30px auto 0\"><tr><td style=\"background-color:#0e7dc2;border-radius:5px\"><a href=\"{{adminUrl}}\" style=\"display:inline-block;padding:15px 30px;color:#ffffff;text-decoration:none;font-weight:bold\">View Subscribers</a></td></tr></table></td></tr><tr><td style=\"padding:20px 30px;background-color:#f8f8f8;text-align:center\"><p style=\"font-size:12px;color:#666666;margin:0\">This is an automated notification from your newsletter system.</p></td></tr></table></body></html>",
   "text": "📧 New Newsletter Subscriber\n\n---\nEmail: {{email}}\nSource: {{source}}\nSubscribed At: {{subscribedAt}}\n---\n\nView Subscribers: {{adminUrl}}\n\nThis is an automated notification from your newsletter system."

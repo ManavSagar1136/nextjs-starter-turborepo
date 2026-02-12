@@ -112,12 +112,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "Contact form submitted successfully",
+        message: "Contact form submitted successfully. We'll get back to you soon!",
+        data: {
+          id: submission.id,
+          email: submission.email,
+        },
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("[Contact Form API] Error:", error);
+    console.error("[Contact API] Error:", error);
     return NextResponse.json(
       {
         success: false,

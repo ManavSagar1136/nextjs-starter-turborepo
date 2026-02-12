@@ -1,16 +1,16 @@
 /**
  * @buildbase/email - Template Slug Constants
- * 
+ *
  * Use these constants instead of hardcoded strings for template slugs.
  * This makes it easy to:
  * - Add new templates consistently
  * - Refactor/rename templates safely
  * - Get autocomplete in IDEs
- * 
+ *
  * Usage:
  * ```ts
  * import { EMAIL_TEMPLATES } from "@buildbase/email";
- * 
+ *
  * await EmailService.sendTemplate(EMAIL_TEMPLATES.NEWSLETTER_WELCOME, {
  *   to: email,
  *   variables: { ... }
