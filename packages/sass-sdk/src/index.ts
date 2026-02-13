@@ -3,6 +3,7 @@ export {
   // Core Provider and Types
   ApiVersion,
   SaaSOSProvider,
+  SubscriptionContextProvider,
 
   // Components
   WhenAuthenticated,
@@ -13,9 +14,27 @@ export {
   WhenWorkspaceFeatureEnabled,
   WhenUserFeatureEnabled,
   WhenUserFeatureDisabled,
+  // Subscription HOCs
+  WhenSubscription,
+  WhenNoSubscription,
+  WhenSubscriptionToPlans,
 
   // Hooks
   useSaaSAuth,
+  useSaaSWorkspaces,
+  useUserFeatures,
+  // Subscription Hooks
+  useSubscriptionContext,
+  useSubscription,
+  useSubscriptionManagement,
+  usePlanGroup,
+  usePlanGroupVersions,
+  usePublicPlans,
+  usePublicPlanGroupVersion,
+  useInvoices,
+  useInvoice,
+  useCreateCheckoutSession,
+  useUpdateSubscription,
 
   // Workspace
   WorkspaceSwitcher,
