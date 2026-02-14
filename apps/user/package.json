@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3101",
+    "postinstall": "cd ../.. && yarn workspace @buildbase/database db:generate",
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
