@@ -61,14 +61,19 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "src/generated/**"]
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "node_modules/.prisma/**"
+      ]
     },
     "@buildbase/eslint-config#build": {
       "cache": false
     },
     "db:generate": {
       "cache": false,
-      "outputs": ["src/generated/**"]
+      "outputs": ["node_modules/.prisma/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]

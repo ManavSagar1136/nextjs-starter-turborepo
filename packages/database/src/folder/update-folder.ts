@@ -3,7 +3,7 @@
  */
 
 import { prisma } from "../index";
-import type { AssetFolder } from "../generated/client";
+import type { AssetFolder } from "@prisma/client";
 import type { UpdateFolderInput } from "./types";
 import { MAX_FOLDER_DEPTH } from "./constants";
 import { validateFolderName, validateFolderNameUniqueness } from "../assets/validation.utils";

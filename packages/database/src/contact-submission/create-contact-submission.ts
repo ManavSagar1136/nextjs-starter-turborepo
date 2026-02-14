@@ -2,7 +2,7 @@
  * @buildbase/database - Create Contact Submission
  */
 
-import type { PrismaClient, ContactSubmission, Prisma } from "../generated/client";
+import type { PrismaClient, ContactSubmission, Prisma } from "@prisma/client";
 import type { CreateContactSubmissionInput } from "./types";
 
 /**

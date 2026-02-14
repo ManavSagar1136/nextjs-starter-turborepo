@@ -2,7 +2,7 @@
  * @buildbase/database - Email Provider Types
  */
 
-import type { EmailProvider } from "../generated/client";
+import type { EmailProvider } from "@prisma/client";
 
 export type ProviderType = "CONSOLE" | "SMTP" | "RESEND" | "MAILGUN" | "SENDGRID" | "SES";
 

@@ -6,7 +6,7 @@ export { getEmailTemplateById, getEmailTemplateBySlug } from "./get-email-templa
 export { listEmailTemplates, listEmailTemplatesByCategory } from "./list-email-templates";
 export { duplicateEmailTemplate } from "./duplicate-email-template";
 
-// Export types (EmailTemplateCategory comes from Prisma via ./generated/client)
+// Export types (EmailTemplateCategory comes from Prisma via @prisma/client)
 export type {
   CreateEmailTemplateInput,
   UpdateEmailTemplateInput,

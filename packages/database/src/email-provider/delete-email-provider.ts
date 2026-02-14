@@ -2,7 +2,7 @@
  * @buildbase/database - Delete Email Provider
  */
 
-import type { PrismaClient } from "../generated/client";
+import type { PrismaClient } from "@prisma/client";
 
 /**
  * Delete an email provider by ID

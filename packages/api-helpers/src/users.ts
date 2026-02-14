@@ -1,5 +1,5 @@
 import { prisma } from "@buildbase/database";
-import type { User } from "@buildbase/database/client";
+import type { User } from "@prisma/client";
 
 export const getUserById = async (id: string): Promise<User | null> => {
   return prisma.user.findUnique({

@@ -2,7 +2,7 @@
  * @buildbase/database - List Newsletter Subscribers
  */
 
-import type { PrismaClient, Prisma } from "../generated/client";
+import type { PrismaClient, Prisma } from "@prisma/client";
 import type {
   ListNewsletterSubscribersOptions,
   PaginatedNewsletterSubscribers,
@@ -103,10 +103,7 @@ export async function getNewsletterSubscriberStats(
 /**
  * Get all active subscriber emails (for bulk sends)
  */
-export async function getActiveNewsletterEmails(
-  prisma: PrismaClient,
-  workspaceId?: string
-): Promise<string[]> {
+export async function getActiveNewsletterEmails(prisma: PrismaClient, workspaceId?: string): Promise<string[]> {
   const subscribers = await prisma.newsletterSubscriber.findMany({
     where: {
       status: "ACTIVE",
@@ -116,5 +113,5 @@ export async function getActiveNewsletterEmails(
     select: { email: true },
   });
 
-  return subscribers.map((s) => s.email);
+  return subscribers.map(s => s.email);
 }

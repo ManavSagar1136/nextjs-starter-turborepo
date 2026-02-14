@@ -22,7 +22,7 @@ import {
   getContactSubmissionStats,
   getContactSubmissionCategories,
 } from "../list-contact-submissions";
-import type { PrismaClient, ContactSubmission } from "../../generated/client";
+import type { PrismaClient, ContactSubmission } from "@prisma/client";
 
 // Mock prisma client
 const mockPrisma = {

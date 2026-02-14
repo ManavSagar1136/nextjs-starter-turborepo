@@ -2,7 +2,7 @@
  * @buildbase/database - Update Contact Submission
  */
 
-import type { PrismaClient, ContactSubmission, Prisma } from "../generated/client";
+import type { PrismaClient, ContactSubmission, Prisma } from "@prisma/client";
 import type { UpdateContactSubmissionInput } from "./types";
 
 /**
@@ -25,10 +25,7 @@ export async function updateContactSubmission(
 /**
  * Mark a contact submission as read
  */
-export async function markContactSubmissionRead(
-  prisma: PrismaClient,
-  id: string
-): Promise<ContactSubmission> {
+export async function markContactSubmissionRead(prisma: PrismaClient, id: string): Promise<ContactSubmission> {
   return prisma.contactSubmission.update({
     where: { id },
     data: {
@@ -59,10 +56,7 @@ export async function markContactSubmissionReplied(
 /**
  * Archive a contact submission
  */
-export async function archiveContactSubmission(
-  prisma: PrismaClient,
-  id: string
-): Promise<ContactSubmission> {
+export async function archiveContactSubmission(prisma: PrismaClient, id: string): Promise<ContactSubmission> {
   return prisma.contactSubmission.update({
     where: { id },
     data: {
@@ -75,10 +69,7 @@ export async function archiveContactSubmission(
 /**
  * Mark a contact submission as spam
  */
-export async function markContactSubmissionSpam(
-  prisma: PrismaClient,
-  id: string
-): Promise<ContactSubmission> {
+export async function markContactSubmissionSpam(prisma: PrismaClient, id: string): Promise<ContactSubmission> {
   return prisma.contactSubmission.update({
     where: { id },
     data: {
@@ -106,10 +97,7 @@ export async function assignContactSubmission(
 /**
  * Unassign a contact submission
  */
-export async function unassignContactSubmission(
-  prisma: PrismaClient,
-  id: string
-): Promise<ContactSubmission> {
+export async function unassignContactSubmission(prisma: PrismaClient, id: string): Promise<ContactSubmission> {
   return prisma.contactSubmission.update({
     where: { id },
     data: {
@@ -147,10 +135,7 @@ export async function archiveOldContactSubmissions(
 /**
  * Delete a contact submission (hard delete)
  */
-export async function deleteContactSubmission(
-  prisma: PrismaClient,
-  id: string
-): Promise<void> {
+export async function deleteContactSubmission(prisma: PrismaClient, id: string): Promise<void> {
   await prisma.contactSubmission.delete({
     where: { id },
   });
@@ -159,10 +144,7 @@ export async function deleteContactSubmission(
 /**
  * Bulk delete spam contact submissions
  */
-export async function deleteSpamContactSubmissions(
-  prisma: PrismaClient,
-  workspaceId?: string
-): Promise<number> {
+export async function deleteSpamContactSubmissions(prisma: PrismaClient, workspaceId?: string): Promise<number> {
   const result = await prisma.contactSubmission.deleteMany({
     where: {
       status: "SPAM",

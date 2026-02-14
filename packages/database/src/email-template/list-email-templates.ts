@@ -2,9 +2,8 @@
  * @buildbase/database - List Email Templates
  */
 
-import type { PrismaClient, EmailTemplate } from "../generated/client";
+import type { PrismaClient, EmailTemplate, EmailTemplateCategory } from "@prisma/client";
 import type { ListEmailTemplatesOptions, PaginatedEmailTemplates } from "./types";
-import type { EmailTemplateCategory } from "../generated/client";
 import { DEFAULT_PAGE_SIZE } from "./constants";
 
 /**

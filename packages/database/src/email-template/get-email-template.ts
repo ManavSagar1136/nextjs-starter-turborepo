@@ -2,7 +2,7 @@
  * @buildbase/database - Get Email Template
  */
 
-import type { PrismaClient, EmailTemplate } from "../generated/client";
+import type { PrismaClient, EmailTemplate } from "@prisma/client";
 
 /**
  * Find email template by ID

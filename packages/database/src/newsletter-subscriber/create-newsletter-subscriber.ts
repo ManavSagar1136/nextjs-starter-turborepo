@@ -3,7 +3,7 @@
  */
 
 import { randomBytes } from "crypto";
-import type { PrismaClient, NewsletterSubscriber, Prisma } from "../generated/client";
+import type { PrismaClient, NewsletterSubscriber, Prisma } from "@prisma/client";
 import type { CreateNewsletterSubscriberInput } from "./types";
 
 /**
