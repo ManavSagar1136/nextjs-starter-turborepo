@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
     "google-auth-library",
     "@aws-sdk/client-s3",
     "@aws-sdk/s3-request-presigner",
+    "@prisma/client",
+    ".prisma/client",
   ],
   transpilePackages: [
     "@buildbase/ui",

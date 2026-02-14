@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     "newrelic",
     "@newrelic/security-agent",
     "thread-stream",
+    "@prisma/client",
+    ".prisma/client",
   ],
   transpilePackages: [
     "@buildbase/ui",
