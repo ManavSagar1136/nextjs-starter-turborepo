@@ -2,7 +2,7 @@
  * @buildbase/database - Newsletter Subscriber Types
  */
 
-import type { NewsletterSubscriber, NewsletterSubscriberStatus } from "../generated/client";
+import type { NewsletterSubscriber, NewsletterSubscriberStatus } from "@prisma/client";
 
 export type { NewsletterSubscriber, NewsletterSubscriberStatus };
 

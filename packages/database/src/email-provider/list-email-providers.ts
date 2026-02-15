@@ -2,7 +2,7 @@
  * @buildbase/database - List Email Providers
  */
 
-import type { PrismaClient, EmailProvider } from "../generated/client";
+import type { PrismaClient, EmailProvider } from "@prisma/client";
 
 /**
  * List all email providers for a workspace

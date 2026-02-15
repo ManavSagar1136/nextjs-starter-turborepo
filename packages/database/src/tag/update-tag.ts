@@ -3,7 +3,7 @@
  */
 
 import { prisma } from "../index";
-import type { MediaTag } from "../generated/client";
+import type { MediaTag } from "@prisma/client";
 import type { UpdateTagInput } from "./types";
 import { validateTagName } from "../assets/validation.utils";
 

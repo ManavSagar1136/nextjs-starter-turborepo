@@ -5,7 +5,7 @@
 import { prisma } from "../index";
 import { AssetsRepository } from "../assets/assets.repository";
 import { getStorage } from "@buildbase/storage";
-import type { Prisma } from "../generated/client";
+import type { Prisma } from "@prisma/client";
 
 /**
  * Duplicate an asset

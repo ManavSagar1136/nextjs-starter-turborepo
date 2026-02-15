@@ -2,8 +2,6 @@
  * @buildbase/database - Folder Types
  */
 
-import type { AssetFolder } from "../generated/client";
-
 export interface CreateFolderInput {
   name: string;
   description?: string;

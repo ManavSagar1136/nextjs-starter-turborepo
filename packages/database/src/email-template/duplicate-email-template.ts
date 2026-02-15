@@ -2,7 +2,7 @@
  * @buildbase/database - Duplicate Email Template
  */
 
-import type { PrismaClient, EmailTemplate } from "../generated/client";
+import type { PrismaClient, EmailTemplate } from "@prisma/client";
 
 /**
  * Duplicate an existing email template with a new slug

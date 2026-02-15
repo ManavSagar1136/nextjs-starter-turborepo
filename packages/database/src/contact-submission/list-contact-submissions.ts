@@ -2,12 +2,8 @@
  * @buildbase/database - List Contact Submissions
  */
 
-import type { PrismaClient, Prisma } from "../generated/client";
-import type {
-  ListContactSubmissionsOptions,
-  PaginatedContactSubmissions,
-  ContactSubmissionStats,
-} from "./types";
+import type { PrismaClient, Prisma } from "@prisma/client";
+import type { ListContactSubmissionsOptions, PaginatedContactSubmissions, ContactSubmissionStats } from "./types";
 
 /**
  * List contact submissions with pagination and filters
@@ -139,10 +135,7 @@ export async function getContactSubmissionStats(
 /**
  * Get distinct categories used in contact submissions
  */
-export async function getContactSubmissionCategories(
-  prisma: PrismaClient,
-  workspaceId?: string
-): Promise<string[]> {
+export async function getContactSubmissionCategories(prisma: PrismaClient, workspaceId?: string): Promise<string[]> {
   const submissions = await prisma.contactSubmission.findMany({
     where: {
       category: { not: null },
@@ -152,5 +145,5 @@ export async function getContactSubmissionCategories(
     distinct: ["category"],
   });
 
-  return submissions.map((s) => s.category).filter((c): c is string => c !== null);
+  return submissions.map(s => s.category).filter((c): c is string => c !== null);
 }

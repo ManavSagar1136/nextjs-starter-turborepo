@@ -2,7 +2,7 @@
  * Sent Email Types
  */
 
-import type { EmailStatus } from "../generated/client";
+import type { EmailStatus } from "@prisma/client";
 
 export type { EmailStatus };
 

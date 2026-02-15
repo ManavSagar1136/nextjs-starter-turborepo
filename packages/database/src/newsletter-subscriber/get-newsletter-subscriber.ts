@@ -2,7 +2,7 @@
  * @buildbase/database - Get Newsletter Subscriber
  */
 
-import type { PrismaClient, NewsletterSubscriber } from "../generated/client";
+import type { PrismaClient, NewsletterSubscriber } from "@prisma/client";
 
 /**
  * Get a newsletter subscriber by ID
@@ -43,10 +43,7 @@ export async function getNewsletterSubscriberByToken(
 /**
  * Check if an email is subscribed (active)
  */
-export async function isEmailSubscribedToNewsletter(
-  prisma: PrismaClient,
-  email: string
-): Promise<boolean> {
+export async function isEmailSubscribedToNewsletter(prisma: PrismaClient, email: string): Promise<boolean> {
   const subscriber = await prisma.newsletterSubscriber.findUnique({
     where: { email: email.toLowerCase().trim() },
     select: { status: true, isConfirmed: true },

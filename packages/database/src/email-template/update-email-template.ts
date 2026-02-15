@@ -2,7 +2,7 @@
  * @buildbase/database - Update Email Template
  */
 
-import type { PrismaClient, EmailTemplate } from "../generated/client";
+import type { PrismaClient, EmailTemplate } from "@prisma/client";
 import type { UpdateEmailTemplateInput } from "./types";
 
 /**
