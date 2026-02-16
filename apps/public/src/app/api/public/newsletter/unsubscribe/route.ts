@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, unsubscribeNewsletterByEmail } from "@buildbase/database";
 import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
+import { env } from "@buildbase/env";
 import type { NewsletterUnsubscribeRequest } from "@/types/api";
 
 // Initialize email service
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
           to: subscriberEmail,
           variables: {
             email: subscriberEmail,
-            companyName: process.env.COMPANY_NAME || "Our Company",
-            resubscribeUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || ""}/#newsletter`,
+            companyName: env.COMPANY_NAME || "Our Company",
+            resubscribeUrl: `${env.NEXT_PUBLIC_PUBLIC_APP_URL || ""}/#newsletter`,
           },
         });
         console.log("[Newsletter Unsubscribe API] Confirmation email sent to:", subscriberEmail);
