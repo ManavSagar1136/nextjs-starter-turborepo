@@ -3,6 +3,7 @@
  * AES-256-GCM encryption for provider credentials
  */
 
+import { env } from "@buildbase/env";
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 import { ENCRYPTION_ALGORITHM, IV_LENGTH, AUTH_TAG_LENGTH } from "./constants.js";
 import { ConfigurationError, EncryptionError } from "./errors.js";
@@ -12,7 +13,7 @@ import { ConfigurationError, EncryptionError } from "./errors.js";
  * Key must be 32 bytes (256 bits) base64-encoded
  */
 export function getEncryptionKey(): Buffer {
-  const key = process.env.EMAIL_ENCRYPTION_KEY;
+  const key = env.EMAIL_ENCRYPTION_KEY;
 
   if (!key) {
     throw new ConfigurationError(

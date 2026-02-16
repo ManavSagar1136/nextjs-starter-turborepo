@@ -2,6 +2,8 @@
  * @buildbase/email - Tracking Types
  */
 
+import { env } from "@buildbase/env";
+
 /**
  * Tracking configuration
  */
@@ -23,7 +25,7 @@ export const DEFAULT_TRACKING_CONFIG: TrackingConfig = {
   enabled: true,
   trackOpens: true,
   trackClicks: true,
-  baseUrl: process.env.APP_URL || "",
+  baseUrl: env.NEXT_PUBLIC_PUBLIC_APP_URL || "",
 };
 
 /**
