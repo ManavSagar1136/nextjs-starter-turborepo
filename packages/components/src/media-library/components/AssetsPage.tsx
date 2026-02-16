@@ -24,7 +24,7 @@
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import { MediaLibraryProvider, useMediaLibrary } from "../context";
+import { MediaLibraryProvider } from "../context";
 import { AssetsQuerySync } from "./AssetsQuerySync";
 import { AssetsPageContent } from "./AssetsPageContent";
 import { createMediaLibraryHooks } from "../hooks/use-media-library-queries";
@@ -43,19 +43,22 @@ export interface AssetsPageProps {
   initialFolderId?: string | null;
   /** Optional className for the page container */
   className?: string;
+  /** Optional workspace ID */
+  workspaceId?: string | null;
 }
 
 // ============================================================================
 // Component
 // ============================================================================
 
-export function AssetsPage({ api, initialFolderId = null, className }: AssetsPageProps) {
+export function AssetsPage({ api, initialFolderId = null, className, workspaceId = null }: AssetsPageProps) {
   // Create hooks using the shared factory - memoize to prevent recreation on every render
-  const hooks = useMemo(() => createMediaLibraryHooks(api), [api]);
+  // Pass workspaceId as default so all hooks use it
+  const hooks = useMemo(() => createMediaLibraryHooks(api, workspaceId), [api, workspaceId]);
 
-  // Fetch data
-  const folderTreeQuery = hooks.useFolderTree();
-  const tagsQuery = hooks.useTags();
+  // Fetch data - workspaceId is already set as default, but can be overridden per hook if needed
+  const folderTreeQuery = hooks.useFolderTree(true, workspaceId);
+  const tagsQuery = hooks.useTags({ search: undefined }, true, workspaceId);
 
   // State for query params - will be updated by AssetsQuerySync when folder changes
   const [queryParams, setQueryParams] = useState<{
@@ -70,12 +73,12 @@ export function AssetsPage({ api, initialFolderId = null, className }: AssetsPag
   }>({ $page: 1, $limit: 10 });
 
   // Assets query - will refetch when queryParams change
-  const assetsQuery = hooks.useAssets(queryParams);
+  const assetsQuery = hooks.useAssets(queryParams, true, workspaceId);
 
-  // Mutations for provider handlers
-  const deleteAssetMutation = hooks.useDeleteAsset();
-  const togglePrivacyMutation = hooks.useToggleAssetPrivacy();
-  const duplicateAssetMutation = hooks.useDuplicateAsset();
+  // Mutations for provider handlers - workspaceId is already set as default
+  const deleteAssetMutation = hooks.useDeleteAsset(workspaceId);
+  const togglePrivacyMutation = hooks.useToggleAssetPrivacy(workspaceId);
+  const duplicateAssetMutation = hooks.useDuplicateAsset(workspaceId);
 
   const { openDialog } = useDialogManager();
 
@@ -194,8 +197,8 @@ export function AssetsPage({ api, initialFolderId = null, className }: AssetsPag
       initialFolderId={initialFolderId}
     >
       <AssetsQuerySync setQueryParams={setQueryParams} />
-      <AssetActionConnector hooks={hooks} dialogHandlersRef={dialogHandlersRef} />
-      <AssetsPageContentWrapper hooks={hooks} className={className} />
+      <AssetActionConnector hooks={hooks} dialogHandlersRef={dialogHandlersRef} workspaceId={workspaceId} />
+      <AssetsPageContentWrapper hooks={hooks} className={className} workspaceId={workspaceId} />
     </MediaLibraryProvider>
   );
 }
@@ -215,27 +218,28 @@ interface AssetActionConnectorProps {
     handleDeleteAsset?: (asset: IAsset) => void;
     handleTogglePrivacy?: (asset: IAsset) => Promise<void>;
   }>;
+  workspaceId: string | null;
 }
 
-function AssetActionConnector({ hooks, dialogHandlersRef }: AssetActionConnectorProps) {
+function AssetActionConnector({ hooks, dialogHandlersRef, workspaceId }: AssetActionConnectorProps) {
   // Get all mutations needed for dialogs
-  const createFolder = hooks.useCreateFolder();
-  const updateFolder = hooks.useUpdateFolder();
-  const deleteFolder = hooks.useDeleteFolder();
-  const moveFolder = hooks.useMoveFolder();
-  const deleteAsset = hooks.useDeleteAsset();
-  const togglePrivacy = hooks.useToggleAssetPrivacy();
+  const createFolder = hooks.useCreateFolder(workspaceId);
+  const updateFolder = hooks.useUpdateFolder(workspaceId);
+  const deleteFolder = hooks.useDeleteFolder(workspaceId);
+  const moveFolder = hooks.useMoveFolder(workspaceId);
+  const deleteAsset = hooks.useDeleteAsset(workspaceId);
+  const togglePrivacy = hooks.useToggleAssetPrivacy(workspaceId);
   const moveAssetToFolder = hooks.useMoveAssetToFolder();
-  const assignTags = hooks.useAssignTagsToAsset();
-  const uploadAsset = hooks.useUploadAsset();
-  const createTag = hooks.useCreateTag();
-  const updateTag = hooks.useUpdateTag();
-  const deleteTag = hooks.useDeleteTag();
-  const bulkDeleteAssets = hooks.useBulkDeleteAssets();
-  const bulkMoveAssets = hooks.useBulkMoveAssets();
-  const bulkAssignTags = hooks.useBulkAssignTags();
-  const folderTreeQuery = hooks.useFolderTree();
-  const tagsQuery = hooks.useTags();
+  const assignTags = hooks.useAssignTagsToAsset(workspaceId);
+  const uploadAsset = hooks.useUploadAsset(workspaceId);
+  const createTag = hooks.useCreateTag(workspaceId);
+  const updateTag = hooks.useUpdateTag(workspaceId);
+  const deleteTag = hooks.useDeleteTag(workspaceId);
+  const bulkDeleteAssets = hooks.useBulkDeleteAssets(workspaceId);
+  const bulkMoveAssets = hooks.useBulkMoveAssets(workspaceId);
+  const bulkAssignTags = hooks.useBulkAssignTags(workspaceId);
+  const folderTreeQuery = hooks.useFolderTree(true, workspaceId);
+  const tagsQuery = hooks.useTags({ search: undefined }, true, workspaceId);
 
   // Get dialog handlers - this is inside the provider so useMediaLibrary works
   const dialogHandlers = useMediaLibraryDialogs({
@@ -279,29 +283,30 @@ function AssetActionConnector({ hooks, dialogHandlersRef }: AssetActionConnector
 interface AssetsPageContentWrapperProps {
   hooks: ReturnType<typeof createMediaLibraryHooks>;
   className?: string;
+  workspaceId: string | null;
 }
 
-function AssetsPageContentWrapper({ hooks, className }: AssetsPageContentWrapperProps) {
+function AssetsPageContentWrapper({ hooks, className, workspaceId }: AssetsPageContentWrapperProps) {
   // Mutations
-  const createFolder = hooks.useCreateFolder();
-  const updateFolder = hooks.useUpdateFolder();
-  const deleteFolder = hooks.useDeleteFolder();
-  const moveFolder = hooks.useMoveFolder();
-  const deleteAsset = hooks.useDeleteAsset();
-  const togglePrivacy = hooks.useToggleAssetPrivacy();
-  const moveAssetToFolder = hooks.useMoveAssetToFolder();
-  const assignTags = hooks.useAssignTagsToAsset();
-  const uploadAsset = hooks.useUploadAsset();
-  const createTag = hooks.useCreateTag();
-  const updateTag = hooks.useUpdateTag();
-  const deleteTag = hooks.useDeleteTag();
-  const bulkDeleteAssets = hooks.useBulkDeleteAssets();
-  const bulkMoveAssets = hooks.useBulkMoveAssets();
-  const bulkAssignTags = hooks.useBulkAssignTags();
+  const createFolder = hooks.useCreateFolder(workspaceId);
+  const updateFolder = hooks.useUpdateFolder(workspaceId);
+  const deleteFolder = hooks.useDeleteFolder(workspaceId);
+  const moveFolder = hooks.useMoveFolder(workspaceId);
+  const deleteAsset = hooks.useDeleteAsset(workspaceId);
+  const togglePrivacy = hooks.useToggleAssetPrivacy(workspaceId);
+  const moveAssetToFolder = hooks.useMoveAssetToFolder(workspaceId);
+  const assignTags = hooks.useAssignTagsToAsset(workspaceId);
+  const uploadAsset = hooks.useUploadAsset(workspaceId);
+  const createTag = hooks.useCreateTag(workspaceId);
+  const updateTag = hooks.useUpdateTag(workspaceId);
+  const deleteTag = hooks.useDeleteTag(workspaceId);
+  const bulkDeleteAssets = hooks.useBulkDeleteAssets(workspaceId);
+  const bulkMoveAssets = hooks.useBulkMoveAssets(workspaceId);
+  const bulkAssignTags = hooks.useBulkAssignTags(workspaceId);
 
   // Queries for dialogs
-  const folderTreeQuery = hooks.useFolderTree();
-  const tagsQuery = hooks.useTags();
+  const folderTreeQuery = hooks.useFolderTree(true, workspaceId);
+  const tagsQuery = hooks.useTags({ search: undefined }, true, workspaceId);
 
   return (
     <AssetsPageContent

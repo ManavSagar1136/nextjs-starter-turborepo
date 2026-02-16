@@ -6,6 +6,7 @@ import { TanStackQueryProvider } from "@buildbase/tanstack-query/provider";
 import { DialogProvider } from "@buildbase/dialog-manager/provider";
 import { userReducer } from "@/store";
 import SaaSProvider from "./SaaSProvider";
+import { WorkspaceInitializer } from "@/components/WorkspaceInitializer";
 import type { ReactNode } from "react";
 
 interface AppProvidersProps {
@@ -37,7 +38,10 @@ export function AppProviders({ children }: AppProvidersProps) {
       >
         <TanStackQueryProvider>
           <DialogProvider>
-            <SaaSProvider>{children}</SaaSProvider>
+            <SaaSProvider>
+              <WorkspaceInitializer />
+              {children}
+            </SaaSProvider>
           </DialogProvider>
         </TanStackQueryProvider>
       </ReduxProvider>

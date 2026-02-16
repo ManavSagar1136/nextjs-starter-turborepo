@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { API } from "@/services";
 import { env } from "@buildbase/env";
 import { useAppDispatch } from "@/store/hooks";
-import { setUser, clearUser } from "@/store";
+import { setUser, updateUser, clearUser } from "@/store";
 import { Routes } from "@/data/routes";
 
 interface SaaSProviderProps {
@@ -53,6 +53,8 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
                 image: data.user.image || null,
                 role: data.user.role || null,
                 sdkUserId: userId, // SDK user ID stored for API calls and consistency
+                workspaceId: data.user.workspaceId || data.user.currentWorkspaceId || null,
+                workspaceName: data.user.workspaceName || null,
               })
             );
 
@@ -198,6 +200,17 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
             console.error("Failed to change workspace:", result);
             throw new Error(result.error || "Failed to change workspace");
           }
+
+          // Update workspaceId in Redux store from response
+          if (result.workspace) {
+            dispatch(
+              updateUser({
+                workspaceId: (result.workspace as any).id,
+                workspaceName: (result.workspace as any).name,
+              })
+            );
+          }
+
           // Clear all query cache first to remove stale data
           queryClient.clear();
 

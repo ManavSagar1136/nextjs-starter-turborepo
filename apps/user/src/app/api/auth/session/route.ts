@@ -55,6 +55,8 @@ export async function GET() {
         id: session.user.id || session.user.userId || session.user.sdkUserId,
         email: session.user.email,
         role: session.user.role,
+        workspaceId: session.user.workspaceId || session.user.currentWorkspaceId,
+        workspaceName: session.user.workspaceName,
       },
     });
   } catch (error) {
