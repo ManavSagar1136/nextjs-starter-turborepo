@@ -7,6 +7,8 @@ export interface UserState {
   image: string | null;
   role: string | null;
   sdkUserId: string | null;
+  workspaceId: string | null;
+  workspaceName: string | null;
 }
 
 const initialState: UserState = {
@@ -16,6 +18,8 @@ const initialState: UserState = {
   image: null,
   role: null,
   sdkUserId: null,
+  workspaceId: null,
+  workspaceName: null,
 };
 
 const userSlice = createSlice({

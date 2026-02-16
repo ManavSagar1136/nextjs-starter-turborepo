@@ -3,6 +3,21 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// Mock @buildbase/env to allow test environment variable control
+vi.mock("@buildbase/env", () => {
+  return {
+    env: new Proxy({} as Record<string, string | undefined>, {
+      get(_target, prop: string) {
+        return process.env[prop];
+      },
+    }),
+    isDevelopment: () => process.env.NODE_ENV === "development",
+    isProduction: () => process.env.NODE_ENV === "production",
+    isTest: () => process.env.NODE_ENV === "test",
+  };
+});
+
 import { EmailFactory } from "../src/factory/email.factory.js";
 import { ConsoleProvider } from "../src/providers/console.provider.js";
 import { NoDefaultProviderError, ProviderNotFoundError } from "../src/core/errors.js";

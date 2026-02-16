@@ -9,7 +9,9 @@
 
 import { AssetsPage } from "@buildbase/components/media-library";
 import { API } from "@/services";
+import { useWorkspaceId } from "@/store/hooks";
 
 export default function Page() {
-  return <AssetsPage api={API.mediaLibrary} />;
+  const workspaceId = useWorkspaceId();
+  return <AssetsPage api={API.mediaLibrary} workspaceId={workspaceId} />;
 }

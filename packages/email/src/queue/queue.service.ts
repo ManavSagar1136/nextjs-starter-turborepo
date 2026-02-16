@@ -3,6 +3,7 @@
  * Uses @buildbase/qstash for queue operations
  */
 
+import { env } from "@buildbase/env";
 import type { SendEmailOptions } from "../core/types.js";
 import type { QueueOptions, QueueResult, BulkQueueResult, QueuePayload } from "./types.js";
 import { QueueNotConfiguredError, QueueOperationError } from "./errors.js";
@@ -21,8 +22,8 @@ export class EmailQueueService {
    * Called by EmailFactory during initialization
    */
   async initialize(): Promise<void> {
-    const qstashToken = process.env.QSTASH_TOKEN;
-    const appUrl = process.env.APP_URL;
+    const qstashToken = env.QSTASH_TOKEN;
+    const appUrl = env.NEXT_PUBLIC_PUBLIC_APP_URL;
 
     if (!qstashToken || !appUrl) {
       this.isConfigured = false;

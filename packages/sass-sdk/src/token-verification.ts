@@ -39,8 +39,6 @@ export interface SDKTokenVerificationResponse {
 export const verifySDKToken = async (config: SDKTokenVerificationConfig): Promise<SDKTokenVerificationResponse> => {
   const {
     code,
-    // Use process.env for NEXT_PUBLIC_* variables in packages (they're not available via env in packages)
-    // Use env for server-side variables (SAAS_CLIENT_SECRET)
     baseUrl = env.NEXT_PUBLIC_SAAS_SERVER_URL as string,
     clientId = env.NEXT_PUBLIC_SAAS_CLIENT_ID as string,
     clientSecret = env.SAAS_CLIENT_SECRET as string,

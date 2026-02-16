@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { isProduction } from "@buildbase/env";
+import { isProduction, env, getEnvironment } from "@buildbase/env";
 import type { AuthenticatedUser } from "./auth-middleware";
-import { env } from "@buildbase/env";
 
 /**
  * Cookie name for authentication token
@@ -10,7 +9,7 @@ import { env } from "@buildbase/env";
  */
 const getCookieName = (): string => {
   const baseName = "cms-auth-token";
-  const nodeEnv = process.env.VERCEL_ENV || env.NODE_ENV || "development";
+  const nodeEnv = getEnvironment();
 
   return `${nodeEnv}-${baseName}`;
 };

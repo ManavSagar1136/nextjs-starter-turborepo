@@ -3,6 +3,7 @@
  * Handle email unsubscribe functionality
  */
 
+import { env } from "@buildbase/env";
 import { createHash, randomBytes } from "crypto";
 import type { PrismaClient } from "@buildbase/database";
 import type { EmailPreferences, UnsubscribeToken } from "./types.js";
@@ -188,7 +189,7 @@ export class UnsubscribeService {
    */
   async getUnsubscribeUrl(email: string, baseUrl?: string): Promise<string> {
     const prefs = await this.getPreferences(email);
-    const base = baseUrl || process.env.APP_URL || "";
+    const base = baseUrl || env.NEXT_PUBLIC_PUBLIC_APP_URL || "";
     return `${base}/api/email/unsubscribe/${prefs.token}`;
   }
 }

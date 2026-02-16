@@ -1,3 +1,4 @@
+import { isProduction } from "@buildbase/env";
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "./storage";
@@ -70,7 +71,7 @@ export const createStore = (additionalReducers?: Record<string, any>, persistCon
           ignoredPaths: ["_persist"],
         },
       }),
-    devTools: process.env.NODE_ENV !== "production",
+    devTools: !isProduction(),
   });
 
   return store;

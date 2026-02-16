@@ -9,7 +9,7 @@ export class QueueNotConfiguredError extends Error {
   public readonly code = "QUEUE_NOT_CONFIGURED" as const;
 
   constructor() {
-    super("Email queue is not configured. Set QSTASH_TOKEN and APP_URL environment variables.");
+    super("Email queue is not configured. Set QSTASH_TOKEN and NEXT_PUBLIC_PUBLIC_APP_URL environment variables.");
     this.name = "QueueNotConfiguredError";
   }
 }

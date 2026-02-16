@@ -1,41 +1,56 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// Mock @buildbase/env to allow test environment variable control
+// This creates a proxy that reads from process.env dynamically
+// Must be hoisted (before any imports that use @buildbase/env)
+vi.mock("@buildbase/env", () => {
+  return {
+    env: new Proxy({} as Record<string, string | undefined>, {
+      get(_target, prop: string) {
+        // Return process.env value, or undefined if not set
+        return process.env[prop];
+      },
+    }),
+    isDevelopment: () => process.env.NODE_ENV === "development",
+    isProduction: () => process.env.NODE_ENV === "production",
+    isTest: () => process.env.NODE_ENV === "test",
+  };
+});
+
 import { isNewRelicEnabled, getLinkingMetadata, generateNewRelicConfig } from "../newrelic.js";
 
 describe("isNewRelicEnabled", () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
-    process.env = { ...originalEnv };
+    vi.unstubAllEnvs();
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("returns true when enabled and license key present", () => {
-    process.env.NEW_RELIC_ENABLED = "true";
-    process.env.NEW_RELIC_LICENSE_KEY = "test-license-key";
+    vi.stubEnv("NEW_RELIC_ENABLED", "true");
+    vi.stubEnv("NEW_RELIC_LICENSE_KEY", "test-license-key");
 
     expect(isNewRelicEnabled()).toBe(true);
   });
 
   it("returns false when disabled", () => {
-    process.env.NEW_RELIC_ENABLED = "false";
-    process.env.NEW_RELIC_LICENSE_KEY = "test-license-key";
+    vi.stubEnv("NEW_RELIC_ENABLED", "false");
+    vi.stubEnv("NEW_RELIC_LICENSE_KEY", "test-license-key");
 
     expect(isNewRelicEnabled()).toBe(false);
   });
 
   it("returns false when license key missing", () => {
-    process.env.NEW_RELIC_ENABLED = "true";
-    delete process.env.NEW_RELIC_LICENSE_KEY;
+    vi.stubEnv("NEW_RELIC_ENABLED", "true");
+    // Don't set NEW_RELIC_LICENSE_KEY
 
     expect(isNewRelicEnabled()).toBe(false);
   });
 
   it("returns false when both missing", () => {
-    delete process.env.NEW_RELIC_ENABLED;
-    delete process.env.NEW_RELIC_LICENSE_KEY;
+    // Don't set either env var
 
     expect(isNewRelicEnabled()).toBe(false);
   });
@@ -50,14 +65,12 @@ describe("getLinkingMetadata", () => {
 });
 
 describe("generateNewRelicConfig", () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
-    process.env = { ...originalEnv };
+    vi.unstubAllEnvs();
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("generates basic config", () => {
@@ -72,7 +85,7 @@ describe("generateNewRelicConfig", () => {
   });
 
   it("uses env license key as fallback", () => {
-    process.env.NEW_RELIC_LICENSE_KEY = "env-key-456";
+    vi.stubEnv("NEW_RELIC_LICENSE_KEY", "env-key-456");
 
     const config = generateNewRelicConfig({
       appName: "test-app",

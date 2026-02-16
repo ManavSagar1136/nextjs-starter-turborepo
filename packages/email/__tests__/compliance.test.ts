@@ -4,6 +4,21 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// Mock @buildbase/env to allow test environment variable control
+vi.mock("@buildbase/env", () => {
+  return {
+    env: new Proxy({} as Record<string, string | undefined>, {
+      get(_target, prop: string) {
+        return process.env[prop];
+      },
+    }),
+    isDevelopment: () => process.env.NODE_ENV === "development",
+    isProduction: () => process.env.NODE_ENV === "production",
+    isTest: () => process.env.NODE_ENV === "test",
+  };
+});
+
 import {
   generateMessageId,
   addComplianceHeaders,
@@ -14,7 +29,7 @@ import { generateUnsubscribeToken } from "../src/compliance/unsubscribe.js";
 
 describe("Compliance Headers", () => {
   beforeEach(() => {
-    vi.stubEnv("APP_URL", "https://app.example.com");
+    vi.stubEnv("NEXT_PUBLIC_PUBLIC_APP_URL", "https://app.example.com");
   });
 
   afterEach(() => {
@@ -36,7 +51,7 @@ describe("Compliance Headers", () => {
     });
 
     it("should use fallback domain when APP_URL is invalid", () => {
-      vi.stubEnv("APP_URL", "not-a-valid-url");
+      vi.stubEnv("NEXT_PUBLIC_PUBLIC_APP_URL", "not-a-valid-url");
       const id = generateMessageId();
 
       expect(id).toContain("@example.com");
@@ -142,7 +157,7 @@ describe("Compliance Headers", () => {
     });
 
     it("should handle empty APP_URL", () => {
-      vi.stubEnv("APP_URL", "");
+      vi.stubEnv("NEXT_PUBLIC_PUBLIC_APP_URL", "");
       const url = generateUnsubscribeUrl("token123");
 
       expect(url).toBe("/api/email/unsubscribe/token123");

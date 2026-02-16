@@ -1,3 +1,4 @@
+import { env, isDevelopment as envIsDevelopment } from "@buildbase/env";
 import pino from "pino";
 import type { Logger, LoggerConfig, LogContext, LogLevel, PinoLoggerInstance } from "./types.js";
 import { DEFAULT_REDACT_PATHS } from "./types.js";
@@ -6,7 +7,7 @@ import { DEFAULT_REDACT_PATHS } from "./types.js";
  * Detect if we're in development mode
  */
 const isDevelopment = (): boolean => {
-  return process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+  return envIsDevelopment();
 };
 
 /**

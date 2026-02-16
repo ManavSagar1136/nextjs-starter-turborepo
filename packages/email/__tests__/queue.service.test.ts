@@ -3,9 +3,20 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { EmailQueueService } from "../src/queue/queue.service.js";
-import { QueueNotConfiguredError, QueueOperationError } from "../src/queue/errors.js";
-import type { SendEmailOptions } from "../src/core/types.js";
+
+// Mock @buildbase/env to allow test environment variable control
+vi.mock("@buildbase/env", () => {
+  return {
+    env: new Proxy({} as Record<string, string | undefined>, {
+      get(_target, prop: string) {
+        return process.env[prop];
+      },
+    }),
+    isDevelopment: () => process.env.NODE_ENV === "development",
+    isProduction: () => process.env.NODE_ENV === "production",
+    isTest: () => process.env.NODE_ENV === "test",
+  };
+});
 
 // Create stable mock functions that persist across tests
 const mockPublishJSON = vi.fn().mockResolvedValue({ messageId: "qstash_msg_123" });
@@ -21,6 +32,10 @@ vi.mock("@buildbase/qstash/factory", () => ({
   })),
 }));
 
+import { EmailQueueService } from "../src/queue/queue.service.js";
+import { QueueNotConfiguredError, QueueOperationError } from "../src/queue/errors.js";
+import type { SendEmailOptions } from "../src/core/types.js";
+
 describe("EmailQueueService", () => {
   let queueService: EmailQueueService;
   const testEmail: SendEmailOptions = {
@@ -31,7 +46,7 @@ describe("EmailQueueService", () => {
 
   beforeEach(() => {
     vi.stubEnv("QSTASH_TOKEN", "test_token");
-    vi.stubEnv("APP_URL", "https://app.example.com");
+    vi.stubEnv("NEXT_PUBLIC_PUBLIC_APP_URL", "https://app.example.com");
     queueService = new EmailQueueService();
 
     // Reset mock implementations
@@ -61,7 +76,7 @@ describe("EmailQueueService", () => {
     });
 
     it("should not configure when APP_URL is missing", async () => {
-      vi.stubEnv("APP_URL", "");
+      vi.stubEnv("NEXT_PUBLIC_PUBLIC_APP_URL", "");
       const service = new EmailQueueService();
       await service.initialize();
 

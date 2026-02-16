@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { env } from "@buildbase/env";
 import { NextRequest, NextResponse } from "next/server";
 import { defaultCacheService } from "@buildbase/cache/factory";
 import type { CronCheckOptions } from "./types";
@@ -7,7 +8,7 @@ import type { CronCheckOptions } from "./types";
  * Get cron secret from environment variable
  */
 function getCronSecret(): string {
-  return process.env.CRON_SECRET || "";
+  return env.CRON_SECRET || "";
 }
 
 /**

@@ -8,20 +8,20 @@ export { env };
 
 /**
  * Helper functions for environment checks
- *
- * Note: These functions use process.env.NODE_ENV directly to work in both
- * client and server components. NODE_ENV is always available in Next.js.
  */
-export const isDevelopment = (): boolean => {
-  // Use process.env.NODE_ENV directly for client compatibility
-  // NODE_ENV is always available in Next.js (both client and server)
-  return process.env.NODE_ENV === "development";
+
+export const getEnvironment = (fallback = "development"): string => {
+  return process.env.VERCEL_ENV || process.env.NODE_ENV || fallback;
 };
 
 export const isProduction = (): boolean => {
-  return process.env.NODE_ENV === "production";
+  return getEnvironment() === "production";
+};
+
+export const isDevelopment = (): boolean => {
+  return getEnvironment() === "development";
 };
 
 export const isTest = (): boolean => {
-  return process.env.NODE_ENV === "test";
+  return getEnvironment() === "test";
 };

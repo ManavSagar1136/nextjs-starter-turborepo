@@ -24,6 +24,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@buildbase/env": "*",
     "@prisma/client": "^6.1.0"
   },
   "devDependencies": {

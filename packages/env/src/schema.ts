@@ -83,6 +83,12 @@ export const env = createEnv({
     COMPANY_NAME: z.string().optional(),
     ADMIN_EMAIL: z.string().email().optional(),
     ADMIN_URL: z.string().url().optional(),
+
+    // Email Encryption
+    EMAIL_ENCRYPTION_KEY: z.string().min(1).optional(),
+
+    // Vercel Environment (for deployment detection)
+    VERCEL_ENV: z.string().optional(),
   },
 
   /**
@@ -107,6 +113,11 @@ export const env = createEnv({
 
     // Product Launch Status
     NEXT_PUBLIC_PRODUCT_LAUNCHED: z.enum(["true", "false"]).optional(),
+
+    // Affiliate & Marketing Links
+    NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK: z.string().url().optional(),
+    NEXT_PUBLIC_AFFILIATE_STORE_NAME: z.string().optional(),
+    NEXT_PUBLIC_BOOK_MEETING_LINK: z.string().url().optional(),
   },
 
   /**
@@ -153,6 +164,11 @@ export const env = createEnv({
     // Product Launch Status
     NEXT_PUBLIC_PRODUCT_LAUNCHED: process.env.NEXT_PUBLIC_PRODUCT_LAUNCHED,
 
+    // Affiliate & Marketing Links
+    NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK: process.env.NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK,
+    NEXT_PUBLIC_AFFILIATE_STORE_NAME: process.env.NEXT_PUBLIC_AFFILIATE_STORE_NAME,
+    NEXT_PUBLIC_BOOK_MEETING_LINK: process.env.NEXT_PUBLIC_BOOK_MEETING_LINK,
+
     // Logging & Monitoring
     LOG_LEVEL: process.env.LOG_LEVEL,
 
@@ -184,6 +200,12 @@ export const env = createEnv({
     COMPANY_NAME: process.env.COMPANY_NAME,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_URL: process.env.ADMIN_URL,
+
+    // Email Encryption
+    EMAIL_ENCRYPTION_KEY: process.env.EMAIL_ENCRYPTION_KEY,
+
+    // Vercel Environment
+    VERCEL_ENV: process.env.VERCEL_ENV,
   },
 
   /**

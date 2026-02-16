@@ -8,17 +8,20 @@
  * ```ts
  * // In instrumentation.ts (Next.js)
  * import { initNewRelic } from '@buildbase/logger/newrelic';
+ * import { env } from '@buildbase/env';
  *
  * export async function register() {
  *   if (process.env.NEXT_RUNTIME === 'nodejs') {
  *     await initNewRelic({
  *       appName: 'my-app',
- *       licenseKey: process.env.NEW_RELIC_LICENSE_KEY,
+ *       licenseKey: env.NEW_RELIC_LICENSE_KEY,
  *     });
  *   }
  * }
  * ```
  */
+
+import { env } from "@buildbase/env";
 
 export interface NewRelicInitConfig {
   /** Application name in New Relic */
@@ -37,7 +40,7 @@ export interface NewRelicInitConfig {
  * Check if New Relic is available and enabled
  */
 export const isNewRelicEnabled = (): boolean => {
-  return process.env.NEW_RELIC_ENABLED === "true" && !!process.env.NEW_RELIC_LICENSE_KEY;
+  return env.NEW_RELIC_ENABLED === "true" && !!env.NEW_RELIC_LICENSE_KEY;
 };
 
 /**
@@ -169,7 +172,7 @@ export const startBackgroundTransaction = <T>(
 export const generateNewRelicConfig = (config: NewRelicInitConfig): Record<string, unknown> => {
   return {
     app_name: [config.appName],
-    license_key: config.licenseKey || process.env.NEW_RELIC_LICENSE_KEY,
+    license_key: config.licenseKey || env.NEW_RELIC_LICENSE_KEY,
     distributed_tracing: {
       enabled: config.distributedTracing ?? true,
     },
