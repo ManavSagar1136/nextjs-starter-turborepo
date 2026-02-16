@@ -2,6 +2,7 @@
 
 import { SaaSProvider as BaseSaaSProvider } from "@buildbase/saas-sdk";
 import React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { API } from "@/services";
 import { env } from "@buildbase/env";
 import { useAppDispatch } from "@/store/hooks";
@@ -14,6 +15,7 @@ interface SaaSProviderProps {
 
 export default function SaaSProvider({ children }: SaaSProviderProps) {
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
 
   // Get base URL from environment variable
   // Use NEXT_PUBLIC_* variable for client components
@@ -196,6 +198,15 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
             console.error("Failed to change workspace:", result);
             throw new Error(result.error || "Failed to change workspace");
           }
+          // Clear all query cache first to remove stale data
+          queryClient.clear();
+
+          // Invalidate all queries and immediately refetch active ones
+          // This will cause components to re-render with loading states, then new data
+          await queryClient.invalidateQueries({
+            refetchType: "active", // Immediately refetch active queries
+          });
+
           return Promise.resolve();
         } catch (error) {
           console.error("Error changing workspace:", error);
