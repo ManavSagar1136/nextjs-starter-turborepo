@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@buildbase/cache": "*",
+    "@buildbase/env": "*",
     "@upstash/qstash": "^2.7.0"
   },
   "devDependencies": {

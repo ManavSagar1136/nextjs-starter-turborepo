@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "@buildbase/cache": "*",
-    "@buildbase/database": "*"
+    "@buildbase/database": "*",
+    "@buildbase/env": "*"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",

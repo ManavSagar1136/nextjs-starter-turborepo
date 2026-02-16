@@ -26,6 +26,7 @@
     "./slices/counter": "./dist/slices/counter.js"
   },
   "dependencies": {
+    "@buildbase/env": "*",
     "@reduxjs/toolkit": "^2.9.0",
     "react-redux": "^9.2.0",
     "redux-persist": "^6.0.0"
