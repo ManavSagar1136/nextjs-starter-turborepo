@@ -88,16 +88,13 @@ export function DashboardLayout({
                 <SidebarMenuItem>
                   <SidebarMenuButton size="lg" asChild>
                     <Link href={brand.href} className="flex items-center gap-2">
-                      <AppIcon size="sm" />
-                      <span className="text-lg font-bold">{brand.text}</span>
+                      <AppIcon size="xs" />
+                      <span className="text-sm font-bold">{brand.text}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             )}
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -109,6 +106,7 @@ export function DashboardLayout({
           <NavMain items={menuItems} />
         </SidebarContent>
         <SidebarFooter>
+          <ThemeToggle />
           <NavUser profileRoute={profileRoute} onLogout={onLogout} />
         </SidebarFooter>
       </Sidebar>

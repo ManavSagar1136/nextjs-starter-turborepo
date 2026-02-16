@@ -8,7 +8,7 @@ interface AppIconProps {
    * Size of the main icon container
    * @default "lg"
    */
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
 
   /**
    * Custom className for the container
@@ -18,6 +18,13 @@ interface AppIconProps {
 
 export const AppIcon = ({ size = "lg", className }: AppIconProps) => {
   const sizeClasses = {
+    xs: {
+      container: "h-12 w-12",
+      icon: 24,
+      corner: "h-4 w-4",
+      cornerIcon: 8,
+      cornerOffset: "-left-0.5 -top-0.5",
+    },
     sm: {
       container: "h-16 w-16",
       icon: 32,
@@ -53,7 +60,7 @@ export const AppIcon = ({ size = "lg", className }: AppIconProps) => {
   return (
     <div className={className}>
       {/* Main App Icon */}
-      <div className={cn("flex items-center justify-center rounded-xl bg-slate-200 text-slate-400", sizes.container)}>
+      <div className={cn("flex items-center justify-center rounded-xl", sizes.container)}>
         <TbRocket size={sizes.icon} className="text-slate-500" />
       </div>
     </div>
