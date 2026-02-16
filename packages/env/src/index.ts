@@ -11,7 +11,7 @@ export { env };
  */
 
 export const getEnvironment = (fallback = "development"): string => {
-  return env.VERCEL_ENV || env.NODE_ENV || fallback;
+  return process.env.VERCEL_ENV || process.env.NODE_ENV || fallback;
 };
 
 export const isProduction = (): boolean => {
