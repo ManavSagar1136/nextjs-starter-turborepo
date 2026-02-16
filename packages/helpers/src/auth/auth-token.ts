@@ -8,7 +8,14 @@ import { env } from "@buildbase/env";
  * Cookie name for authentication token
  * Shared across all apps (admin and user)
  */
-export const AUTH_TOKEN_COOKIE_NAME = "cms-auth-token";
+const getCookieName = (): string => {
+  const baseName = "cms-auth-token";
+  const nodeEnv = process.env.VERCEL_ENV || env.NODE_ENV || "development";
+
+  return `${nodeEnv}-${baseName}`;
+};
+
+export const AUTH_TOKEN_COOKIE_NAME = getCookieName();
 
 const TOKEN_EXPIRY_DAYS = 7;
 const TOKEN_EXPIRY_SECONDS = 60 * 60 * 24 * TOKEN_EXPIRY_DAYS;

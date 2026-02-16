@@ -18,6 +18,13 @@ const LoginPage = () => {
   // Verify server-side auth status to prevent redirect loops
   // This handles the case where SDK thinks user is authenticated but server cookie is invalid
   const verifyServerAuth = useCallback(async () => {
+    if (hasVerified.current && verifiedAuth !== null) return;
+
+    // Reset verification state if we're re-verifying after a failed attempt
+    if (hasVerified.current && verifiedAuth === false) {
+      hasVerified.current = false;
+    }
+
     if (hasVerified.current) return;
     hasVerified.current = true;
     setIsVerifying(true);
@@ -32,36 +39,46 @@ const LoginPage = () => {
         setVerifiedAuth(true);
       } else {
         // Server says we're not authenticated - clear SDK state
-        console.log("[LoginPage] Server session invalid, clearing SDK auth state");
         setVerifiedAuth(false);
-        await signOut();
-      }
-    } catch (error: any) {
-      console.error("[LoginPage] Error verifying server auth:", error);
-      // On network error, assume not authenticated to break potential loops
-      // This forces a fresh login which will get a proper token
-      // Network errors often happen when redirects abort pending requests
-      if (error?.code === "ERR_NETWORK" || error?.message?.includes("Network Error")) {
-        console.log("[LoginPage] Network error during verification, assuming not authenticated");
-        setVerifiedAuth(false);
+        hasRedirected.current = false; // Reset redirect flag to prevent loops
         try {
           await signOut();
-        } catch {
+        } catch (signOutError) {
           // Ignore signOut errors
         }
-      } else {
-        // For other errors (like 401), also assume not authenticated
-        setVerifiedAuth(false);
+      }
+    } catch (error: any) {
+      // On any error, assume not authenticated to break potential loops
+      // This forces a fresh login which will get a proper token
+      setVerifiedAuth(false);
+      hasRedirected.current = false; // Reset redirect flag to prevent loops
+
+      try {
+        await signOut();
+      } catch (signOutError) {
+        // Ignore signOut errors
       }
     } finally {
       setIsVerifying(false);
     }
-  }, [signOut, isAuthenticated]);
+  }, [signOut, verifiedAuth]);
 
   useEffect(() => {
     // When SDK says authenticated but we haven't verified with server yet
-    if (!isLoading && isAuthenticated && verifiedAuth === null && !isVerifying) {
-      verifyServerAuth();
+    // Also re-verify if SDK says authenticated but server said not authenticated (to handle cookie updates)
+    if (!isLoading && isAuthenticated && !isVerifying) {
+      if (verifiedAuth === null || verifiedAuth === false) {
+        verifyServerAuth();
+      }
+    }
+
+    // If SDK says not authenticated, reset verification state
+    if (!isLoading && !isAuthenticated) {
+      if (verifiedAuth !== null) {
+        setVerifiedAuth(null);
+        hasVerified.current = false;
+        hasRedirected.current = false;
+      }
     }
   }, [isAuthenticated, isLoading, verifiedAuth, isVerifying, verifyServerAuth]);
 
@@ -73,6 +90,7 @@ const LoginPage = () => {
 
     // Only redirect if both SDK and server verify authentication
     // verifiedAuth === true means server confirmed, verifiedAuth === null means not checked yet
+    // Never redirect if verifiedAuth === false (server said not authenticated)
     if (isAuthenticated && verifiedAuth === true) {
       hasRedirected.current = true;
       router.replace(Routes.dashboard);
