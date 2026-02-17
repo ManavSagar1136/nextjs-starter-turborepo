@@ -27,6 +27,9 @@ import {
   MEDIA_LIBRARY_DIALOG_KEYS,
 } from "@buildbase/dialog-manager/media-library";
 
+// Email Dialogs
+import { initializeEmailDialogs } from "@buildbase/components/email";
+
 /**
  * Define your app's dialog component map type.
  * Use ADMIN_DIALOG_KEYS constants for the keys to ensure consistency.
@@ -84,6 +87,9 @@ export function setupAdminDialogs() {
     dialogs,
     initializeCommon: true, // Initialize confirmation & alert dialogs
   });
+
+  // Initialize email dialogs (EmailProviderDialog, EmailTemplateDialog, etc.)
+  initializeEmailDialogs();
 }
 
 // Re-export dialog keys for convenience
