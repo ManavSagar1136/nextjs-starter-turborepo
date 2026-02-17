@@ -91,10 +91,27 @@ export class EmailFactory {
         dbProvider = await this.providerService.findFirstActive(workspaceId);
       }
 
+      // If workspaceId is undefined and still no provider found,
+      // try to find any active provider (for public apps without workspace context)
+      if (!dbProvider && workspaceId === undefined) {
+        const allActive = await this.providerService.listActive();
+        // Prefer default providers, then any active provider
+        dbProvider = allActive.find(p => p.isDefault) || allActive[0] || null;
+
+        if (dbProvider) {
+          console.log(
+            `[EmailFactory] Found provider "${dbProvider.name}" (${dbProvider.type}) for public app (no workspace context)`
+          );
+        }
+      }
+
       // If still no provider, use console provider for dev
       if (!dbProvider) {
         const consoleProvider = new ConsoleProvider();
         console.warn("⚠️  No email provider configured. Using Console provider (emails will be logged, not sent).");
+        console.warn(
+          "⚠️  To fix: Create an email provider in Admin UI and mark it as default, or ensure at least one active provider exists."
+        );
         return consoleProvider;
       }
     }
