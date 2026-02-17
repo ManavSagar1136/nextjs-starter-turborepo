@@ -22,12 +22,12 @@ const FOOTER_CONFIG = {
           href: Routes.changelogs,
           requiresProductLive: true,
         },
-        {
-          label: "Affiliate — Earn 30%",
-          href: Routes.affiliates,
-          external: true,
-          requiresProductLive: true,
-        },
+        // {
+        //   label: "Affiliate — Earn 30%",
+        //   href: Routes.affiliates,
+        //   external: true,
+        //   requiresProductLive: true,
+        // },
         {
           label: "Testimonials",
           href: Routes.testimonials,
