@@ -10,7 +10,25 @@ import { SparklesSiteNameText } from "@buildbase/components/common/SparklesSiteN
 import { SiteConfig } from "@/config";
 import { isProductLaunched } from "@/lib/utils/launch-status";
 
-const FOOTER_CONFIG = {
+type FooterLink = {
+  label: string;
+  href: string;
+  external?: boolean;
+  requiresProductLive?: boolean;
+};
+
+const FOOTER_CONFIG: {
+  navItems: Array<{
+    label: string;
+    links: FooterLink[];
+  }>;
+  socialLinks: Array<{
+    name: string;
+    url: string | null;
+    icon: React.ComponentType<{ className?: string }>;
+  }>;
+  copyright: string;
+} = {
   navItems: [
     {
       label: "Links",
@@ -86,8 +104,9 @@ export const Footer = () => {
                   <div key={section.label} className="flex w-full min-w-52 flex-1 flex-col space-y-3">
                     <p className="text-sm font-bold uppercase">{section.label}</p>
                     <div className="flex flex-col gap-1">
-                      {section.links.map(({ label, href, external, requiresProductLive }) =>
-                        requiresProductLive && !isProductLive ? null : (
+                      {section.links.map((link: FooterLink) => {
+                        const { label, href, external, requiresProductLive } = link;
+                        return requiresProductLive && !isProductLive ? null : (
                           <Link
                             key={label}
                             href={href}
@@ -99,8 +118,8 @@ export const Footer = () => {
                           >
                             {label}
                           </Link>
-                        )
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
                 )
