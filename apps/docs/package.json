@@ -13,6 +13,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@buildbase/components": "*",
     "next": "16.0.10",
     "nextra": "^4.0.0",
     "nextra-theme-docs": "^4.0.0",
