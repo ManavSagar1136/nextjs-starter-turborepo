@@ -118,6 +118,9 @@ export const env = createEnv({
     NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK: z.string().url().optional(),
     NEXT_PUBLIC_AFFILIATE_STORE_NAME: z.string().optional(),
     NEXT_PUBLIC_BOOK_MEETING_LINK: z.string().url().optional(),
+
+    // Google Analytics
+    NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: z.string().optional(),
   },
 
   /**
@@ -168,6 +171,9 @@ export const env = createEnv({
     NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK: process.env.NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK,
     NEXT_PUBLIC_AFFILIATE_STORE_NAME: process.env.NEXT_PUBLIC_AFFILIATE_STORE_NAME,
     NEXT_PUBLIC_BOOK_MEETING_LINK: process.env.NEXT_PUBLIC_BOOK_MEETING_LINK,
+
+    // Google Analytics
+    NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
 
     // Logging & Monitoring
     LOG_LEVEL: process.env.LOG_LEVEL,

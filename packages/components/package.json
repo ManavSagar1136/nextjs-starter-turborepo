@@ -50,7 +50,8 @@
   },
   "peerDependencies": {
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "next": "^15"
   },
   "dependencies": {
     "@buildbase/ui": "*",
