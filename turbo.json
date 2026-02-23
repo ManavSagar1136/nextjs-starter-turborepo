@@ -147,6 +147,12 @@
     "test:watch": {
       "cache": false,
       "persistent": true
+    },
+
+    "render": {
+      "dependsOn": ["^build"],
+      "outputs": ["out/**"],
+      "inputs": ["src/**", "remotion.config.*", "public/**"]
     }
   }
 }
