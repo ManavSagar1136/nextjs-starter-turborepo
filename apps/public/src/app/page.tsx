@@ -9,6 +9,7 @@ import { FAQ } from "@/components/faq/FAQ";
 import { Features } from "@/components/features/Features";
 import { Hero } from "@/components/hero/Hero";
 import { Newsletter } from "@/components/newsletter/Newsletter";
+import { HomePricingSection } from "@/components/pricing/HomePricingSection";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 import { SalesNotifications } from "@/components/marketing/SalesNotifications";
 import Testimonials from "@/components/testimonial/Testimonials";
@@ -31,6 +32,7 @@ export default function Home() {
         <ExplainerVideo />
         <FAQ faqs={DUMMY_FAQS} />
         <Testimonials />
+        <HomePricingSection />
         <Newsletter />
         <ClickToActionBox />
         <SalesNotifications />
