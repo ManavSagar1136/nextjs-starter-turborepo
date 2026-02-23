@@ -12,6 +12,7 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@buildbase/saas-sdk": "*",
     "@buildbase/ui": "*",
     "@buildbase/magicui": "*",
     "@buildbase/components": "*",
