@@ -1,5 +1,5 @@
 import { Footer } from "@/components/layout/Footer";
-import Header from "@/components/layout/Header/Header";
+import { NavBar } from "@/components/layout/NavBar/NavBar";
 
 import { cn } from "@buildbase/ui/lib/utils";
 
@@ -23,7 +23,7 @@ export default function PageWithHeaderFooter({
         wrapperClassName,
       )}
     >
-      <Header />
+      <NavBar />
       {noWrapper ? (
         children
       ) : (
