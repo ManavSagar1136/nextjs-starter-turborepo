@@ -44,6 +44,11 @@ export const NAVIGATION_ITEMS: INavigationItem[] = [
     key: HEADER_KEYS.DOCS,
   },
   {
+    href: Routes.pricing,
+    label: "Pricing",
+    requiresProductLive: true,
+  },
+  {
     href: Routes.contactus,
     label: "Contact Us",
   },

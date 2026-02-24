@@ -121,6 +121,10 @@ export const env = createEnv({
 
     // Google Analytics
     NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: z.string().optional(),
+
+    // Buildbase plan group slug — used by usePublicPlans() on the pricing page
+    // Find this in your Buildbase dashboard under Plan Groups
+    NEXT_PUBLIC_PLAN_GROUP_SLUG: z.string().optional(),
   },
 
   /**
@@ -174,6 +178,9 @@ export const env = createEnv({
 
     // Google Analytics
     NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
+
+    // Buildbase plan group slug
+    NEXT_PUBLIC_PLAN_GROUP_SLUG: process.env.NEXT_PUBLIC_PLAN_GROUP_SLUG,
 
     // Logging & Monitoring
     LOG_LEVEL: process.env.LOG_LEVEL,

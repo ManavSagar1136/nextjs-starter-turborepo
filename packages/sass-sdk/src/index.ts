@@ -14,6 +14,7 @@ export {
   WhenWorkspaceFeatureEnabled,
   WhenUserFeatureEnabled,
   WhenUserFeatureDisabled,
+  PricingPage,
   // Subscription HOCs
   WhenSubscription,
   WhenNoSubscription,
@@ -53,6 +54,12 @@ export type {
   WorkspaceUserAddedEventData,
   WorkspaceUserRemovedEventData,
   WorkspaceUserRoleChangedEventData,
+  // Public pricing types
+  BillingInterval,
+  IPublicPlanItem,
+  IPublicPlanVersion,
+  PricingPageDetails,
+  PricingPageProps,
 } from "@buildbase/sdk";
 
 // Export our custom wrapper and utilities

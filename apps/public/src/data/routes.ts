@@ -1,5 +1,6 @@
 export const Routes = {
   root: "/",
+  pricing: "/pricing",
   contactus: "/contact-us",
   faqs: "/faqs",
   testimonials: "/testimonials",

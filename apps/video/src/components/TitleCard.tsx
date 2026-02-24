@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { COLORS, FONT } from "../utils/theme";
 
 interface TitleCardProps {
@@ -23,12 +17,7 @@ interface TitleCardProps {
  * @example
  * <TitleCard title="Hello World" subtitle="A demo composition" />
  */
-export const TitleCard: React.FC<TitleCardProps> = ({
-  title,
-  subtitle,
-  startFrame = 0,
-  showGrid = true,
-}) => {
+export const TitleCard: React.FC<TitleCardProps> = ({ title, subtitle, startFrame = 0, showGrid = true }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const f = frame - startFrame;

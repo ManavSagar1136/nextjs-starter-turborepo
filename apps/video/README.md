@@ -27,13 +27,13 @@ npm run render
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Opens Remotion Studio (browser preview, hot-reload) |
-| `npm run render` | Renders `Demo` composition → `out/demo.mp4` |
-| `npm run render:all` | Renders landscape + square + story formats |
-| `npm run check-types` | TypeScript check |
-| `npm run lint` | ESLint |
+| Command               | Description                                         |
+| --------------------- | --------------------------------------------------- |
+| `npm run dev`         | Opens Remotion Studio (browser preview, hot-reload) |
+| `npm run render`      | Renders `Demo` composition → `out/demo.mp4`         |
+| `npm run render:all`  | Renders landscape + square + story formats          |
+| `npm run check-types` | TypeScript check                                    |
+| `npm run lint`        | ESLint                                              |
 
 ---
 
@@ -49,7 +49,15 @@ import { AbsoluteFill, useCurrentFrame } from "remotion";
 export const MyVideo: React.FC = () => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ background: "#0f172a", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <AbsoluteFill
+      style={{
+        background: "#0f172a",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <h1 style={{ fontSize: 80 }}>Frame {frame}</h1>
     </AbsoluteFill>
   );
@@ -64,12 +72,12 @@ import { MyVideo } from "./compositions/MyVideo";
 <Composition
   id="MyVideo"
   component={MyVideo}
-  durationInFrames={300}   // 10 seconds @ 30fps
+  durationInFrames={300} // 10 seconds @ 30fps
   fps={30}
   width={1920}
   height={1080}
   defaultProps={{}}
-/>
+/>;
 ```
 
 3. **Add a render script** in `package.json`
@@ -158,11 +166,11 @@ apps/video/
 
 ## Output Formats
 
-| Composition ID | Dimensions | Platforms |
-|---------------|-----------|-----------|
-| `Demo` | 1920×1080 (16:9) | YouTube, LinkedIn, Twitter/X |
-| `DemoSquare` | 1080×1080 (1:1) | Instagram feed, Facebook |
-| `DemoStory` | 1080×1920 (9:16) | Instagram Reels, TikTok, Stories |
+| Composition ID | Dimensions       | Platforms                        |
+| -------------- | ---------------- | -------------------------------- |
+| `Demo`         | 1920×1080 (16:9) | YouTube, LinkedIn, Twitter/X     |
+| `DemoSquare`   | 1080×1080 (1:1)  | Instagram feed, Facebook         |
+| `DemoStory`    | 1080×1920 (9:16) | Instagram Reels, TikTok, Stories |
 
 ---
 
@@ -170,13 +178,13 @@ apps/video/
 
 Popular voice IDs:
 
-| Voice | ID | Style |
-|-------|----|-------|
-| Rachel | `21m00Tcm4TlvDq8ikWAM` | US English, calm, clear |
-| Domi | `AZnzlk1XvdvUeBnXmlld` | US English, strong |
-| Bella | `EXAVITQu4vr4xnSDxMaL` | US English, soft |
+| Voice  | ID                     | Style                    |
+| ------ | ---------------------- | ------------------------ |
+| Rachel | `21m00Tcm4TlvDq8ikWAM` | US English, calm, clear  |
+| Domi   | `AZnzlk1XvdvUeBnXmlld` | US English, strong       |
+| Bella  | `EXAVITQu4vr4xnSDxMaL` | US English, soft         |
 | Antoni | `ErXwobaYiN019PkySvjV` | US English, professional |
-| Josh | `TxGEqnHWrfWFTfGW9XjX` | US English, deep |
+| Josh   | `TxGEqnHWrfWFTfGW9XjX` | US English, deep         |
 
 Browse the full library: [elevenlabs.io/voice-library](https://elevenlabs.io/voice-library)
 

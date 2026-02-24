@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  Audio,
-  interpolate,
-  Sequence,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, Audio, interpolate, Sequence, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { TitleCard } from "../components/TitleCard";
 import { COLORS, FONT, FPS } from "../utils/theme";
 
@@ -289,10 +281,7 @@ export const Demo: React.FC = () => {
       <Audio src={staticFile("audio/voiceover.mp3")} /> */}
 
       <Sequence from={0} durationInFrames={130}>
-        <TitleCard
-          title="BuildBase NextJS Starter Turborepo"
-          subtitle="Remotion + ElevenLabs · Video generation scaffolded"
-        />
+        <TitleCard title="BuildBase NextJS Starter Turborepo" subtitle="Remotion + ElevenLabs · Video generation scaffolded" />
       </Sequence>
 
       <Sequence from={115} durationInFrames={195}>

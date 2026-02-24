@@ -88,9 +88,7 @@ const ELEVENLABS_API_BASE = "https://api.elevenlabs.io/v1";
  * console.log(result.relativePath); // → "public/audio/intro.mp3"
  * ```
  */
-export async function generateVoiceover(
-  options: GenerateVoiceoverOptions
-): Promise<VoiceoverResult> {
+export async function generateVoiceover(options: GenerateVoiceoverOptions): Promise<VoiceoverResult> {
   const {
     text,
     voiceId = process.env["ELEVENLABS_VOICE_ID"] ?? DEFAULT_VOICE_ID,
@@ -141,26 +139,20 @@ export async function generateVoiceover(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "(no body)");
-    throw new Error(
-      `[generateVoiceover] ElevenLabs API error ${response.status}: ${errorText}`
-    );
+    throw new Error(`[generateVoiceover] ElevenLabs API error ${response.status}: ${errorText}`);
   }
 
   // Save to disk
   const absOutputDir = path.resolve(outputDir);
   fs.mkdirSync(absOutputDir, { recursive: true });
 
-  const outputFilename = filename.endsWith(".mp3")
-    ? filename
-    : `${filename}.mp3`;
+  const outputFilename = filename.endsWith(".mp3") ? filename : `${filename}.mp3`;
   const absFilePath = path.join(absOutputDir, outputFilename);
 
   const buffer = Buffer.from(await response.arrayBuffer());
   fs.writeFileSync(absFilePath, buffer);
 
-  const relativePath = path
-    .relative(process.cwd(), absFilePath)
-    .replace(/\\/g, "/"); // normalise for Windows
+  const relativePath = path.relative(process.cwd(), absFilePath).replace(/\\/g, "/"); // normalise for Windows
 
   return {
     filePath: absFilePath,

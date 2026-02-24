@@ -21,7 +21,4 @@
  * ```
  */
 export { generateVoiceover } from "./generateVoiceover";
-export type {
-  GenerateVoiceoverOptions,
-  VoiceoverResult,
-} from "./generateVoiceover";
+export type { GenerateVoiceoverOptions, VoiceoverResult } from "./generateVoiceover";
