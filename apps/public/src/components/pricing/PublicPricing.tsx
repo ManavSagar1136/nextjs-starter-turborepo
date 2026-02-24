@@ -1,71 +1,71 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Loader2, X, Check } from "lucide-react";
 
 import { env } from "@buildbase/env";
-import { usePublicPlans } from "@buildbase/saas-sdk";
-import { Button } from "@buildbase/ui/button";
-import { Badge } from "@buildbase/ui/components/ui/badge";
+import { PricingPage } from "@buildbase/saas-sdk";
+import type { IPublicPlanItem, IPublicPlanVersion } from "@buildbase/saas-sdk";
 import { cn } from "@buildbase/ui/lib/utils";
 
 import { useGetStarted } from "@/hooks/use-get-started";
 
-type BillingCycle = "monthly" | "annual";
+type BillingCycle = "monthly" | "quarterly" | "yearly";
+
+const CYCLE_LABEL: Record<BillingCycle, string> = {
+  monthly: "month",
+  quarterly: "quarter",
+  yearly: "year",
+};
 
 /**
  * PublicPricing
  *
- * Renders pricing plans fetched live from the Buildbase backend via usePublicPlans.
- * Falls back to a friendly error state if plans can't be loaded.
- *
- * Usage: must be wrapped in <PublicPricingProvider> (provides SaaSOSProvider context).
+ * Renders a comparison table of plans fetched from the Buildbase backend.
+ * Groups rows by item type (Features, Limits, Quotas) with colored section headers.
  */
 export function PublicPricing() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const { onGetStartedClick, isLoadingCta } = useGetStarted();
 
-  const { plans, loading, error } = usePublicPlans(env.NEXT_PUBLIC_PLAN_GROUP_SLUG ?? "");
-  if (loading) {
-    return (
-      <div className="flex min-h-[300px] items-center justify-center">
-        <Loader2 className="text-muted-foreground size-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error || !plans?.length) {
-    return (
-      <div className="flex min-h-[300px] items-center justify-center">
-        <p className="text-muted-foreground text-sm">
-          Pricing is not available right now. Please try again in a few minutes.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      {/* Billing toggle */}
-      <BillingToggle value={billingCycle} onChange={setBillingCycle} />
+    <PricingPage slug={env.NEXT_PUBLIC_PLAN_GROUP_SLUG ?? ""}>
+      {({ loading, error, items, plans }) => {
+        if (loading) {
+          return (
+            <div className="flex min-h-[300px] items-center justify-center">
+              <Loader2 className="text-muted-foreground size-8 animate-spin" />
+            </div>
+          );
+        }
 
-      {/* Plan cards */}
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {plans.map((plan: any) => (
-          <PlanCard
-            key={plan._id || plan.id}
-            plan={plan}
-            billingCycle={billingCycle}
-            onGetStarted={onGetStartedClick}
-            isLoading={isLoadingCta}
-          />
-        ))}
-      </div>
+        if (error || !plans?.length) {
+          return (
+            <div className="flex min-h-[300px] items-center justify-center">
+              <p className="text-muted-foreground text-sm">
+                Pricing is not available right now. Please try again in a few minutes.
+              </p>
+            </div>
+          );
+        }
 
-      <p className="text-muted-foreground mt-8 text-center text-sm">
-        All plans include a 14-day free trial. No credit card required.
-      </p>
-    </div>
+        return (
+          <div>
+            {/* Billing toggle */}
+            <div className="flex justify-center mb-4">
+              <BillingToggle value={billingCycle} onChange={setBillingCycle} />
+            </div>
+
+            {/* Comparison table */}
+            <ComparisonTable
+              plans={plans}
+              items={items}
+              billingCycle={billingCycle}
+            />
+          </div>
+        );
+      }}
+    </PricingPage>
   );
 }
 
@@ -78,122 +78,340 @@ function BillingToggle({
   value: BillingCycle;
   onChange: (v: BillingCycle) => void;
 }) {
+  const options: { value: BillingCycle; label: string }[] = [
+    { value: "monthly", label: "Monthly" },
+    { value: "yearly", label: "Yearly" },
+    { value: "quarterly", label: "Quarterly" },
+  ];
+
   return (
-    <div className="flex items-center justify-center gap-3">
-      <button
-        onClick={() => onChange("monthly")}
-        className={cn(
-          "text-sm font-medium transition-colors",
-          value === "monthly" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        Monthly
-      </button>
-      <button
-        onClick={() => onChange(value === "monthly" ? "annual" : "monthly")}
-        className="bg-muted relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-        role="switch"
-        aria-checked={value === "annual"}
-      >
-        <span
-          className={cn(
-            "bg-background inline-block size-4 rounded-full shadow-sm transition-transform",
-            value === "annual" ? "translate-x-6" : "translate-x-1"
-          )}
-        />
-      </button>
-      <button
-        onClick={() => onChange("annual")}
-        className={cn(
-          "flex items-center gap-1.5 text-sm font-medium transition-colors",
-          value === "annual" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        Annual
-        <Badge variant="secondary" className="text-xs">Save 20%</Badge>
-      </button>
+    <div
+      className="inline-flex items-center rounded-lg border border-border bg-background"
+      role="tablist"
+      aria-label="Billing period"
+    >
+      {options.map((option) => {
+        const isActive = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(option.value)}
+            className={cn(
+              "px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              isActive
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-// ─── Plan Card ───────────────────────────────────────────────────────────────
+// ─── Comparison Table ────────────────────────────────────────────────────────
 
-function PlanCard({
-  plan,
+function ComparisonTable({
+  plans,
+  items,
   billingCycle,
-  onGetStarted,
-  isLoading,
 }: {
-  plan: any;
+  plans: IPublicPlanVersion[];
+  items: IPublicPlanItem[];
   billingCycle: BillingCycle;
-  onGetStarted: () => void;
-  isLoading: boolean;
 }) {
-  const isPopular = plan.isPopular || plan.recommended;
-  const price = billingCycle === "annual"
-    ? (plan.annualPrice ?? plan.price)
-    : (plan.monthlyPrice ?? plan.price);
-  const features: string[] = plan.features || plan.featureList || [];
+  // Group items by type
+  const featureItems = items.filter((i) => i.type === "feature");
+  const limitItems = items.filter((i) => i.type === "limit");
+  const quotaItems = items.filter((i) => i.type === "quota");
+
+  const colCount = plans.length + 1; // +1 for the "Item" label column
 
   return (
-    <div
-      className={cn(
-        "border-border/50 bg-card relative flex flex-col rounded-2xl border p-6 shadow-sm transition-shadow hover:shadow-md",
-        isPopular && "border-primary ring-primary/20 ring-2"
-      )}
-    >
-      {isPopular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge className="bg-primary text-primary-foreground px-3 py-0.5 text-xs font-semibold">
-            Most Popular
-          </Badge>
-        </div>
-      )}
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full border-collapse text-sm">
+        {/* Plan name header */}
+        <thead>
+          <tr className="border-b border-border">
+            <th className="text-left px-4 py-3 font-medium text-muted-foreground bg-muted/30 w-[200px] min-w-[180px]">
+              Item
+            </th>
+            {plans.map((plan) => (
+              <th
+                key={plan._id}
+                className="text-center px-4 py-3 font-semibold bg-muted/30"
+              >
+                <div>{plan.name}</div>
+                <div className="text-xs font-normal text-muted-foreground">
+                  v{plan.version}
+                </div>
+              </th>
+            ))}
+          </tr>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold">{plan.name}</h3>
-        {plan.description && (
-          <p className="text-muted-foreground mt-1 text-sm">{plan.description}</p>
-        )}
-      </div>
+          {/* Price row */}
+          <tr className="border-b border-border">
+            <td className="px-4 py-3" />
+            {plans.map((plan) => (
+              <td key={plan._id} className="text-center px-4 py-3 font-semibold">
+                <PriceCell plan={plan} billingCycle={billingCycle} />
+              </td>
+            ))}
+          </tr>
+        </thead>
 
-      <div className="mb-6">
-        {typeof price === "number" ? (
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-extrabold">${price}</span>
-            <span className="text-muted-foreground text-sm">
-              /{billingCycle === "annual" ? "yr" : "mo"}
-            </span>
-          </div>
-        ) : (
-          <span className="text-3xl font-extrabold">{price ?? "Free"}</span>
-        )}
-        {billingCycle === "annual" && typeof plan.monthlyPrice === "number" && (
-          <p className="text-muted-foreground mt-1 text-xs">
-            ${(plan.annualPrice / 12).toFixed(0)}/mo billed annually
-          </p>
-        )}
-      </div>
+        <tbody>
+          {/* Features section */}
+          {featureItems.length > 0 && (
+            <>
+              <SectionHeader
+                icon="features"
+                label="Features"
+                count={featureItems.length}
+                colCount={colCount}
+                color="blue"
+              />
+              {featureItems.map((item) => (
+                <tr key={item._id} className="border-b border-border">
+                  <ItemLabel item={item} />
+                  {plans.map((plan) => (
+                    <td key={plan._id} className="px-4 py-3 text-center">
+                      <FeatureCell value={plan.features?.[item.slug]} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </>
+          )}
 
-      <Button
-        variant={isPopular ? "brand" : "outline"}
-        className="mb-6 w-full"
-        onClick={onGetStarted}
-        disabled={isLoading}
-      >
-        {plan.isFree ? "Get Started Free" : "Start Free Trial"}
-      </Button>
+          {/* Limits section */}
+          {limitItems.length > 0 && (
+            <>
+              <SectionHeader
+                icon="limits"
+                label="Limits"
+                count={limitItems.length}
+                colCount={colCount}
+                color="amber"
+              />
+              {limitItems.map((item) => (
+                <tr key={item._id} className="border-b border-border">
+                  <ItemLabel item={item} />
+                  {plans.map((plan) => (
+                    <td key={plan._id} className="px-4 py-3">
+                      <LimitCell value={plan.limits?.[item.slug]} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </>
+          )}
 
-      {features.length > 0 && (
-        <ul className="flex-1 space-y-2.5">
-          {features.map((feature: string, i: number) => (
-            <li key={i} className="flex items-start gap-2.5 text-sm">
-              <Check className="text-primary mt-0.5 size-4 shrink-0" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+          {/* Quotas section */}
+          {quotaItems.length > 0 && (
+            <>
+              <SectionHeader
+                icon="quotas"
+                label="Quotas"
+                count={quotaItems.length}
+                colCount={colCount}
+                color="purple"
+              />
+              {quotaItems.map((item) => (
+                <tr key={item._id} className="border-b border-border last:border-b-0">
+                  <ItemLabel item={item} />
+                  {plans.map((plan) => (
+                    <td key={plan._id} className="px-4 py-3">
+                      <QuotaCell
+                        quota={plan.quotas?.[item.slug]}
+                        billingCycle={billingCycle}
+                        plan={plan}
+                        itemSlug={item.slug}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </>
+          )}
+        </tbody>
+      </table>
     </div>
   );
+}
+
+// ─── Section Header ──────────────────────────────────────────────────────────
+
+const SECTION_ICONS: Record<string, string> = {
+  features: "⊞",
+  limits: "⟳",
+  quotas: "⏱",
+};
+
+const SECTION_COLORS: Record<string, string> = {
+  blue: "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-300",
+  amber: "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300",
+  purple: "bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/30 dark:border-purple-800 dark:text-purple-300",
+};
+
+function SectionHeader({
+  icon,
+  label,
+  count,
+  colCount,
+  color,
+}: {
+  icon: string;
+  label: string;
+  count: number;
+  colCount: number;
+  color: string;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colCount}
+        className={cn(
+          "px-4 py-2 text-sm font-semibold border-b border-t",
+          SECTION_COLORS[color]
+        )}
+      >
+        <span className="inline-flex items-center gap-2">
+          <span>{SECTION_ICONS[icon]}</span>
+          <span>
+            {label}{" "}
+            <span className="font-normal text-xs">
+              {count} {count === 1 ? "item" : "items"}
+            </span>
+          </span>
+        </span>
+      </td>
+    </tr>
+  );
+}
+
+// ─── Item Label Cell ─────────────────────────────────────────────────────────
+
+function ItemLabel({ item }: { item: IPublicPlanItem }) {
+  return (
+    <td className="px-4 py-3 align-top border-r border-border w-[200px] min-w-[180px]">
+      <div className="font-medium">{item.name}</div>
+      {item.description && (
+        <div className="text-xs text-muted-foreground">{item.description}</div>
+      )}
+    </td>
+  );
+}
+
+// ─── Price Cell ──────────────────────────────────────────────────────────────
+
+function PriceCell({
+  plan,
+  billingCycle,
+}: {
+  plan: IPublicPlanVersion;
+  billingCycle: BillingCycle;
+}) {
+  // Try to get price from pricingVariants
+  if (plan.pricingVariants && plan.pricingVariants.length > 0) {
+    const variant = plan.pricingVariants[0]!;
+    const cents = variant.basePricing?.[billingCycle];
+    if (typeof cents === "number") {
+      const symbol = getCurrencySymbol(variant.currency);
+      const amount = (cents / 100).toFixed(2);
+      return (
+        <span>
+          {symbol}{amount}/{CYCLE_LABEL[billingCycle]}
+        </span>
+      );
+    }
+  }
+
+  return <span className="text-muted-foreground">—</span>;
+}
+
+// ─── Feature Cell ────────────────────────────────────────────────────────────
+
+function FeatureCell({ value }: { value?: boolean }) {
+  if (value === true) {
+    return <Check className="inline-block size-5 text-green-600" />;
+  }
+  return <X className="inline-block size-5 text-muted-foreground" />;
+}
+
+// ─── Limit Cell ──────────────────────────────────────────────────────────────
+
+function LimitCell({ value }: { value?: number }) {
+  if (typeof value !== "number") {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  return <span>{value.toLocaleString()}</span>;
+}
+
+// ─── Quota Cell ──────────────────────────────────────────────────────────────
+
+function QuotaCell({
+  quota,
+  billingCycle,
+  plan,
+  itemSlug,
+}: {
+  quota?: Record<string, any>;
+  billingCycle: BillingCycle;
+  plan: IPublicPlanVersion;
+  itemSlug: string;
+}) {
+  if (!quota) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  const intervalData = quota[billingCycle] ?? quota.monthly;
+  if (!intervalData || typeof intervalData.included !== "number") {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  const included = intervalData.included.toLocaleString();
+  const overage = intervalData.overage;
+  const unitSize = intervalData.unitSize;
+
+  // Get currency symbol from pricingVariants or from overage info
+  let currencySymbol = "₹";
+  if (plan.pricingVariants && plan.pricingVariants.length > 0) {
+    currencySymbol = getCurrencySymbol(plan.pricingVariants[0]!.currency);
+  }
+
+  if (typeof overage === "number" && overage > 0) {
+    const overageDisplay = (overage / 100).toFixed(2);
+    const unitLabel = unitSize && unitSize > 1
+      ? `/${unitSize.toLocaleString()} ${itemSlug}`
+      : `/${itemSlug}`;
+    return (
+      <span>
+        Included: {included}, after that {currencySymbol}{overageDisplay}{unitLabel}
+      </span>
+    );
+  }
+
+  return <span>Included: {included}</span>;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getCurrencySymbol(currency?: string): string {
+  const map: Record<string, string> = {
+    usd: "$",
+    eur: "€",
+    gbp: "£",
+    inr: "₹",
+    sgd: "S$",
+    aud: "A$",
+    cad: "C$",
+    jpy: "¥",
+  };
+  return map[(currency ?? "").toLowerCase()] ?? currency?.toUpperCase() ?? "$";
 }

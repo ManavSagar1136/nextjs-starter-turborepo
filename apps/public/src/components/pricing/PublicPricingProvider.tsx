@@ -22,7 +22,7 @@ export function PublicPricingProvider({ children }: PublicPricingProviderProps) 
   return (
     <SaaSProvider
       // No redirectUrl or auth callbacks needed for public plan reading
-      redirectUrl={undefined}
+      redirectUrl=''
     >
       {children}
     </SaaSProvider>
