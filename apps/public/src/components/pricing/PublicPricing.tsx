@@ -8,8 +8,6 @@ import { PricingPage } from "@buildbase/saas-sdk";
 import type { IPublicPlanItem, IPublicPlanVersion } from "@buildbase/saas-sdk";
 import { cn } from "@buildbase/ui/lib/utils";
 
-import { useGetStarted } from "@/hooks/use-get-started";
-
 type BillingCycle = "monthly" | "quarterly" | "yearly";
 
 const CYCLE_LABEL: Record<BillingCycle, string> = {
@@ -26,7 +24,6 @@ const CYCLE_LABEL: Record<BillingCycle, string> = {
  */
 export function PublicPricing() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const { onGetStartedClick, isLoadingCta } = useGetStarted();
 
   return (
     <PricingPage slug={env.NEXT_PUBLIC_PLAN_GROUP_SLUG ?? ""}>
@@ -139,7 +136,6 @@ function ComparisonTable({
         <thead>
           <tr className="border-b border-border">
             <th className="text-left px-4 py-3 font-medium text-muted-foreground bg-muted/30 w-[200px] min-w-[180px]">
-              Item
             </th>
             {plans.map((plan) => (
               <th
@@ -147,9 +143,6 @@ function ComparisonTable({
                 className="text-center px-4 py-3 font-semibold bg-muted/30"
               >
                 <div>{plan.name}</div>
-                <div className="text-xs font-normal text-muted-foreground">
-                  v{plan.version}
-                </div>
               </th>
             ))}
           </tr>
