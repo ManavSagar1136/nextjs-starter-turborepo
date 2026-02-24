@@ -1,0 +1,32 @@
+{
+  "name": "@buildbase/video",
+  "version": "1.0.0",
+  "description": "Remotion video compositions for the CMS monorepo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "build": "remotion render src/index.ts Demo out/demo.mp4",
+    "render": "remotion render src/index.ts Demo out/demo.mp4",
+    "render:all": "remotion render src/index.ts DemoLandscape out/demo-landscape.mp4 && remotion render src/index.ts DemoSquare out/demo-square.mp4 && remotion render src/index.ts DemoStory out/demo-story.mp4",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src --max-warnings 0"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/eslint-config": "^4.0.0",
+    "remotion": "^4.0.0",
+    "@buildbase/voice": "*"
+  },
+  "devDependencies": {
+    "@buildbase/eslint-config": "*",
+    "@buildbase/typescript-config": "*",
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "eslint": "^9.39.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.1.0",
+    "typescript": "5.9.2"
+  }
+}
