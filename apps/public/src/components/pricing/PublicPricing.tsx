@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 
+import { env } from "@buildbase/env";
 import { usePublicPlans } from "@buildbase/saas-sdk";
 import { Button } from "@buildbase/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
@@ -24,7 +25,7 @@ export function PublicPricing() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const { onGetStartedClick, isLoadingCta } = useGetStarted();
 
-  const { plans, loading, error } = usePublicPlans();
+  const { plans, loading, error } = usePublicPlans(env.NEXT_PUBLIC_PLAN_GROUP_SLUG ?? "");
 
   if (loading) {
     return (
