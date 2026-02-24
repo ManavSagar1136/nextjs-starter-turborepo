@@ -26,7 +26,6 @@ export function PublicPricing() {
   const { onGetStartedClick, isLoadingCta } = useGetStarted();
 
   const { plans, loading, error } = usePublicPlans(env.NEXT_PUBLIC_PLAN_GROUP_SLUG ?? "");
-
   if (loading) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
@@ -36,7 +35,13 @@ export function PublicPricing() {
   }
 
   if (error || !plans?.length) {
-    return <PricingFallback billingCycle={billingCycle} setBillingCycle={setBillingCycle} onGetStarted={onGetStartedClick} isLoading={isLoadingCta} />;
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-muted-foreground text-sm">
+          Pricing is not available right now. Please try again in a few minutes.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -189,67 +194,6 @@ function PlanCard({
           ))}
         </ul>
       )}
-    </div>
-  );
-}
-
-// ─── Fallback (when plans can't be loaded) ───────────────────────────────────
-
-const FALLBACK_PLANS = [
-  {
-    name: "Starter",
-    description: "For individuals and small projects",
-    price: "Free",
-    isFree: true,
-    isPopular: false,
-    features: ["Up to 3 projects", "Basic analytics", "Community support", "API access"],
-  },
-  {
-    name: "Pro",
-    description: "For growing teams and businesses",
-    monthlyPrice: 29,
-    annualPrice: 278,
-    isPopular: true,
-    features: ["Unlimited projects", "Advanced analytics", "Priority support", "API access", "Team members (up to 10)", "Custom domains"],
-  },
-  {
-    name: "Agency",
-    description: "For agencies and large teams",
-    monthlyPrice: 99,
-    annualPrice: 950,
-    isPopular: false,
-    features: ["Everything in Pro", "Unlimited team members", "White-label options", "Dedicated support", "SLA guarantee", "Custom integrations"],
-  },
-];
-
-function PricingFallback({
-  billingCycle,
-  setBillingCycle,
-  onGetStarted,
-  isLoading,
-}: {
-  billingCycle: BillingCycle;
-  setBillingCycle: (v: BillingCycle) => void;
-  onGetStarted: () => void;
-  isLoading: boolean;
-}) {
-  return (
-    <div>
-      <BillingToggle value={billingCycle} onChange={setBillingCycle} />
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {FALLBACK_PLANS.map((plan) => (
-          <PlanCard
-            key={plan.name}
-            plan={plan}
-            billingCycle={billingCycle}
-            onGetStarted={onGetStarted}
-            isLoading={isLoading}
-          />
-        ))}
-      </div>
-      <p className="text-muted-foreground mt-8 text-center text-sm">
-        All plans include a 14-day free trial. No credit card required.
-      </p>
     </div>
   );
 }
