@@ -98,7 +98,7 @@ export function DocLayout({
             )}
           </HeroBgWrapper>
           {/* Breadcrumbs */}
-          <div className="px-4 py-2">
+          <div className="mt-3 mb-4">
             <AppBreadcrumb
               items={breadcrumbs}
               className="text-sm"
@@ -108,8 +108,7 @@ export function DocLayout({
 
           {/* Main content */}
           <main className="flex-1">
-            <div className="py-8">{children}</div>
-            {/* <div className="max-w-4xl mx-auto px-4 py-8">{children}</div> */}
+            {children}
           </main>
         </div>
 

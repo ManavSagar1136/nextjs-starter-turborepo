@@ -244,10 +244,13 @@ const BlogExplorer = ({
             {/* Item Selector (Tags or Groups) */}
             <div className="w-full">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-medium text-muted-foreground select-none">
+                <span className="text-xs font-medium select-none" style={{ color: "var(--mk-text-muted)" }}>
                   {selectorLabel}
                 </span>
-                <span className="text-[10px] text-muted-foreground bg-muted dark:bg-white/20 dark:text-white px-2 py-0.5 rounded ml-1">
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded ml-1"
+                  style={{ background: "var(--mk-bg-elevated)", color: "var(--mk-text-muted)" }}
+                >
                   Tap or click to filter
                 </span>
               </div>
@@ -261,10 +264,12 @@ const BlogExplorer = ({
                     className={cn(
                       "cursor-pointer transition-all text-xs py-1.5 px-3 font-medium",
                       "hover:scale-105 active:scale-95",
-                      selectedItemSlug === item.slug
-                        ? "bg-primary text-primary-foreground shadow-md dark:bg-primary dark:text-primary-foreground"
-                        : "bg-background text-foreground border border-border dark:bg-[#111] dark:text-white dark:border-[#3f3e3e]",
                     )}
+                    style={
+                      selectedItemSlug === item.slug
+                        ? { background: "var(--mk-brand)", color: "#fff", borderColor: "var(--mk-brand)" }
+                        : { background: "var(--mk-bg-secondary)", color: "var(--mk-text-secondary)", border: "1px solid var(--mk-border-bright)" }
+                    }
                     onClick={() => handleItemSelect(item.slug)}
                     role="button"
                     tabIndex={0}
@@ -314,8 +319,8 @@ const BlogExplorer = ({
             {/* Selected Item Blogs */}
             {selectedItem && (
               <section className="overflow-visible w-full flex flex-col gap-3 mt-2">
-                <div className="w-full border-b mb-2 py-1">
-                  <h2 className="text-lg md:text-xl font-bold capitalize">
+                <div className="w-full mb-2 py-1" style={{ borderBottom: "1px solid var(--mk-border)" }}>
+                  <h2 className="text-lg md:text-xl font-bold capitalize" style={{ color: "var(--mk-text-primary)" }}>
                     Articles {mode === "tags" ? "about" : "in"}{" "}
                     {selectedItem.title}
                   </h2>
@@ -355,10 +360,10 @@ const BlogExplorer = ({
                   </>
                 ) : (
                   <div className="flex flex-col justify-center items-center py-8 text-center">
-                    <p className="text-muted-foreground text-sm mb-1">
+                    <p className="text-sm mb-1" style={{ color: "var(--mk-text-secondary)" }}>
                       {noArticlesMessage}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs" style={{ color: "var(--mk-text-muted)" }}>
                       {tryDifferentMessage}
                     </p>
                   </div>

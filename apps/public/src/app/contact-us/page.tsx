@@ -18,11 +18,8 @@ export async function generateMetadata() {
 const ContactUs = () => {
   return (
     <PageWithHeaderFooter>
-      <section
-        className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-        style={{ background: "var(--mk-bg-primary)" }}
-      >
-        <div className="mx-auto max-w-4xl space-y-10">
+      <section className="w-full py-8 md:py-12">
+        <div className="mx-auto max-w-6xl space-y-8">
           {/* Header */}
           <div className="text-center">
             <span className="mk-eyebrow mb-3 block">Contact</span>

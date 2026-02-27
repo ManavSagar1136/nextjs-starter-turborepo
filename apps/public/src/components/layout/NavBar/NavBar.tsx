@@ -14,9 +14,9 @@ import { navEntrance, getMotionVariant } from "@/lib/animation-variants";
 // ─── Nav links ───────────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
-  { label: "Features",    href: "#features" },
-  { label: "Architecture", href: "#architecture" },
-  { label: "Pricing",     href: "#pricing" },
+  { label: "Features",    href: "/#features" },
+  { label: "Architecture", href: "/#architecture" },
+  { label: "Pricing",     href: "/#pricing" },
   { label: "Docs",        href: "/docs" },
 ] as const;
 

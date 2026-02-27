@@ -3,9 +3,7 @@
 import { useMemo, useState } from "react";
 import { TbCoin, TbPointer, TbShare } from "react-icons/tb";
 
-import HeaderCard from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
-import { Button } from "@buildbase/ui/button";
 import { Slider } from "@buildbase/ui/slider";
 
 import { SiteConfig } from "@/config";
@@ -59,40 +57,48 @@ export function Affiliates() {
   return (
     <PageWithHeaderFooter>
       <div className="relative w-full">
-        <div className="container mx-auto px-4 py-16">
+        <div className="container mx-auto px-[var(--mk-section-x)] py-[var(--mk-section-y)]">
           <div className="text-center">
-            <HeaderCard
-              mainTitle="Be our affiliate"
-              subTitle={
-                <p className="text-lg mb-8">
-                  Partner with us to earn a{" "}
-                  <strong>recurring 30% commission</strong> every month —{" "}
-                  <strong>forever</strong>!
-                </p>
-              }
-              h1
-            />
+            <span className="mk-eyebrow mb-3 block">Affiliates</span>
+            <h1
+              className="font-extrabold leading-tight mb-4"
+              style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            >
+              Be our <span className="mk-gradient-text">affiliate</span>
+            </h1>
+            <p
+              className="mb-8 leading-relaxed"
+              style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+            >
+              Partner with us to earn a{" "}
+              <strong style={{ color: "var(--mk-text-primary)" }}>recurring 30% commission</strong> every month —{" "}
+              <strong style={{ color: "var(--mk-text-primary)" }}>forever</strong>!
+            </p>
 
-            <Button
-              className="px-8 py-4 font-semibold"
+            <button
+              className="inline-flex items-center justify-center rounded-[var(--mk-radius-sm)] px-8 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
+              style={{ background: "var(--mk-brand)", boxShadow: "var(--mk-shadow-brand)" }}
               onClick={onOpenAffiliate}
             >
               Join our affiliate program
-            </Button>
+            </button>
           </div>
 
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold">
+            <h2
+              className="font-bold"
+              style={{ fontSize: "var(--mk-text-2xl)", color: "var(--mk-text-primary)" }}
+            >
               You can earn{" "}
-              <span className="text-brand-500">{`$${potentialEarnedMoney}`}</span>{" "}
+              <span className="mk-gradient-text">{`$${potentialEarnedMoney}`}</span>{" "}
               every month
             </h2>
-            <p className="text-brand-900 mt-2">
+            <p className="mt-2" style={{ color: "var(--mk-text-muted)" }}>
               The calculation is based on monthly price
             </p>
           </div>
 
-          <div className="mt-16 space-y-8">
+          <div className="mt-16 space-y-8 max-w-2xl mx-auto">
             {pricingPlans?.map((plan, index) => {
               if (plan.price === 0) {
                 return null;
@@ -103,7 +109,7 @@ export function Affiliates() {
                   className="flex flex-col md:flex-row items-center gap-4"
                   key={plan.title + plan.billingCycle}
                 >
-                  <p className="w-56 text-brand-700">
+                  <p className="w-56" style={{ color: "var(--mk-text-secondary)" }}>
                     {plan.title}/{plan.billingCycle} (
                     {plan.price === 0
                       ? "Free"
@@ -121,14 +127,19 @@ export function Affiliates() {
                       setAffiliateValues(newValues);
                     }}
                   />
-                  <p>{affiliateValues[index] || 0} referrals</p>
+                  <p style={{ color: "var(--mk-text-primary)" }}>{affiliateValues[index] || 0} referrals</p>
                 </div>
               );
             })}
           </div>
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold mb-8">How it works</h2>
-            <div className="space-y-4">
+            <h2
+              className="font-bold mb-8"
+              style={{ fontSize: "var(--mk-text-2xl)", color: "var(--mk-text-primary)" }}
+            >
+              How it works
+            </h2>
+            <div className="space-y-4 max-w-2xl mx-auto">
               {[
                 {
                   icon: <TbPointer size={24} />,
@@ -144,22 +155,33 @@ export function Affiliates() {
                 },
               ].map(({ icon, text }, index) => (
                 <div key={index + text} className="flex items-center gap-4">
-                  <div className="p-2 rounded-full bg-brand-500 text-secondary">
+                  <div
+                    className="p-2 rounded-full text-white flex-shrink-0"
+                    style={{ background: "var(--mk-brand)" }}
+                  >
                     {icon}
                   </div>
-                  <p>{text}</p>
+                  <p style={{ color: "var(--mk-text-secondary)" }}>{text}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold mb-4">Affiliate terms</h2>
-            <p className="text-secondary-foreground mb-8">
+            <h2
+              className="font-bold mb-4"
+              style={{ fontSize: "var(--mk-text-2xl)", color: "var(--mk-text-primary)" }}
+            >
+              Affiliate terms
+            </h2>
+            <p className="mb-8" style={{ color: "var(--mk-text-secondary)" }}>
               There are a few rules about our affiliate program you should know
-              about. No "gotchas" here, just some terms to keep everyone happy.
+              about. No &quot;gotchas&quot; here, just some terms to keep everyone happy.
             </p>
-            <ul className="list-disc list-inside text-left mx-auto max-w-2xl space-y-4">
+            <ul
+              className="list-disc list-inside text-left mx-auto max-w-2xl space-y-4"
+              style={{ color: "var(--mk-text-secondary)" }}
+            >
               <li>
                 Self-referrals are not allowed (i.e., signing up through your
                 own affiliate link).
@@ -178,18 +200,26 @@ export function Affiliates() {
           </div>
 
           <div className="text-center mt-16">
-            <h2 className="text-3xl font-bold mb-4">
+            <h2
+              className="font-bold mb-4"
+              style={{ fontSize: "var(--mk-text-2xl)", color: "var(--mk-text-primary)" }}
+            >
               Ready to partner with us?
             </h2>
-            <Button
-              className="px-8 py-4 font-semibold"
+            <button
+              className="inline-flex items-center justify-center rounded-[var(--mk-radius-sm)] px-8 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
+              style={{ background: "var(--mk-brand)", boxShadow: "var(--mk-shadow-brand)" }}
               onClick={onOpenAffiliate}
             >
               Join our affiliate program
-            </Button>
+            </button>
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-900 to-brand-500 blur-3xl opacity-20 pointer-events-none" />
+        <div
+          className="absolute inset-0 blur-3xl opacity-20 pointer-events-none"
+          style={{ background: "linear-gradient(to right, var(--mk-brand), var(--mk-accent))" }}
+          aria-hidden="true"
+        />
       </div>
     </PageWithHeaderFooter>
   );

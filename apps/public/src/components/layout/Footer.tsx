@@ -32,7 +32,7 @@ const FOOTER_CONFIG: {
     {
       label: "Product",
       links: [
-        { label: "Features", href: "#features" },
+        { label: "Features", href: "/#features" },
         { label: "Pricing", href: Routes.pricing },
         { label: "Documentation", href: Routes.docs },
         { label: "Blog", href: Routes.blogs },

@@ -155,7 +155,7 @@ export default async function BlogsByTag(props: PostPageProps) {
     console.error("Error fetching blog posts by tag:", error);
     return (
       <div className="container mx-auto py-8">
-        <p className="text-muted-foreground">Error loading posts.</p>
+        <p style={{ color: "var(--mk-text-secondary)" }}>Error loading posts.</p>
       </div>
     );
   }
