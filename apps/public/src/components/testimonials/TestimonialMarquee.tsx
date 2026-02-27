@@ -32,8 +32,12 @@ interface TestimonialMarqueeProps {
 
 const ReviewCard = (testimonial: ITestimonial) => {
   return (
-    <Card key={testimonial.id} className="overflow-hidden">
-      <CardContent className="p-6">
+    <div
+      key={testimonial.id}
+      className="mk-card overflow-hidden mk-card-static"
+      style={{ background: "var(--mk-bg-secondary)" }}
+    >
+      <div className="p-6">
         <div className="flex gap-3">
           <Avatar className="h-12 w-12">
             <AvatarImage src={testimonial.author.avatar} alt={testimonial.author.name} />
@@ -41,21 +45,21 @@ const ReviewCard = (testimonial: ITestimonial) => {
           </Avatar>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <div className="truncate font-semibold">{testimonial.author.name}</div>
+              <div className="truncate font-semibold" style={{ color: "var(--mk-text-primary)" }}>{testimonial.author.name}</div>
               {testimonial.author.verified && (
-                <Badge variant="secondary" className="bg-brand-100 text-brand-700 hover:bg-brand-100">
+                <Badge variant="secondary" className="text-xs" style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)" }}>
                   <X className="h-3 w-3" />
                 </Badge>
               )}
             </div>
-            <div className="text-muted-foreground truncate text-sm">{testimonial.author.username}</div>
+            <div className="truncate text-sm" style={{ color: "var(--mk-text-muted)" }}>{testimonial.author.username}</div>
             {testimonial.author.role && (
-              <div className="text-muted-foreground mt-1 text-sm">{testimonial.author.role}</div>
+              <div className="mt-1 text-sm" style={{ color: "var(--mk-text-muted)" }}>{testimonial.author.role}</div>
             )}
           </div>
         </div>
-        <div className="mt-4 space-y-2 whitespace-pre-wrap text-sm">{testimonial.content}</div>
-        <div className="text-muted-foreground mt-4 flex items-center gap-4 text-sm">
+        <div className="mt-4 space-y-2 whitespace-pre-wrap text-sm" style={{ color: "var(--mk-text-secondary)" }}>{testimonial.content}</div>
+        <div className="mt-4 flex items-center gap-4 text-sm" style={{ color: "var(--mk-text-muted)" }}>
           <div className="flex items-center gap-1">
             <Heart className="h-4 w-4" />
             {testimonial.metrics.likes}
@@ -66,8 +70,8 @@ const ReviewCard = (testimonial: ITestimonial) => {
           </div>
           <div className="text-xs">{testimonial.date}</div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
@@ -100,8 +104,8 @@ const TestimonialMarquee = ({ testimonials }: TestimonialMarqueeProps) => {
           </Marquee>
         </>
       )}
-      <div className="dark:from-background pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white"></div>
-      <div className="dark:from-background pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-white"></div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-[var(--mk-bg-primary)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[var(--mk-bg-primary)]" />
     </div>
   );
 };

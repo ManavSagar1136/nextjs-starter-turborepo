@@ -107,11 +107,11 @@ function PulsingDot({ shouldReduce }: { shouldReduce: boolean | null }) {
   );
 }
 
-/** Floating analytics card — hero visual mockup */
+/** CMS Dashboard mockup card */
 function HeroVisualMockup() {
   return (
     <div
-      className="mk-card relative mx-auto w-full max-w-[420px] overflow-hidden p-5"
+      className="mk-card relative mx-auto w-full max-w-[520px] overflow-hidden p-5"
       style={{ background: "var(--mk-bg-secondary)" }}
       aria-hidden="true"
     >
@@ -119,10 +119,10 @@ function HeroVisualMockup() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--mk-brand)" }}>
-            Link Analytics
+            Content Dashboard
           </p>
           <p className="text-sm font-semibold" style={{ color: "var(--mk-text-primary)" }}>
-            maketiny.co/launch
+            BuildBase NextJS Starter Admin
           </p>
         </div>
         <span
@@ -132,16 +132,17 @@ function HeroVisualMockup() {
             color: "var(--mk-success)",
           }}
         >
-          ↑ 24%
+          Live
         </span>
       </div>
 
       {/* Metric row */}
-      <div className="mb-4 grid grid-cols-3 gap-3">
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Clicks", value: "12,847" },
-          { label: "Unique", value: "8,391" },
-          { label: "Conv.", value: "4.2%" },
+          { label: "Posts", value: "248" },
+          { label: "Pages", value: "32" },
+          { label: "Users", value: "156" },
+          { label: "API Calls", value: "12.4k" },
         ].map(({ label, value }) => (
           <div
             key={label}
@@ -158,20 +159,36 @@ function HeroVisualMockup() {
         ))}
       </div>
 
-      {/* Sparkline bars (decorative) */}
-      <div className="flex items-end gap-1 h-10">
-        {[40, 65, 45, 80, 60, 90, 75, 100, 85, 70, 95, 88].map((h, i) => (
+      {/* Recent content items */}
+      <div className="space-y-2">
+        {[
+          { title: "Getting Started with Next.js 15", status: "Published", type: "Blog" },
+          { title: "API Reference: Content Types", status: "Draft", type: "Docs" },
+          { title: "Release Notes v2.0", status: "Review", type: "Page" },
+        ].map(({ title, status, type }) => (
           <div
-            key={i}
-            className="flex-1 rounded-sm"
-            style={{
-              height: `${h}%`,
-              background:
-                i === 7
-                  ? "var(--mk-brand)"
-                  : `rgba(99,102,241,${0.25 + (i / 12) * 0.35})`,
-            }}
-          />
+            key={title}
+            className="flex items-center justify-between rounded-[var(--mk-radius-sm)] px-3 py-2"
+            style={{ background: "var(--mk-bg-elevated)" }}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase"
+                style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)" }}
+              >
+                {type}
+              </span>
+              <span className="truncate text-xs" style={{ color: "var(--mk-text-secondary)" }}>{title}</span>
+            </div>
+            <span
+              className="shrink-0 text-[10px] font-medium"
+              style={{
+                color: status === "Published" ? "var(--mk-success)" : status === "Draft" ? "var(--mk-text-muted)" : "var(--mk-warning)",
+              }}
+            >
+              {status}
+            </span>
+          </div>
         ))}
       </div>
 
@@ -180,8 +197,8 @@ function HeroVisualMockup() {
         className="mt-4 flex items-center justify-between border-t pt-3 text-[10px]"
         style={{ borderColor: "var(--mk-border)", color: "var(--mk-text-muted)" }}
       >
-        <span>Last 30 days</span>
-        <span style={{ color: "var(--mk-accent)" }}>View full report →</span>
+        <span>5 apps connected</span>
+        <span style={{ color: "var(--mk-accent)" }}>View all content →</span>
       </div>
     </div>
   );
@@ -223,7 +240,7 @@ export const Hero = ({
           className="mk-eyebrow flex items-center"
         >
           <PulsingDot shouldReduce={shouldReduce} />
-          URL Intelligence Platform
+          Open-Source CMS Template
         </motion.div>
 
         {/* Headline */}
@@ -234,8 +251,8 @@ export const Hero = ({
           className="font-extrabold leading-[1.05] tracking-tight"
           style={{ fontSize: "var(--mk-text-hero)", color: "var(--mk-text-primary)" }}
         >
-          Powerful Links.{" "}
-          <span className="mk-gradient-text">Smarter Destinations.</span>
+          Headless CMS,{" "}
+          <span className="mk-gradient-text">Your Way.</span>
         </motion.h1>
 
         {/* Sub-headline */}
@@ -246,8 +263,8 @@ export const Hero = ({
           className="max-w-[560px] leading-relaxed"
           style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
         >
-          One short link. Infinite smart routes. Send visitors to the right page
-          based on device, location, time, or A/B test — and track everything.
+          A production-ready monorepo with admin dashboard, public site, docs,
+          and user portal — all type-safe, all connected, all yours.
         </motion.p>
 
         {/* CTA row */}
@@ -261,7 +278,7 @@ export const Hero = ({
             <button
               onClick={onGetStartedClick}
               disabled={isLoadingCta || isLoginLoading}
-              className="inline-flex items-center justify-center rounded-[var(--mk-radius-sm)] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-mk-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center rounded-[var(--mk-radius-sm)] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-[0_0_32px_rgba(99,102,241,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "var(--mk-brand)" }}
               aria-label={isLogged ? "Go to the app" : "Start for free"}
             >
@@ -274,19 +291,7 @@ export const Hero = ({
               onClick={() =>
                 window.open(SiteConfig.calendlyLink, "_blank", "noopener,noreferrer")
               }
-              className="inline-flex items-center justify-center gap-2 rounded-[var(--mk-radius-sm)] border px-6 py-3 text-sm font-medium transition-all duration-200"
-              style={{
-                borderColor: "var(--mk-border-bright)",
-                color: "var(--mk-text-secondary)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--mk-brand)";
-                e.currentTarget.style.color = "var(--mk-text-primary)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--mk-border-bright)";
-                e.currentTarget.style.color = "var(--mk-text-secondary)";
-              }}
+              className="inline-flex items-center justify-center gap-2 rounded-[var(--mk-radius-sm)] border border-[var(--mk-border-bright)] px-6 py-3 text-sm font-medium text-[var(--mk-text-secondary)] transition-all duration-200 hover:border-[var(--mk-brand)] hover:text-[var(--mk-text-primary)]"
               aria-label="Watch a product demo"
             >
               <Play size={14} strokeWidth={2} />
@@ -307,7 +312,7 @@ export const Hero = ({
             <AvatarCircles numPeople={497} avatarUrls={AVATAR_URLS} />
             <div className="flex flex-col items-center sm:items-start">
               <p className="text-sm font-semibold" style={{ color: "var(--mk-text-primary)" }}>
-                Trusted by 500+ marketers
+                Trusted by 500+ developers
               </p>
               <div className="mt-0.5 flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (

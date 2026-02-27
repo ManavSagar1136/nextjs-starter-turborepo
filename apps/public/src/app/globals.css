@@ -1,5 +1,6 @@
 @import "../../../../packages/tailwind-config/themes.css";
 @import "../../../../packages/tailwind-config/shared-styles.css";
+@import "../styles/design-tokens.css";
 
 @tailwind base;
 @tailwind components;
@@ -10,7 +11,28 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--mk-bg-primary);
+    color: var(--mk-text-primary);
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   }
+}
+
+/* Prose overrides for blog/doc content */
+.prose {
+  --tw-prose-body: var(--mk-text-secondary);
+  --tw-prose-headings: var(--mk-text-primary);
+  --tw-prose-lead: var(--mk-text-secondary);
+  --tw-prose-links: var(--mk-brand);
+  --tw-prose-bold: var(--mk-text-primary);
+  --tw-prose-counters: var(--mk-text-muted);
+  --tw-prose-bullets: var(--mk-text-muted);
+  --tw-prose-hr: var(--mk-border);
+  --tw-prose-quotes: var(--mk-text-primary);
+  --tw-prose-quote-borders: var(--mk-brand);
+  --tw-prose-captions: var(--mk-text-muted);
+  --tw-prose-code: var(--mk-text-primary);
+  --tw-prose-pre-code: var(--mk-text-primary);
+  --tw-prose-pre-bg: var(--mk-bg-elevated);
+  --tw-prose-th-borders: var(--mk-border-bright);
+  --tw-prose-td-borders: var(--mk-border);
 }

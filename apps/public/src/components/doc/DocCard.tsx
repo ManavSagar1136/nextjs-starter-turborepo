@@ -13,26 +13,29 @@ const DocCard = ({ data }: { data: IDocPost | undefined }) => {
 
   return (
     <Link href={docUrl}>
-      <Card className="group h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        <CardHeader className="pb-3">
+      <div
+        className="group h-full cursor-pointer mk-card mk-card-static hover:-translate-y-1 hover:shadow-[var(--mk-shadow-lg)] p-0"
+        style={{ background: "var(--mk-bg-secondary)" }}
+      >
+        <div className="p-6 pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <FileText className="text-muted-foreground h-4 w-4" />
-              <h3 className="group-hover:text-primary text-lg font-semibold transition-colors">{data.title}</h3>
+              <FileText className="h-4 w-4" style={{ color: "var(--mk-text-muted)" }} />
+              <h3 className="text-lg font-semibold transition-colors group-hover:text-[var(--mk-brand)]" style={{ color: "var(--mk-text-primary)" }}>{data.title}</h3>
             </div>
           </div>
-          {data.subtitle && <p className="text-muted-foreground mt-1 text-sm">{data.subtitle}</p>}
-        </CardHeader>
+          {data.subtitle && <p className="mt-1 text-sm" style={{ color: "var(--mk-text-secondary)" }}>{data.subtitle}</p>}
+        </div>
 
-        <CardContent className="pt-0">
-          {data.description && <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">{data.description}</p>}
+        <div className="px-6 pb-6 pt-0">
+          {data.description && <p className="mb-4 line-clamp-3 text-sm" style={{ color: "var(--mk-text-secondary)" }}>{data.description}</p>}
 
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs" style={{ color: "var(--mk-text-muted)" }}>
             <Calendar className="h-3 w-3" />
             <span>{data.publishedAt ? format(new Date(data.publishedAt), "MMM d, yyyy") : "No date"}</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 };

@@ -38,8 +38,15 @@ export function BlogContentServer({
       className={cn("w-full space-y-6 md:space-y-10 lg:space-y-16", className)}
     >
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-8 md:py-10  lg:py-16 rounded-2xl">
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+      <div
+        className="relative overflow-hidden py-8 md:py-10 lg:py-16 rounded-[var(--mk-radius-lg)]"
+        style={{ background: "var(--mk-bg-secondary)" }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{ background: "var(--mk-gradient-hero)" }}
+          aria-hidden="true"
+        />
         <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             {/* Title */}
@@ -47,8 +54,9 @@ export function BlogContentServer({
               as="h1"
               preset="slideUp"
               delay={0.3}
-              className="text-2xl md:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent scroll-m-40"
+              className="text-2xl md:text-3xl lg:text-5xl font-bold scroll-m-40"
               elementProps={{ [TOC_ATTRIBUTES.EXCLUDE]: "true" }}
+              style={{ color: "var(--mk-text-primary)" }}
             >
               {post.title}
             </MotionWrapper>
@@ -59,7 +67,8 @@ export function BlogContentServer({
                 as="p"
                 preset="slideUp"
                 delay={0.4}
-                className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto"
+                className="text-base md:text-lg lg:text-xl max-w-3xl mx-auto"
+                style={{ color: "var(--mk-text-secondary)" }}
               >
                 {post.description || post.excerpt}
               </MotionWrapper>
@@ -69,7 +78,8 @@ export function BlogContentServer({
             <MotionWrapper
               preset="slideUp"
               delay={0.5}
-              className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"
+              className="flex flex-wrap items-center justify-center gap-6 text-sm"
+              style={{ color: "var(--mk-text-muted)" }}
             >
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -115,7 +125,8 @@ export function BlogContentServer({
                   >
                     <Badge
                       variant="secondary"
-                      className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                      className="transition-colors cursor-pointer"
+                      style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)" }}
                     >
                       {tag.title}
                     </Badge>

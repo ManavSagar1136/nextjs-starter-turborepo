@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { Logo } from "@/components/logo/Logo";
 import { SiteConfig } from "@/config";
@@ -13,10 +14,10 @@ import { navEntrance, getMotionVariant } from "@/lib/animation-variants";
 // ─── Nav links ───────────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
-  { label: "Features", href: "#features" },
-  { label: "Pricing",  href: "#pricing" },
-  { label: "Docs",     href: "/docs" },
-  { label: "API",      href: "/docs#api" },
+  { label: "Features",    href: "#features" },
+  { label: "Architecture", href: "#architecture" },
+  { label: "Pricing",     href: "#pricing" },
+  { label: "Docs",        href: "/docs" },
 ] as const;
 
 // ─── Framer variants ──────────────────────────────────────────────────────────
@@ -50,6 +51,10 @@ export function NavBar() {
   const shouldReduce = useReducedMotion();
 
   const { isLogged, isLoadingCta, isLoginLoading, onGetStartedClick } = useGetStarted();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   // Show border-bottom once page scrolls past 20px
   useEffect(() => {
@@ -139,13 +144,24 @@ export function NavBar() {
                 "hidden lg:inline-flex items-center justify-center",
                 "text-sm font-semibold text-white px-4 py-2",
                 "rounded-[var(--mk-radius-sm)] bg-[var(--mk-brand)]",
-                "hover:bg-[var(--mk-brand-glow)] hover:shadow-mk-brand",
+                "hover:bg-[var(--mk-brand-glow)] hover:shadow-[0_0_32px_rgba(99,102,241,0.25)]",
                 "transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
               ].join(" ")}
               aria-label={isLogged ? "Go to the app" : "Get started for free"}
             >
               {isLogged ? "Go to app" : "Get started"}
             </button>
+
+            {/* Theme toggle */}
+            {mounted && (
+              <button
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="flex items-center justify-center w-9 h-9 rounded-[var(--mk-radius-sm)] text-[var(--mk-text-secondary)] hover:bg-[var(--mk-bg-elevated)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+              >
+                {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+            )}
 
             {/* Mobile hamburger */}
             <button
@@ -228,6 +244,17 @@ export function NavBar() {
                 animate="visible"
                 className="mt-8 flex flex-col gap-3"
               >
+                {/* Theme toggle - mobile */}
+                {mounted && (
+                  <button
+                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-[var(--mk-text-secondary)] rounded-[var(--mk-radius-md)] border border-[var(--mk-border)] hover:border-[var(--mk-border-bright)] hover:text-[var(--mk-text-primary)] transition-all duration-200"
+                    aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+                  >
+                    {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                    {resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}
+                  </button>
+                )}
                 <Link
                   href={SiteConfig.userAppUrl}
                   onClick={() => setMobileOpen(false)}

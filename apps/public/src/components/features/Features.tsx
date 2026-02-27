@@ -2,12 +2,12 @@
 
 import { useReducedMotion, motion } from "framer-motion";
 import {
-  Link2,
+  Database,
   BarChart3,
   Globe,
-  Smartphone,
+  Shield,
   Code2,
-  GitBranch,
+  Layers,
 } from "lucide-react";
 
 import {
@@ -32,63 +32,56 @@ interface BentoFeature {
 
 // ─── Visual accents (decorative, aria-hidden) ─────────────────────────────────
 
-function MiniSparkline() {
-  const bars = [35, 55, 45, 70, 60, 85, 72, 95, 80, 68, 90, 88];
+function ContentTypeVisual() {
   return (
-    <div className="flex items-end gap-1 h-12 mt-3" aria-hidden="true">
-      {bars.map((h, i) => (
+    <div className="mt-3 space-y-1.5" aria-hidden="true">
+      {[
+        { name: "BlogPost", fields: 8, color: "var(--mk-brand)" },
+        { name: "Page", fields: 5, color: "var(--mk-accent)" },
+        { name: "Product", fields: 12, color: "var(--mk-success)" },
+      ].map(({ name, fields, color }) => (
         <div
-          key={i}
-          className="flex-1 rounded-[2px]"
-          style={{
-            height: `${h}%`,
-            background: i === 7
-              ? "var(--mk-brand)"
-              : `rgba(99,102,241,${0.2 + (i / bars.length) * 0.5})`,
-          }}
-        />
+          key={name}
+          className="flex items-center justify-between rounded-[var(--mk-radius-sm)] px-3 py-1.5"
+          style={{ background: "var(--mk-bg-primary)" }}
+        >
+          <span className="text-xs font-medium" style={{ color }}>{name}</span>
+          <span className="text-[10px]" style={{ color: "var(--mk-text-muted)" }}>{fields} fields</span>
+        </div>
       ))}
     </div>
   );
 }
 
-function MiniMap() {
+function ApiSnippet() {
   return (
     <div
-      className="mt-3 relative h-20 w-full overflow-hidden rounded-[var(--mk-radius-sm)]"
+      className="mt-3 whitespace-pre rounded-[var(--mk-radius-sm)] p-3 font-mono text-[11px] leading-relaxed"
+      style={{ background: "var(--mk-bg-primary)", color: "var(--mk-text-muted)" }}
       aria-hidden="true"
-      style={{ background: "var(--mk-bg-primary)" }}
     >
-      {/* Simplified world-map dot grid */}
-      <div className="absolute inset-0 grid grid-cols-12 grid-rows-5 gap-1 p-2 opacity-40">
-        {Array.from({ length: 60 }).map((_, i) => (
-          <div
-            key={i}
-            className="rounded-full"
-            style={{
-              background: [5, 14, 17, 22, 26, 35, 38, 43, 47, 52, 55].includes(i)
-                ? "var(--mk-accent)"
-                : "var(--mk-border-bright)",
-              width: 4,
-              height: 4,
-            }}
-          />
-        ))}
-      </div>
-      <div className="absolute bottom-2 left-2 text-[9px] font-semibold" style={{ color: "var(--mk-accent)" }}>
-        US · EU · APAC active
-      </div>
+      <span style={{ color: "var(--mk-accent)" }}>GET</span>{" "}
+      <span style={{ color: "var(--mk-text-secondary)" }}>/api/posts</span>
+      {"\n"}
+      <span style={{ color: "var(--mk-brand)" }}>{"{"}</span>
+      {"\n  "}
+      <span style={{ color: "var(--mk-text-secondary)" }}>&quot;data&quot;</span>
+      {": ["}
+      <span style={{ color: "var(--mk-success)" }}>...</span>
+      {"]"}
+      {"\n"}
+      <span style={{ color: "var(--mk-brand)" }}>{"}"}</span>
     </div>
   );
 }
 
-function DeviceIcons() {
+function RoleVisual() {
   return (
     <div className="mt-3 flex items-center gap-3" aria-hidden="true">
       {[
-        { label: "Mobile", pct: "62%" },
-        { label: "Desktop", pct: "31%" },
-        { label: "Tablet", pct: "7%" },
+        { label: "Admin", pct: "Full" },
+        { label: "Editor", pct: "Write" },
+        { label: "Viewer", pct: "Read" },
       ].map(({ label, pct }) => (
         <div
           key={label}
@@ -103,42 +96,22 @@ function DeviceIcons() {
   );
 }
 
-function ApiSnippet() {
-  return (
-    <div
-      className="mt-3 rounded-[var(--mk-radius-sm)] p-3 font-mono text-[11px] leading-relaxed"
-      style={{ background: "var(--mk-bg-primary)", color: "var(--mk-text-muted)" }}
-      aria-hidden="true"
-    >
-      <span style={{ color: "var(--mk-accent)" }}>POST</span>{" "}
-      <span style={{ color: "var(--mk-text-secondary)" }}>/api/links</span>
-      {"\n"}
-      <span style={{ color: "var(--mk-brand)" }}>{"{"}</span>
-      {"\n  "}
-      <span style={{ color: "var(--mk-text-secondary)" }}>&quot;url&quot;</span>
-      {": "}
-      <span style={{ color: "var(--mk-success)" }}>&quot;https://…&quot;</span>
-      {"\n"}
-      <span style={{ color: "var(--mk-brand)" }}>{"}"}</span>
-    </div>
-  );
-}
-
-function AbTestVisual() {
+function MultiAppVisual() {
   return (
     <div className="mt-3 flex items-center gap-3" aria-hidden="true">
       {[
-        { label: "Variant A", pct: 58, color: "var(--mk-brand)" },
-        { label: "Variant B", pct: 42, color: "var(--mk-accent)" },
-      ].map(({ label, pct, color }) => (
-        <div key={label} className="flex-1">
-          <div className="mb-1 flex justify-between text-[10px]" style={{ color: "var(--mk-text-muted)" }}>
-            <span>{label}</span>
-            <span style={{ color }}>{pct}%</span>
-          </div>
-          <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: "var(--mk-bg-primary)" }}>
-            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
-          </div>
+        { label: "Public", color: "#6366F1" },
+        { label: "Admin", color: "#06B6D4" },
+        { label: "User", color: "#10B981" },
+        { label: "Docs", color: "#F59E0B" },
+      ].map(({ label, color }) => (
+        <div
+          key={label}
+          className="flex-1 rounded-[var(--mk-radius-sm)] border p-2 text-center"
+          style={{ borderColor: `${color}33` }}
+        >
+          <div className="mx-auto mb-1 h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+          <p className="text-[10px]" style={{ color: "var(--mk-text-muted)" }}>{label}</p>
         </div>
       ))}
     </div>
@@ -149,63 +122,63 @@ function AbTestVisual() {
 
 const FEATURES: BentoFeature[] = [
   {
-    id: "core-links",
+    id: "headless-cms",
     label: "Core",
-    title: "Smart Short Links",
+    title: "Headless CMS",
     description:
-      "Create branded short URLs in seconds. Custom slugs, QR codes, link expiry, and password protection — built for marketers who ship fast.",
-    icon: Link2,
-    visual: null, // large card — no extra visual needed, uses icon + text
+      "A full content management system with admin dashboard, content editor, media library, and publishing workflow — out of the box.",
+    icon: Database,
+    visual: null,
     gridArea: "core",
   },
   {
-    id: "analytics",
-    label: "Analytics",
-    title: "Real-time Click Intelligence",
+    id: "content-modeling",
+    label: "Content",
+    title: "Content Modeling",
     description:
-      "Every click tracked. See where your audience comes from, what device they use, and which links convert best — in real time.",
+      "Define any content type with Prisma schemas. Blog posts, docs, pages, products — type-safe from database to frontend.",
     icon: BarChart3,
-    visual: <MiniSparkline />,
+    visual: <ContentTypeVisual />,
     gridArea: "analytics",
   },
   {
-    id: "geo-targeting",
-    label: "Targeting",
-    title: "Geo Routing",
+    id: "api-first",
+    label: "Developer",
+    title: "API-First Architecture",
     description:
-      "Send visitors to different pages based on country or region. One link, localised destinations.",
-    icon: Globe,
-    visual: <MiniMap />,
+      "Every content type gets a type-safe API automatically. REST endpoints with full CRUD, filtering, and pagination.",
+    icon: Code2,
+    visual: <ApiSnippet />,
     gridArea: "geo",
   },
   {
-    id: "device-targeting",
-    label: "Targeting",
-    title: "Device Detection",
+    id: "multi-app",
+    label: "Architecture",
+    title: "Multi-App Monorepo",
     description:
-      "Route mobile users to your app store page, desktop users to your landing page. Automatically.",
-    icon: Smartphone,
-    visual: <DeviceIcons />,
+      "Public site, admin dashboard, user portal, and docs — all in one repo with shared packages and types.",
+    icon: Layers,
+    visual: <MultiAppVisual />,
     gridArea: "device",
   },
   {
-    id: "api",
-    label: "Developer",
-    title: "Full REST API",
+    id: "rbac",
+    label: "Security",
+    title: "Role-Based Access",
     description:
-      "Integrate link creation and analytics into your stack with our clean REST API and official SDKs.",
-    icon: Code2,
-    visual: <ApiSnippet />,
+      "Built-in RBAC with admin, editor, and viewer roles. Granular permissions for content management and user access.",
+    icon: Shield,
+    visual: <RoleVisual />,
     gridArea: "api",
   },
   {
-    id: "ab-testing",
-    label: "Optimisation",
-    title: "A/B Split Testing",
+    id: "deploy",
+    label: "Deployment",
+    title: "Edge-Ready Deployment",
     description:
-      "Split traffic between multiple destinations and let data decide the winner. Set weights, track conversions, iterate fast.",
-    icon: GitBranch,
-    visual: <AbTestVisual />,
+      "Optimized for Vercel with zero-config deployment. Docker support for self-hosting. ISR, SSR, and static generation built in.",
+    icon: Globe,
+    visual: null,
     gridArea: "ab",
   },
 ];
@@ -277,7 +250,7 @@ export const Features = ({ showCta: _showCta = true }: FeaturesProps) => {
     <section
       id="features"
       className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-secondary)" }}
+      style={{ background: "var(--mk-bg-primary)" }}
       aria-labelledby="features-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -290,21 +263,21 @@ export const Features = ({ showCta: _showCta = true }: FeaturesProps) => {
           viewport={{ once: true, margin: "-100px" }}
           className="mb-12 text-center"
         >
-          <span className="mk-eyebrow mb-3 block">Platform features</span>
+          <span className="mk-eyebrow mb-3 block">Platform Features</span>
           <h2
             id="features-heading"
             className="font-bold leading-tight"
             style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
           >
-            Everything your links need to{" "}
-            <span className="mk-gradient-text">perform.</span>
+            Everything your CMS needs to{" "}
+            <span className="mk-gradient-text">scale.</span>
           </h2>
           <p
             className="mx-auto mt-4 max-w-[560px] leading-relaxed"
             style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
           >
-            From smart routing to deep analytics — MakeTiny gives you the tools
-            to turn every link into a revenue opportunity.
+            From content modeling to multi-app deployment — a complete CMS
+            platform built for developer teams.
           </p>
         </motion.div>
 
@@ -323,7 +296,7 @@ export const Features = ({ showCta: _showCta = true }: FeaturesProps) => {
               grid-template-areas:
                 "core    core    analytics"
                 "geo     device  analytics"
-                "ab      ab      ab";
+                "api     api     ab";
             }
             .mk-bento-grid > * { grid-area: var(--grid-area); }
           }

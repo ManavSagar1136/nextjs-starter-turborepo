@@ -6,7 +6,7 @@ export default function DocsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PageWithHeaderFooter wrapperClassName="gap-0" isContainer={false}>
+    <PageWithHeaderFooter isContainer={false}>
       {children}
     </PageWithHeaderFooter>
   );

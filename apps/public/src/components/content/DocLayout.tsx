@@ -42,9 +42,10 @@ export function DocLayout({
   return (
     <div
       className={cn(
-        "min-h-screen bg-background max-w-[1440px] w-full px-4 md:px-8",
+        "min-h-screen max-w-[1440px] w-full px-4 md:px-8",
         className,
       )}
+      style={{ background: "var(--mk-bg-primary)" }}
     >
       {/* Table of Contents - Mobile Toggle */}
       <div
@@ -83,7 +84,8 @@ export function DocLayout({
                     ? lastUpdatedAt
                     : lastUpdatedAt.toISOString()
                 }
-                className="flex items-center justify-center gap-2 text-sm text-white/70"
+                className="flex items-center justify-center gap-2 text-sm"
+                style={{ color: "var(--mk-text-muted)" }}
               >
                 <Calendar className="h-4 w-4" />
                 <span>
@@ -99,7 +101,8 @@ export function DocLayout({
           <div className="px-4 py-2">
             <AppBreadcrumb
               items={breadcrumbs}
-              className="text-sm text-muted-foreground"
+              className="text-sm"
+              style={{ color: "var(--mk-text-muted)" }}
             />
           </div>
 
@@ -113,7 +116,7 @@ export function DocLayout({
         {/* Table of contents */}
         {toc && toc.length > 0 && (
           <div className="hidden xl:block max-w-80 flex-shrink-0 flex-1">
-            <div className="sticky top-24 border rounded-md">
+            <div className="sticky top-24 rounded-[var(--mk-radius-md)]" style={{ border: "1px solid var(--mk-border)", background: "var(--mk-bg-secondary)" }}>
               <TableOfContents
                 items={toc}
                 className="p-4"

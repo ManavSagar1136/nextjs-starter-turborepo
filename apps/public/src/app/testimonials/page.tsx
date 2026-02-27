@@ -2,7 +2,6 @@ import { Routes } from "@/data/routes";
 import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
-import { HeaderCard } from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 import TestimonialMarquee, { ITestimonial } from "@/components/testimonials/TestimonialMarquee";
 
@@ -68,15 +67,32 @@ const testimonials: ITestimonial[] = [
 
 const TestimonialWall = () => {
   return (
-    <PageWithHeaderFooter className="space-y-10">
-      <HeaderCard
-        mainTitle="Loved by developers worldwide"
-        subTitle="See what our customers are saying about us on Twitter"
-        h1
-      />
-      <div className="mx-auto grid max-w-4xl gap-6">
-        <TestimonialMarquee testimonials={testimonials} />
-      </div>
+    <PageWithHeaderFooter>
+      <section
+        className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
+        style={{ background: "var(--mk-bg-primary)" }}
+      >
+        <div className="mx-auto max-w-4xl space-y-10">
+          {/* Header */}
+          <div className="text-center">
+            <span className="mk-eyebrow mb-3 block">Testimonials</span>
+            <h1
+              className="font-extrabold leading-tight"
+              style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            >
+              Loved by developers <span className="mk-gradient-text">worldwide.</span>
+            </h1>
+            <p
+              className="mx-auto mt-4 max-w-xl leading-relaxed"
+              style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+            >
+              See what our customers are saying about us on Twitter
+            </p>
+          </div>
+
+          <TestimonialMarquee testimonials={testimonials} />
+        </div>
+      </section>
     </PageWithHeaderFooter>
   );
 };

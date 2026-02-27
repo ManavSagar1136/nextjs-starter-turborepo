@@ -1,169 +1,161 @@
 "use client";
 
 import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { TbStarFilled, TbQuote } from "react-icons/tb";
 
-import { Card, CardContent } from "@buildbase/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@buildbase/ui/carousel";
+import { CMS_TESTIMONIALS } from "@/data/landing";
+import { getMotionVariant, fadeUp, staggerContainer } from "@/lib/animation-variants";
 
-import { SiteConfig } from "@/config";
-import { cn } from "@buildbase/ui/lib/utils";
+function TestimonialCard({
+  text,
+  name,
+  job,
+  company,
+  highlightSentences,
+}: {
+  text: string;
+  name: string;
+  job: string;
+  company: string;
+  highlightSentences: string[];
+}) {
+  // Simple highlight: bold the matching sentence
+  const highlighted = highlightSentences.reduce((acc, sentence) => {
+    return acc.replace(sentence, `**${sentence}**`);
+  }, text);
 
-import HeaderCard from "@buildbase/components/common/header-card";
-import { ITestimonialItemProps, TestimonialItem } from "./TestimonialItem";
+  // Parse ** markers into bold spans
+  const parts = highlighted.split(/(\*\*.*?\*\*)/g);
 
-export const testimonials: ITestimonialItemProps[] = [
-  {
-    text: `Before using ${SiteConfig.name}, our workflows were scattered and slow. Now everything is streamlined and our team ships faster than ever.`,
-    name: "Alex Thompson",
-    highlightSentences: ["our team ships faster than ever"],
-    job: "Head of Engineering at CloudNest",
-    pictureUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704h",
-    company: "CloudNest",
-  },
-  {
-    text: `${SiteConfig.name} helped us scale without increasing operational complexity. It feels like the platform was built exactly for teams like ours.`,
-    name: "Priya Sharma",
-    highlightSentences: ["scale without increasing operational complexity"],
-    job: "Director of Operations at ScaleOps",
-    pictureUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704i",
-    company: "ScaleOps",
-  },
-  {
-    text: `We onboarded our entire organization to ${SiteConfig.name} in days, not weeks. The UX is intuitive and the impact was immediate.`,
-    name: "Michael Chen",
-    highlightSentences: ["in days, not weeks"],
-    job: "Product Lead at NovaTech",
-    pictureUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704j",
-    company: "NovaTech",
-  },
-  {
-    text: `From day one, ${SiteConfig.name} delivered real business value. It’s now a core part of how we operate and grow.`,
-    name: "Sarah Williams",
-    highlightSentences: ["a core part of how we operate and grow"],
-    job: "VP of Growth at Elevate Labs",
-    pictureUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704k",
-    company: "Elevate Labs",
-  },
-];
+  // Get initials for avatar
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2);
+
+  return (
+    <article
+      className="mk-card flex flex-col gap-5 p-6"
+      style={{ background: "var(--mk-bg-elevated)" }}
+    >
+      {/* Quote icon */}
+      <TbQuote
+        className="h-8 w-8 opacity-20"
+        style={{ color: "var(--mk-brand)" }}
+        aria-hidden="true"
+      />
+
+      {/* Quote text */}
+      <p
+        className="flex-1 leading-relaxed"
+        style={{ fontSize: "var(--mk-text-sm)", color: "var(--mk-text-secondary)" }}
+      >
+        {parts.map((part, i) =>
+          part.startsWith("**") ? (
+            <span key={i} className="font-semibold" style={{ color: "var(--mk-text-primary)" }}>
+              {part.replace(/\*\*/g, "")}
+            </span>
+          ) : (
+            <span key={i}>{part}</span>
+          ),
+        )}
+      </p>
+
+      {/* Stars */}
+      <div className="flex items-center gap-0.5">
+        {[...Array(5)].map((_, i) => (
+          <TbStarFilled key={i} className="h-4 w-4" style={{ color: "#F59E0B" }} aria-hidden="true" />
+        ))}
+      </div>
+
+      {/* Author */}
+      <div className="flex items-center gap-3 border-t pt-4" style={{ borderColor: "var(--mk-border)" }}>
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
+          style={{ background: "var(--mk-brand)" }}
+          aria-hidden="true"
+        >
+          {initials}
+        </div>
+        <div>
+          <p
+            className="text-sm font-semibold"
+            style={{ color: "var(--mk-text-primary)" }}
+          >
+            {name}
+          </p>
+          <p
+            className="text-xs"
+            style={{ color: "var(--mk-text-muted)" }}
+          >
+            {job}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 const Testimonials = () => {
-  const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
-
-  React.useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-  }, [api]);
-
-  const scrollTo = React.useCallback(
-    (index: number) => {
-      api?.scrollTo(index);
-    },
-    [api],
-  );
-
-  const handleKeyDown = React.useCallback(
-    (event: React.KeyboardEvent, index: number) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        scrollTo(index);
-      }
-    },
-    [scrollTo],
-  );
+  const shouldReduce = useReducedMotion();
+  const headlineVariant = getMotionVariant(shouldReduce, fadeUp);
+  const containerVariant = getMotionVariant(shouldReduce, staggerContainer);
+  const itemVariant = getMotionVariant(shouldReduce, fadeUp);
 
   return (
     <section
-      className="flex flex-col items-center justify-center w-full max-w-7xl mx-auto"
-      aria-label="Customer testimonials"
+      id="testimonials"
+      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
+      style={{ background: "var(--mk-bg-primary)" }}
+      aria-labelledby="testimonials-heading"
     >
-      <HeaderCard
-        mainTitle={<>You&apos;re in good company</>}
-        subTitle="Trusted by industry leaders and growing teams worldwide"
-      />
-
-      {/* Carousel Container */}
-      <div className="relative w-full max-w-3xl mx-auto">
-        <Carousel
-          setApi={setApi}
-          className="w-full"
-          opts={{
-            align: "start",
-          }}
+      <div className="mx-auto w-full max-w-[1280px]">
+        {/* Header */}
+        <motion.div
+          variants={headlineVariant}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="mb-12 text-center"
         >
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {testimonials.map((testimonial, index) => (
-              <CarouselItem
-                key={index}
-                className="pl-2 md:pl-4 basis-full cursor-grab"
-              >
-                <Card className="border-2 hover:border-brand-200 dark:hover:border-brand-800 transition-colors duration-300 shadow-lg hover:shadow-xl">
-                  <CardContent className="p-8">
-                    <TestimonialItem
-                      text={testimonial.text}
-                      name={testimonial.name}
-                      highlightSentences={testimonial.highlightSentences}
-                      job={testimonial.job}
-                      pictureUrl={testimonial.pictureUrl}
-                      company={testimonial.company}
-                    />
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-
-          {/* Navigation Arrows */}
-          <div className="hidden md:block">
-            <CarouselPrevious className="left-0 md:-left-12 lg:-left-16 h-10 w-10 border-2 shadow-md hover:shadow-lg transition-shadow" />
-            <CarouselNext className="right-0 md:-right-12 lg:-right-16 h-10 w-10 border-2 shadow-md hover:shadow-lg transition-shadow" />
-          </div>
-        </Carousel>
-
-        {/* Pagination Dots */}
-        <div className="flex items-center justify-center gap-2 mt-8 md:mt-12">
-          {Array.from({ length: count }).map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => scrollTo(index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={cn(
-                "h-2.5 w-2.5 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2",
-                current === index + 1
-                  ? "bg-brand-600 dark:bg-brand-400 w-8"
-                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
-              )}
-              aria-label={`Go to slide ${index + 1}`}
-              aria-current={current === index + 1 ? "true" : "false"}
-              tabIndex={0}
-            />
-          ))}
-        </div>
-
-        {/* Slide Counter */}
-        <div className="text-center mt-4">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium">{current}</span> of{" "}
-            <span className="font-medium">{count}</span>
+          <span className="mk-eyebrow mb-3 block">Testimonials</span>
+          <h2
+            id="testimonials-heading"
+            className="font-bold leading-tight"
+            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+          >
+            Loved by <span className="mk-gradient-text">developers.</span>
+          </h2>
+          <p
+            className="mx-auto mt-4 max-w-[480px] leading-relaxed"
+            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+          >
+            See what engineering leaders say about building with our CMS template.
           </p>
-        </div>
+        </motion.div>
+
+        {/* Cards grid */}
+        <motion.div
+          variants={containerVariant}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="mx-auto grid max-w-[1000px] gap-6 sm:grid-cols-2"
+        >
+          {CMS_TESTIMONIALS.map((t, i) => (
+            <motion.div key={i} variants={itemVariant}>
+              <TestimonialCard
+                text={t.text}
+                name={t.name}
+                job={t.job}
+                company={t.company}
+                highlightSentences={t.highlightSentences}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );

@@ -98,31 +98,46 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
   return (
     <div
       className={cn(
-        "min-h-screen bg-gradient-to-br from-background via-background to-muted/20",
+        "min-h-screen",
         className,
       )}
+      style={{ background: "var(--mk-bg-primary)" }}
     >
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-20"
+        className="relative overflow-hidden rounded-[var(--mk-radius-lg)] py-20"
+        style={{ background: "var(--mk-bg-secondary)" }}
       >
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+        <div
+          className="absolute inset-0"
+          style={{ background: "var(--mk-gradient-hero)" }}
+          aria-hidden="true"
+        />
         <div className="relative container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <span className="mk-eyebrow mb-4 block">Blog</span>
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-6"
+            className="font-extrabold leading-tight mb-6"
+            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
           >
-            Our Blog
+            Our <span className="mk-gradient-text">Blog</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
+            className="max-w-2xl mx-auto mb-8 leading-relaxed"
+            style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
           >
             Discover insights, tutorials, and the latest updates from our team
           </motion.p>
@@ -139,7 +154,12 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
               externalQuery={searchQuery}
               setExternalQuery={setSearchQuery}
               disableUrlStorage={true}
-              className="bg-background/80 backdrop-blur-sm"
+              className="backdrop-blur-sm"
+              style={{
+                background: "var(--mk-bg-elevated)",
+                borderColor: "var(--mk-border)",
+                color: "var(--mk-text-primary)",
+              }}
             />
           </motion.div>
         </div>
@@ -155,8 +175,8 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             className="w-full lg:w-80 space-y-6"
           >
             {/* View Toggle */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Card className="p-4" style={{ background: "var(--mk-bg-secondary)", borderColor: "var(--mk-border)" }}>
+              <h3 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--mk-text-primary)" }}>
                 <Grid3X3 className="h-4 w-4" />
                 View Mode
               </h3>
@@ -187,8 +207,8 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             </Card>
 
             {/* Sort Options */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Card className="p-4" style={{ background: "var(--mk-bg-secondary)", borderColor: "var(--mk-border)" }}>
+              <h3 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--mk-text-primary)" }}>
                 <TrendingUp className="h-4 w-4" />
                 Sort By
               </h3>
@@ -206,10 +226,10 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             </Card>
 
             {/* Tags Filter */}
-            <Card className="p-4">
+            <Card className="p-4" style={{ background: "var(--mk-bg-secondary)", borderColor: "var(--mk-border)" }}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center justify-between gap-4 w-full">
-                  <h3 className="font-semibold flex items-center gap-2">
+                  <h3 className="font-semibold flex items-center gap-2" style={{ color: "var(--mk-text-primary)" }}>
                     <TagIcon className="h-4 w-4" />
                     Tags
                   </h3>
@@ -239,9 +259,8 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
                     }
                     className={cn(
                       "cursor-pointer transition-all",
-                      selectedTags.includes(tag.slug) &&
-                        "bg-primary text-primary-foreground",
                     )}
+                    style={selectedTags.includes(tag.slug) ? { background: "var(--mk-brand)", color: "#fff", borderColor: "var(--mk-brand)" } : { borderColor: "var(--mk-border-bright)", color: "var(--mk-text-secondary)" }}
                     onClick={() => handleTagToggle(tag.slug)}
                   >
                     {tag.title}
@@ -251,20 +270,20 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             </Card>
 
             {/* Stats */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3">Stats</h3>
+            <Card className="p-4" style={{ background: "var(--mk-bg-secondary)", borderColor: "var(--mk-border)" }}>
+              <h3 className="font-semibold mb-3" style={{ color: "var(--mk-text-primary)" }}>Stats</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Posts</span>
-                  <span className="font-medium">{posts.length}</span>
+                  <span style={{ color: "var(--mk-text-muted)" }}>Total Posts</span>
+                  <span className="font-medium" style={{ color: "var(--mk-text-primary)" }}>{posts.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Showing</span>
-                  <span className="font-medium">{sortedPosts.length}</span>
+                  <span style={{ color: "var(--mk-text-muted)" }}>Showing</span>
+                  <span className="font-medium" style={{ color: "var(--mk-text-primary)" }}>{sortedPosts.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tags</span>
-                  <span className="font-medium">{allTags.length}</span>
+                  <span style={{ color: "var(--mk-text-muted)" }}>Tags</span>
+                  <span className="font-medium" style={{ color: "var(--mk-text-primary)" }}>{allTags.length}</span>
                 </div>
               </div>
             </Card>
@@ -340,9 +359,9 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
                 animate={{ opacity: 1 }}
                 className="text-center py-12"
               >
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No posts found</h3>
-                <p className="text-muted-foreground mb-4">
+                <BookOpen className="h-12 w-12 mx-auto mb-4" style={{ color: "var(--mk-text-muted)" }} />
+                <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--mk-text-primary)" }}>No posts found</h3>
+                <p className="mb-4" style={{ color: "var(--mk-text-secondary)" }}>
                   Try adjusting your search or filter criteria
                 </p>
                 <Button onClick={clearFilters} variant="outline">

@@ -5,7 +5,6 @@ import { FaXTwitter } from "react-icons/fa6";
 
 import BuiltWith from "@/components/builtWith/BuiltWith";
 import { Logo } from "@/components/logo/Logo";
-import { SparklesSiteNameText } from "@buildbase/components/common/SparklesSiteNameText";
 
 import { SiteConfig } from "@/config";
 import { isProductLaunched } from "@/lib/utils/launch-status";
@@ -31,21 +30,24 @@ const FOOTER_CONFIG: {
 } = {
   navItems: [
     {
-      label: "Links",
+      label: "Product",
       links: [
-        { label: "Blog", href: Routes.blogs },
+        { label: "Features", href: "#features" },
+        { label: "Pricing", href: Routes.pricing },
         { label: "Documentation", href: Routes.docs },
+        { label: "Blog", href: Routes.blogs },
         {
           label: "Changelog",
           href: Routes.changelogs,
           requiresProductLive: true,
         },
-        // {
-        //   label: "Affiliate — Earn 30%",
-        //   href: Routes.affiliates,
-        //   external: true,
-        //   requiresProductLive: true,
-        // },
+      ],
+    },
+    {
+      label: "Company",
+      links: [
+        { label: "Contact Us", href: Routes.contactus },
+        { label: "FAQs", href: Routes.faqs, requiresProductLive: true },
         {
           label: "Testimonials",
           href: Routes.testimonials,
@@ -56,8 +58,6 @@ const FOOTER_CONFIG: {
     {
       label: "Legal",
       links: [
-        { label: "Contact Us", href: Routes.contactus },
-        { label: "FAQs", href: Routes.faqs, requiresProductLive: true },
         { label: "Privacy Policy", href: Routes.privacy },
         { label: "Terms and Conditions", href: Routes.terms },
       ],
@@ -68,83 +68,108 @@ const FOOTER_CONFIG: {
     { name: "YouTube", url: SiteConfig.socials.youTubeLink, icon: FaYoutube },
     { name: "Twitter", url: SiteConfig.socials.twitterLink, icon: FaXTwitter },
   ],
-  copyright: `© Copyright ${new Date().getFullYear()} ${SiteConfig.name}. All rights reserved.`,
+  copyright: `\u00A9 ${new Date().getFullYear()} ${SiteConfig.name}. All rights reserved.`,
 };
 
 export const Footer = () => {
   const isProductLive = isProductLaunched();
 
   return (
-    <div className="mt-10 w-full space-y-10 px-6 md:space-y-16 lg:mt-16 lg:space-y-20">
-      <footer className="mb-10 flex w-full flex-col items-center *:justify-center">
-        <div className="border-border mb-20 flex w-full max-w-[1280px] items-center justify-center border-t pt-8">
-          <div className="flex w-full flex-col justify-between gap-6 md:flex-row">
-            {/* Left Section */}
-            <div className="flex flex-col items-start">
-              <div className="mb-2 flex items-center">
-                <Logo />
-                <span className="ml-2 text-base font-bold">
-                  <SparklesSiteNameText className="dark:text-brand-100" />
-                </span>
-              </div>
-              <p className="text-sm font-medium">Start making money today.</p>
-              <BuiltWith />
-
-              {/* Copyright */}
-              <p className="text-muted-foreground mb-10 text-xs">
-                <br />
-                {FOOTER_CONFIG.copyright}
-              </p>
+    <footer
+      className="w-full"
+      style={{ background: "var(--mk-bg-primary)" }}
+      role="contentinfo"
+    >
+      <div
+        className="mx-auto max-w-[1280px] border-t px-6 pt-12 pb-8"
+        style={{ borderColor: "var(--mk-border)" }}
+      >
+        <div className="flex flex-col justify-between gap-10 md:flex-row">
+          {/* Left Section — Logo + tagline */}
+          <div className="flex max-w-xs flex-col items-start">
+            <div className="mb-3 flex items-center gap-2">
+              <Logo />
+              <span
+                className="text-base font-bold"
+                style={{ color: "var(--mk-text-primary)" }}
+              >
+                {SiteConfig.name}
+              </span>
             </div>
+            <p
+              className="mb-4 text-sm leading-relaxed"
+              style={{ color: "var(--mk-text-secondary)" }}
+            >
+              The open-source CMS monorepo template for modern teams.
+            </p>
 
-            {/* Links Section */}
-            <div className="flex max-w-3xl flex-1 flex-wrap gap-6">
-              {FOOTER_CONFIG.navItems.map(section =>
-                section.links.length === 0 ? null : (
-                  <div key={section.label} className="flex w-full min-w-52 flex-1 flex-col space-y-3">
-                    <p className="text-sm font-bold uppercase">{section.label}</p>
-                    <div className="flex flex-col gap-1">
-                      {section.links.map((link: FooterLink) => {
-                        const { label, href, external, requiresProductLive } = link;
-                        return requiresProductLive && !isProductLive ? null : (
-                          <Link
-                            key={label}
-                            href={href}
-                            className="hover:underline"
-                            {...(external && {
-                              target: "_blank",
-                              rel: "noopener noreferrer",
-                            })}
-                          >
-                            {label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )
+            {/* Social icons */}
+            <div className="mb-6 flex items-center gap-4">
+              {FOOTER_CONFIG.socialLinks.map(({ name, url, icon: Icon }) =>
+                url ? (
+                  <Link
+                    key={name}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--mk-text-muted)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                    title={`Visit our ${name} page`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </Link>
+                ) : null,
               )}
-              <div className="flex w-full min-w-52 flex-1 flex-col space-y-3">
-                <p className="text-sm font-bold uppercase">Social</p>
-                <div className="mt-2 flex flex-wrap items-center gap-4">
-                  {FOOTER_CONFIG.socialLinks.map(({ name, url, icon: Icon }) => (
-                    <Link
-                      key={name}
-                      href={url!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground"
-                      title={`Visit our ${name} page`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </Link>
-                  ))}
-                </div>
-              </div>
             </div>
+
+            <BuiltWith />
+          </div>
+
+          {/* Right Section — Link columns */}
+          <div className="flex flex-1 flex-wrap gap-8 md:justify-end">
+            {FOOTER_CONFIG.navItems.map((section) =>
+              section.links.length === 0 ? null : (
+                <div key={section.label} className="flex min-w-[140px] flex-col gap-3">
+                  <p
+                    className="text-xs font-bold uppercase tracking-widest"
+                    style={{ color: "var(--mk-text-muted)" }}
+                  >
+                    {section.label}
+                  </p>
+                  {section.links.map((link: FooterLink) => {
+                    const { label, href, external, requiresProductLive } = link;
+                    return requiresProductLive && !isProductLive ? null : (
+                      <Link
+                        key={label}
+                        href={href}
+                        className="text-sm text-[var(--mk-text-secondary)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                        {...(external && {
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                        })}
+                      >
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ),
+            )}
           </div>
         </div>
-      </footer>
-    </div>
+
+        {/* Copyright */}
+        <div
+          className="mt-10 border-t pt-6 text-center"
+          style={{ borderColor: "var(--mk-border)" }}
+        >
+          <p
+            className="text-xs"
+            style={{ color: "var(--mk-text-muted)" }}
+          >
+            {FOOTER_CONFIG.copyright}
+          </p>
+        </div>
+      </div>
+    </footer>
   );
 };

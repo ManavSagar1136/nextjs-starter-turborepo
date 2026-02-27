@@ -12,9 +12,13 @@ const HeroBgWrapper = ({
   return (
     <div
       className={cn(
-        "h-auto bg-[linear-gradient(135deg,#667eea_0%,#764ba2_100%)] rounded-md flex flex-col justify-center items-center text-white py-4 lg:py-6 px-4 lg:px-6",
+        "h-auto rounded-[var(--mk-radius-md)] flex flex-col justify-center items-center py-4 lg:py-6 px-4 lg:px-6",
         classNames,
       )}
+      style={{
+        background: "var(--mk-bg-secondary)",
+        color: "var(--mk-text-primary)",
+      }}
     >
       {children}
     </div>

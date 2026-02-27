@@ -19,9 +19,11 @@ export default function PageWithHeaderFooter({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-items-center min-h-screen gap-10 font-[family-name:var(--font-geist-sans)]",
+        "flex flex-col items-center justify-items-center min-h-screen font-[family-name:var(--font-geist-sans)]",
+        !noWrapper && "gap-10",
         wrapperClassName,
       )}
+      style={{ background: "var(--mk-bg-primary)", color: "var(--mk-text-primary)" }}
     >
       <NavBar />
       {noWrapper ? (
