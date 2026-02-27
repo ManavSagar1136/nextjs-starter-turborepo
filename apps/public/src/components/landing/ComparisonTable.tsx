@@ -13,7 +13,7 @@ function CellValue({ value }: { value: boolean | string }) {
         className="inline-flex h-6 w-6 items-center justify-center rounded-full"
         style={{ background: "rgba(16, 185, 129, 0.15)" }}
       >
-        <Check size={14} style={{ color: "var(--mk-success)" }} />
+        <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
       </span>
     );
   }
@@ -28,7 +28,7 @@ function CellValue({ value }: { value: boolean | string }) {
     );
   }
   return (
-    <span className="text-xs font-medium" style={{ color: "var(--mk-warning)" }}>
+    <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
       {value}
     </span>
   );
@@ -42,8 +42,7 @@ export function ComparisonTable() {
   return (
     <section
       id="comparison"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-secondary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-slate-50 dark:bg-dark-surface-secondary"
       aria-labelledby="compare-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -58,14 +57,12 @@ export function ComparisonTable() {
           <span className="mk-eyebrow mb-3 block">Comparison</span>
           <h2
             id="compare-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             How we <span className="mk-gradient-text">stack up.</span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-[560px] leading-relaxed"
-            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto mt-4 max-w-[560px] leading-relaxed text-base text-slate-600 dark:text-slate-400"
           >
             See how BuildBase NextJS Starter compares to popular CMS platforms.
           </p>
@@ -80,24 +77,22 @@ export function ComparisonTable() {
           className="relative mx-auto max-w-[900px]"
         >
           {/* Scroll hint gradient for mobile */}
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-[var(--mk-bg-secondary)] to-transparent md:hidden" aria-hidden="true" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-slate-50 dark:from-dark-surface-secondary to-transparent md:hidden" aria-hidden="true" />
           <div className="overflow-x-auto">
           <table className="w-full min-w-[600px] border-collapse" role="table">
             <thead>
               <tr>
                 <th
-                  className="pb-4 pr-4 text-left text-sm font-semibold"
-                  style={{ color: "var(--mk-text-muted)" }}
+                  className="pb-4 pr-4 text-left text-sm font-semibold text-slate-400 dark:text-slate-600"
                 >
                   Feature
                 </th>
                 {COMPARISON_HEADERS.map((h) => (
                   <th
                     key={h.key}
-                    className="pb-4 text-center text-sm font-semibold"
-                    style={{
-                      color: h.highlight ? "var(--mk-brand)" : "var(--mk-text-secondary)",
-                    }}
+                    className={`pb-4 text-center text-sm font-semibold ${
+                      h.highlight ? "text-indigo-500" : "text-slate-600 dark:text-slate-400"
+                    }`}
                   >
                     {h.label}
                   </th>
@@ -108,12 +103,10 @@ export function ComparisonTable() {
               {COMPARISON_FEATURES.map((row: ComparisonFeature, i) => (
                 <tr
                   key={row.feature}
-                  className="border-t"
-                  style={{ borderColor: "var(--mk-border)" }}
+                  className="border-t border-slate-200 dark:border-slate-800"
                 >
                   <td
-                    className="py-3 pr-4 text-sm font-medium"
-                    style={{ color: "var(--mk-text-secondary)" }}
+                    className="py-3 pr-4 text-sm font-medium text-slate-600 dark:text-slate-400"
                   >
                     {row.feature}
                   </td>

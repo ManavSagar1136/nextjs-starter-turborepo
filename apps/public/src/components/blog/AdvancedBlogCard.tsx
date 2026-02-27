@@ -70,15 +70,14 @@ export function AdvancedBlogCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className={cn(
-          "group rounded-[var(--mk-radius-md)] transition-colors duration-200",
+          "group rounded-xl transition-colors duration-200 bg-slate-50 dark:bg-dark-surface-secondary border border-slate-200 dark:border-slate-800",
           className,
         )}
-        style={{ background: "var(--mk-bg-secondary)", border: "1px solid var(--mk-border)" }}
       >
         <Link href={data.url || computePostUrl(data)} aria-label={`Read blog post: ${data.title}`}>
           <div className="@container flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4">
             {/* Thumbnail - Small and on the left */}
-            <div className="flex-shrink-0 size-full sm:size-20 h-auto aspect-video sm:aspect-square rounded-md overflow-hidden" style={{ background: "var(--mk-bg-elevated)" }}>
+            <div className="flex-shrink-0 size-full sm:size-20 h-auto aspect-video sm:aspect-square rounded-md overflow-hidden bg-slate-100 dark:bg-dark-surface-elevated">
               <LazyImage
                 src={data.image || ""}
                 alt={data.title}
@@ -92,21 +91,20 @@ export function AdvancedBlogCard({
               {/* Title */}
               <h3
                 {...{ [TOC_ATTRIBUTES.EXCLUDE]: "true" }}
-                className="text-sm sm:text-base @sm:text-lg font-semibold line-clamp-1 transition-colors group-hover:text-[var(--mk-brand)]"
-                style={{ color: "var(--mk-text-primary)" }}
+                className="text-sm sm:text-base @sm:text-lg font-semibold line-clamp-1 transition-colors group-hover:text-indigo-500 text-slate-900 dark:text-slate-50"
               >
                 {data.title}
               </h3>
 
               {/* Description */}
               {(data.excerpt || data.description) && (
-                <p className="text-xs sm:text-sm line-clamp-2" style={{ color: "var(--mk-text-secondary)" }}>
+                <p className="text-xs sm:text-sm line-clamp-2 text-slate-600 dark:text-slate-400">
                   {data.excerpt || data.description}
                 </p>
               )}
 
               {/* Metadata */}
-              <div className="flex flex-wrap items-center gap-2 mt-auto sm:gap-3 text-[10px] sm:text-xs" style={{ color: "var(--mk-text-muted)" }}>
+              <div className="flex flex-wrap items-center gap-2 mt-auto sm:gap-3 text-[10px] sm:text-xs text-slate-400 dark:text-slate-600">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3 flex-shrink-0" />
                   <span className="whitespace-nowrap">
@@ -136,8 +134,7 @@ export function AdvancedBlogCard({
                       >
                         <Badge
                           variant="outline"
-                          className="text-[10px] px-1.5 py-0.5 h-5 whitespace-nowrap hover:bg-[var(--mk-bg-elevated)] transition-colors"
-                          style={{ borderColor: "var(--mk-border-bright)", color: "var(--mk-text-muted)" }}
+                          className="text-[10px] px-1.5 py-0.5 h-5 whitespace-nowrap hover:bg-slate-100 dark:hover:bg-dark-surface-elevated transition-colors border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-600"
                         >
                           {tag.title}
                         </Badge>
@@ -146,8 +143,7 @@ export function AdvancedBlogCard({
                     {blogTags.length > 1 && (
                       <Badge
                         variant="outline"
-                        className="text-[10px] px-1.5 py-0.5 h-5 whitespace-nowrap"
-                        style={{ borderColor: "var(--mk-border-bright)", color: "var(--mk-text-muted)" }}
+                        className="text-[10px] px-1.5 py-0.5 h-5 whitespace-nowrap border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-600"
                       >
                         +{blogTags.length - 1}
                       </Badge>
@@ -159,7 +155,7 @@ export function AdvancedBlogCard({
 
             {/* Read More Arrow */}
             <div className="hidden sm:flex flex-shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <ArrowRight className="h-4 w-4" style={{ color: "var(--mk-text-muted)" }} />
+              <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-600" />
             </div>
           </div>
         </Link>
@@ -174,11 +170,11 @@ export function AdvancedBlogCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "group mk-card rounded-[var(--mk-radius-lg)] overflow-hidden mk-card-static hover:-translate-y-2 hover:shadow-[var(--mk-shadow-lg)]",
-        featured && "border-[var(--mk-brand)]",
+        "group mk-card rounded-[20px] overflow-hidden mk-card-static hover:-translate-y-2 hover:shadow-lg",
+        featured && "border-indigo-500",
+        "bg-slate-50 dark:bg-dark-surface-secondary",
         className,
       )}
-      style={{ background: "var(--mk-bg-secondary)" }}
     >
       <Link
         href={data.url || computePostUrl(data)}
@@ -208,24 +204,22 @@ export function AdvancedBlogCard({
             {/* Share Button */}
             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                className="h-8 w-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-colors"
-                style={{ background: "var(--mk-bg-primary)", border: "1px solid var(--mk-border)" }}
+                className="h-8 w-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-colors bg-white dark:bg-dark-surface border border-slate-200 dark:border-slate-800"
                 onClick={handleShare}
               >
-                <Share2 className="h-4 w-4" style={{ color: "var(--mk-text-secondary)" }} />
+                <Share2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
               </button>
             </div>
           </div>
 
-          <div className="p-4 flex flex-col flex-1 space-y-4" style={{ background: "var(--mk-bg-secondary)" }}>
+          <div className="p-4 flex flex-col flex-1 space-y-4 bg-slate-50 dark:bg-dark-surface-secondary">
             {/* Folder */}
             {!hideGroups && data.folder && (
               <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                 <Link href={computeFolderUrl(data.folder)}>
                   <Badge
                     variant="outline"
-                    className="text-xs px-2 py-1 transition-colors cursor-pointer flex items-center gap-1.5"
-                    style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)", borderColor: "var(--mk-brand)" }}
+                    className="text-xs px-2 py-1 transition-colors cursor-pointer flex items-center gap-1.5 bg-indigo-500/[0.08] dark:bg-indigo-500/12 text-indigo-500 border-indigo-500"
                   >
                     <Layers className="h-3 w-3" />
                     {data.folder.name}
@@ -241,8 +235,7 @@ export function AdvancedBlogCard({
                   <Link key={tag.slug} href={tag.url || `${Routes.blogTags}/${tag.slug}`}>
                     <Badge
                       variant="secondary"
-                      className="text-xs px-2 py-1 transition-colors"
-                      style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)" }}
+                      className="text-xs px-2 py-1 transition-colors bg-indigo-500/[0.08] dark:bg-indigo-500/12 text-indigo-500"
                     >
                       {tag.title}
                     </Badge>
@@ -251,8 +244,7 @@ export function AdvancedBlogCard({
                 {blogTags.length > MAX_TAGS_DISPLAY && (
                   <Badge
                     variant="outline"
-                    className="text-xs px-2 py-1"
-                    style={{ borderColor: "var(--mk-border-bright)", color: "var(--mk-text-secondary)" }}
+                    className="text-xs px-2 py-1 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400"
                   >
                     +{blogTags.length - MAX_TAGS_DISPLAY}
                   </Badge>
@@ -263,21 +255,20 @@ export function AdvancedBlogCard({
             {/* Title */}
             <h3
               {...{ [TOC_ATTRIBUTES.EXCLUDE]: "true" }}
-              className="text-lg font-bold line-clamp-2 transition-colors group-hover:text-[var(--mk-brand)]"
-              style={{ color: "var(--mk-text-primary)" }}
+              className="text-lg font-bold line-clamp-2 transition-colors group-hover:text-indigo-500 text-slate-900 dark:text-slate-50"
             >
               {data.title}
             </h3>
 
             {/* Description */}
             {(data.excerpt || data.description) && (
-              <p className="text-sm line-clamp-3" style={{ color: "var(--mk-text-secondary)" }}>
+              <p className="text-sm line-clamp-3 text-slate-600 dark:text-slate-400">
                 {data.excerpt || data.description}
               </p>
             )}
 
             {/* Meta */}
-            <div className="flex items-center justify-between text-xs" style={{ color: "var(--mk-text-muted)" }}>
+            <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-600">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
@@ -303,12 +294,12 @@ export function AdvancedBlogCard({
 
             {/* Read More */}
             <div className="flex items-end justify-between flex-1">
-              <span className="text-sm font-medium transition-colors group-hover:text-[var(--mk-brand)]" style={{ color: "var(--mk-text-primary)" }}>
+              <span className="text-sm font-medium transition-colors group-hover:text-indigo-500 text-slate-900 dark:text-slate-50">
                 Read More
                 <ArrowRight className="ml-2 h-4 w-4 inline group-hover:translate-x-1 transition-transform" />
               </span>
 
-              <div className="flex items-center gap-1 text-xs" style={{ color: "var(--mk-text-muted)" }}>
+              <div className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-600">
                 <BookOpen className="h-3 w-3" />
                 <span>{readingTime} min</span>
               </div>

@@ -12,7 +12,7 @@ function syntaxHighlight(code: string) {
     // Comments
     if (line.trimStart().startsWith("//")) {
       return (
-        <span key={i} style={{ color: "var(--mk-text-muted)" }}>
+        <span key={i} className="text-slate-400 dark:text-slate-600">
           {highlighted}
         </span>
       );
@@ -60,7 +60,7 @@ function syntaxHighlight(code: string) {
               </span>
             );
           }
-          return <span key={j} style={{ color: "var(--mk-text-secondary)" }}>{part}</span>;
+          return <span key={j} className="text-slate-600 dark:text-slate-400">{part}</span>;
         })}
       </span>
     );
@@ -77,8 +77,7 @@ export function CodePreview() {
   return (
     <section
       id="code-preview"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-labelledby="code-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -93,14 +92,12 @@ export function CodePreview() {
           <span className="mk-eyebrow mb-3 block">Developer Experience</span>
           <h2
             id="code-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             Define your content. <span className="mk-gradient-text">Ship it.</span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-[560px] leading-relaxed"
-            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto mt-4 max-w-[560px] leading-relaxed text-base text-slate-600 dark:text-slate-400"
           >
             Type-safe content models powered by Prisma. Your schema becomes your API,
             your types, and your admin forms — automatically.
@@ -116,16 +113,14 @@ export function CodePreview() {
           className="mx-auto max-w-[720px]"
         >
           <div
-            className="overflow-hidden rounded-[var(--mk-radius-lg)] border"
+            className="overflow-hidden rounded-[20px] border bg-slate-50 dark:bg-dark-surface-secondary"
             style={{
               borderColor: "rgba(99, 102, 241, 0.2)",
-              background: "var(--mk-bg-secondary)",
             }}
           >
             {/* Terminal header */}
             <div
-              className="flex items-center gap-2 border-b px-4 py-3"
-              style={{ borderColor: "var(--mk-border)" }}
+              className="flex items-center gap-2 border-b px-4 py-3 border-slate-200 dark:border-slate-800"
             >
               <div className="flex gap-1.5">
                 <div className="h-3 w-3 rounded-full" style={{ background: "#EF4444" }} />
@@ -133,8 +128,7 @@ export function CodePreview() {
                 <div className="h-3 w-3 rounded-full" style={{ background: "#10B981" }} />
               </div>
               <span
-                className="ml-2 font-mono text-xs"
-                style={{ color: "var(--mk-text-muted)" }}
+                className="ml-2 font-mono text-xs text-slate-400 dark:text-slate-600"
               >
                 schema.prisma
               </span>
@@ -142,8 +136,7 @@ export function CodePreview() {
 
             {/* Code content */}
             <pre
-              className="overflow-x-auto p-6 font-mono text-sm leading-relaxed"
-              style={{ color: "var(--mk-text-secondary)" }}
+              className="overflow-x-auto p-6 font-mono text-sm leading-relaxed text-slate-600 dark:text-slate-400"
             >
               <code>
                 {lines.map((line, i) => (

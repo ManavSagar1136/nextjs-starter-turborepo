@@ -39,12 +39,10 @@ export function BlogContentServer({
     >
       {/* Hero Section */}
       <div
-        className="relative overflow-hidden py-8 md:py-10 lg:py-16 rounded-[var(--mk-radius-lg)]"
-        style={{ background: "var(--mk-bg-secondary)" }}
+        className="relative overflow-hidden py-8 md:py-10 lg:py-16 rounded-[20px] bg-slate-50 dark:bg-dark-surface-secondary"
       >
         <div
-          className="absolute inset-0"
-          style={{ background: "var(--mk-gradient-hero)" }}
+          className="absolute inset-0 mk-gradient-hero"
           aria-hidden="true"
         />
         <div className="relative container mx-auto px-4">
@@ -54,9 +52,8 @@ export function BlogContentServer({
               as="h1"
               preset="slideUp"
               delay={0.3}
-              className="text-2xl md:text-3xl lg:text-5xl font-bold scroll-m-40"
+              className="text-2xl md:text-3xl lg:text-5xl font-bold scroll-m-40 text-slate-900 dark:text-slate-50"
               elementProps={{ [TOC_ATTRIBUTES.EXCLUDE]: "true" }}
-              style={{ color: "var(--mk-text-primary)" }}
             >
               {post.title}
             </MotionWrapper>
@@ -67,8 +64,7 @@ export function BlogContentServer({
                 as="p"
                 preset="slideUp"
                 delay={0.4}
-                className="text-base md:text-lg lg:text-xl max-w-3xl mx-auto"
-                style={{ color: "var(--mk-text-secondary)" }}
+                className="text-base md:text-lg lg:text-xl max-w-3xl mx-auto text-slate-600 dark:text-slate-400"
               >
                 {post.description || post.excerpt}
               </MotionWrapper>
@@ -78,8 +74,7 @@ export function BlogContentServer({
             <MotionWrapper
               preset="slideUp"
               delay={0.5}
-              className="flex flex-wrap items-center justify-center gap-6 text-sm"
-              style={{ color: "var(--mk-text-muted)" }}
+              className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400 dark:text-slate-600"
             >
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -125,8 +120,7 @@ export function BlogContentServer({
                   >
                     <Badge
                       variant="secondary"
-                      className="transition-colors cursor-pointer"
-                      style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)" }}
+                      className="transition-colors cursor-pointer bg-indigo-500/[0.08] dark:bg-indigo-500/12 text-indigo-500"
                     >
                       {tag.title}
                     </Badge>

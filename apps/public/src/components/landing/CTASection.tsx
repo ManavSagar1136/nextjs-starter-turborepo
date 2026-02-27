@@ -17,8 +17,7 @@ export function CTASection() {
 
   return (
     <section
-      className="relative w-full overflow-hidden py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="relative w-full overflow-hidden py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-label="Call to action"
     >
       {/* Background glow */}
@@ -38,15 +37,13 @@ export function CTASection() {
         className="relative z-10 mx-auto flex max-w-[720px] flex-col items-center gap-6 text-center"
       >
         <h2
-          className="font-extrabold leading-tight"
-          style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+          className="font-extrabold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
         >
           Start building your CMS{" "}
           <span className="mk-gradient-text">today.</span>
         </h2>
         <p
-          className="max-w-[480px] leading-relaxed"
-          style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+          className="max-w-[480px] leading-relaxed text-lg text-slate-600 dark:text-slate-400"
         >
           Clone the template, define your content models, and deploy — all in under 10 minutes.
           No vendor lock-in. No monthly fees. Just code.
@@ -58,8 +55,7 @@ export function CTASection() {
             <button
               onClick={onGetStartedClick}
               disabled={isLoadingCta || isLoginLoading}
-              className="inline-flex items-center justify-center rounded-[var(--mk-radius-sm)] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ background: "var(--mk-brand)", boxShadow: "var(--mk-shadow-brand)" }}
+              className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 bg-indigo-500 shadow-[0_0_32px_rgba(99,102,241,0.15)] dark:shadow-[0_0_32px_rgba(99,102,241,0.25)]"
               aria-label={isLogged ? "Go to the app" : "Get started for free"}
             >
               {isLogged ? "Go to app" : "Get Started Free"}
@@ -70,7 +66,7 @@ export function CTASection() {
             onClick={() =>
               window.open(SiteConfig.calendlyLink, "_blank", "noopener,noreferrer")
             }
-            className="inline-flex items-center justify-center gap-2 rounded-[var(--mk-radius-sm)] border border-[var(--mk-border-bright)] px-6 py-3 text-sm font-medium text-[var(--mk-text-secondary)] transition-all duration-200 hover:border-[var(--mk-brand)] hover:text-[var(--mk-text-primary)]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-6 py-3 text-sm font-medium text-slate-600 dark:text-slate-400 transition-all duration-200 hover:border-indigo-500 hover:text-slate-900 dark:hover:text-slate-50"
             aria-label="Book a demo"
           >
             <Play size={14} strokeWidth={2} />

@@ -14,8 +14,7 @@ export function TechStackGrid() {
   return (
     <section
       id="tech-stack"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-labelledby="tech-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -30,14 +29,12 @@ export function TechStackGrid() {
           <span className="mk-eyebrow mb-3 block">Tech Stack</span>
           <h2
             id="tech-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             Built with <span className="mk-gradient-text">modern tools.</span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-[560px] leading-relaxed"
-            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto mt-4 max-w-[560px] leading-relaxed text-base text-slate-600 dark:text-slate-400"
           >
             Industry-standard technologies you already know and love.
           </p>
@@ -56,8 +53,7 @@ export function TechStackGrid() {
             return (
               <motion.div key={category} variants={itemVariant}>
                 <h3
-                  className="mk-eyebrow mb-3"
-                  style={{ color: "var(--mk-accent)" }}
+                  className="mk-eyebrow mb-3 text-cyan-600 dark:text-cyan-400"
                 >
                   {category}
                 </h3>
@@ -65,12 +61,7 @@ export function TechStackGrid() {
                   {items.map((item) => (
                     <span
                       key={item.name}
-                      className="rounded-[var(--mk-radius-full)] border px-3 py-1.5 text-sm font-medium transition-colors duration-200"
-                      style={{
-                        borderColor: "var(--mk-border)",
-                        color: "var(--mk-text-secondary)",
-                        background: "var(--mk-bg-elevated)",
-                      }}
+                      className="rounded-full border px-3 py-1.5 text-sm font-medium transition-colors duration-200 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-dark-surface-elevated"
                     >
                       {item.name}
                     </span>

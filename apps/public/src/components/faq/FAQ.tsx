@@ -22,8 +22,7 @@ export const FAQ = ({ faqs }: { faqs: FAQQuestionProps[] }) => {
   return (
     <section
       id="faq"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-secondary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-slate-50 dark:bg-dark-surface-secondary"
       aria-labelledby="faq-heading"
     >
       <div className="mx-auto max-w-[720px]">
@@ -38,14 +37,12 @@ export const FAQ = ({ faqs }: { faqs: FAQQuestionProps[] }) => {
           <span className="mk-eyebrow mb-3 block">FAQ</span>
           <h2
             id="faq-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             Frequently asked <span className="mk-gradient-text">questions.</span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-[480px] leading-relaxed"
-            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto mt-4 max-w-[480px] leading-relaxed text-base text-slate-600 dark:text-slate-400"
           >
             Everything you need to know about the CMS monorepo template.
           </p>
@@ -76,18 +73,16 @@ export const FAQ = ({ faqs }: { faqs: FAQQuestionProps[] }) => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="mt-10 border-t pt-6 text-center"
-          style={{ borderColor: "var(--mk-border)" }}
+          className="mt-10 border-t pt-6 text-center border-slate-200 dark:border-slate-800"
         >
           <p
-            className="mb-4 text-sm"
-            style={{ color: "var(--mk-text-muted)" }}
+            className="mb-4 text-sm text-slate-400 dark:text-slate-600"
           >
             Still have questions?
           </p>
           <button
             onClick={handleContactSupport}
-            className="inline-flex items-center gap-2 rounded-[var(--mk-radius-sm)] border border-[var(--mk-border-bright)] px-5 py-2.5 text-sm font-medium text-[var(--mk-text-secondary)] transition-all duration-200 hover:border-[var(--mk-brand)] hover:text-[var(--mk-text-primary)]"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition-all duration-200 hover:border-indigo-500 hover:text-slate-900 dark:hover:text-slate-50"
             aria-label="Contact support team"
           >
             <Mail size={16} />

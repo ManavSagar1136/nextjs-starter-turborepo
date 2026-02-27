@@ -36,17 +36,16 @@ function ContentTypeVisual() {
   return (
     <div className="mt-3 space-y-1.5" aria-hidden="true">
       {[
-        { name: "BlogPost", fields: 8, color: "var(--mk-brand)" },
-        { name: "Page", fields: 5, color: "var(--mk-accent)" },
-        { name: "Product", fields: 12, color: "var(--mk-success)" },
-      ].map(({ name, fields, color }) => (
+        { name: "BlogPost", fields: 8, colorClass: "text-indigo-500" },
+        { name: "Page", fields: 5, colorClass: "text-cyan-600 dark:text-cyan-400" },
+        { name: "Product", fields: 12, colorClass: "text-emerald-600 dark:text-emerald-400" },
+      ].map(({ name, fields, colorClass }) => (
         <div
           key={name}
-          className="flex items-center justify-between rounded-[var(--mk-radius-sm)] px-3 py-1.5"
-          style={{ background: "var(--mk-bg-primary)" }}
+          className="flex items-center justify-between rounded-lg px-3 py-1.5 bg-white dark:bg-dark-surface"
         >
-          <span className="text-xs font-medium" style={{ color }}>{name}</span>
-          <span className="text-[10px]" style={{ color: "var(--mk-text-muted)" }}>{fields} fields</span>
+          <span className={`text-xs font-medium ${colorClass}`}>{name}</span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-600">{fields} fields</span>
         </div>
       ))}
     </div>
@@ -56,21 +55,20 @@ function ContentTypeVisual() {
 function ApiSnippet() {
   return (
     <div
-      className="mt-3 whitespace-pre rounded-[var(--mk-radius-sm)] p-3 font-mono text-[11px] leading-relaxed"
-      style={{ background: "var(--mk-bg-primary)", color: "var(--mk-text-muted)" }}
+      className="mt-3 whitespace-pre rounded-lg p-3 font-mono text-[11px] leading-relaxed bg-white dark:bg-dark-surface text-slate-400 dark:text-slate-600"
       aria-hidden="true"
     >
-      <span style={{ color: "var(--mk-accent)" }}>GET</span>{" "}
-      <span style={{ color: "var(--mk-text-secondary)" }}>/api/posts</span>
+      <span className="text-cyan-600 dark:text-cyan-400">GET</span>{" "}
+      <span className="text-slate-600 dark:text-slate-400">/api/posts</span>
       {"\n"}
-      <span style={{ color: "var(--mk-brand)" }}>{"{"}</span>
+      <span className="text-indigo-500">{"{"}</span>
       {"\n  "}
-      <span style={{ color: "var(--mk-text-secondary)" }}>&quot;data&quot;</span>
+      <span className="text-slate-600 dark:text-slate-400">&quot;data&quot;</span>
       {": ["}
-      <span style={{ color: "var(--mk-success)" }}>...</span>
+      <span className="text-emerald-600 dark:text-emerald-400">...</span>
       {"]"}
       {"\n"}
-      <span style={{ color: "var(--mk-brand)" }}>{"}"}</span>
+      <span className="text-indigo-500">{"}"}</span>
     </div>
   );
 }
@@ -85,11 +83,10 @@ function RoleVisual() {
       ].map(({ label, pct }) => (
         <div
           key={label}
-          className="flex-1 rounded-[var(--mk-radius-sm)] p-2 text-center"
-          style={{ background: "var(--mk-bg-primary)" }}
+          className="flex-1 rounded-lg p-2 text-center bg-white dark:bg-dark-surface"
         >
-          <p className="text-xs font-bold" style={{ color: "var(--mk-brand)" }}>{pct}</p>
-          <p className="text-[10px]" style={{ color: "var(--mk-text-muted)" }}>{label}</p>
+          <p className="text-xs font-bold text-indigo-500">{pct}</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-600">{label}</p>
         </div>
       ))}
     </div>
@@ -107,11 +104,11 @@ function MultiAppVisual() {
       ].map(({ label, color }) => (
         <div
           key={label}
-          className="flex-1 rounded-[var(--mk-radius-sm)] border p-2 text-center"
+          className="flex-1 rounded-lg border p-2 text-center"
           style={{ borderColor: `${color}33` }}
         >
           <div className="mx-auto mb-1 h-1.5 w-1.5 rounded-full" style={{ background: color }} />
-          <p className="text-[10px]" style={{ color: "var(--mk-text-muted)" }}>{label}</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-600">{label}</p>
         </div>
       ))}
     </div>
@@ -203,11 +200,10 @@ function BentoCard({ feature, shouldReduce }: BentoCardProps) {
     >
       {/* Icon */}
       <div
-        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-[var(--mk-radius-sm)]"
-        style={{ background: "var(--mk-brand-muted)" }}
+        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/[0.08] dark:bg-indigo-500/12"
         aria-hidden="true"
       >
-        <Icon size={18} style={{ color: "var(--mk-brand)" }} strokeWidth={1.5} />
+        <Icon size={18} className="text-indigo-500" strokeWidth={1.5} />
       </div>
 
       {/* Label */}
@@ -215,16 +211,14 @@ function BentoCard({ feature, shouldReduce }: BentoCardProps) {
 
       {/* Title */}
       <h3
-        className="font-semibold leading-snug"
-        style={{ fontSize: "var(--mk-text-xl)", color: "var(--mk-text-primary)" }}
+        className="font-semibold leading-snug text-xl md:text-2xl text-slate-900 dark:text-slate-50"
       >
         {feature.title}
       </h3>
 
       {/* Description */}
       <p
-        className="mt-2 leading-relaxed"
-        style={{ fontSize: "var(--mk-text-sm)", color: "var(--mk-text-secondary)" }}
+        className="mt-2 leading-relaxed text-sm text-slate-600 dark:text-slate-400"
       >
         {feature.description}
       </p>
@@ -249,8 +243,7 @@ export const Features = ({ showCta: _showCta = true }: FeaturesProps) => {
   return (
     <section
       id="features"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-labelledby="features-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -266,15 +259,13 @@ export const Features = ({ showCta: _showCta = true }: FeaturesProps) => {
           <span className="mk-eyebrow mb-3 block">Platform Features</span>
           <h2
             id="features-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             Everything your CMS needs to{" "}
             <span className="mk-gradient-text">scale.</span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-[560px] leading-relaxed"
-            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto mt-4 max-w-[560px] leading-relaxed text-base text-slate-600 dark:text-slate-400"
           >
             From content modeling to multi-app deployment — a complete CMS
             platform built for developer teams.

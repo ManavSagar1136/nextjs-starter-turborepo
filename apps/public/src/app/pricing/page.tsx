@@ -18,22 +18,19 @@ export default function PricingPage() {
   return (
     <PageWithHeaderFooter>
       <section
-        className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-        style={{ background: "var(--mk-bg-primary)" }}
+        className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       >
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <div className="mb-12 text-center">
             <span className="mk-eyebrow mb-3 block">Pricing</span>
             <h1
-              className="mb-4 font-extrabold tracking-tight leading-tight"
-              style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+              className="mb-4 font-extrabold tracking-tight leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
             >
               Simple Pricing. <span className="mk-gradient-text">No Surprises.</span>
             </h1>
             <p
-              className="mx-auto max-w-2xl leading-relaxed"
-              style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+              className="mx-auto max-w-2xl leading-relaxed text-lg text-slate-600 dark:text-slate-400"
             >
               Start free and scale as you grow. Upgrade, downgrade, or cancel anytime.
             </p>

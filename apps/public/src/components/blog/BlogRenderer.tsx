@@ -67,7 +67,7 @@ const BlogRenderer = ({
   }, [post.content, post.title]);
 
   return (
-    <div className="flex flex-col min-h-screen max-md:overflow-hidden" style={{ background: "var(--mk-bg-primary)" }}>
+    <div className="flex flex-col min-h-screen max-md:overflow-hidden bg-white dark:bg-dark-surface">
       {/* Reading Progress */}
       <ReadingProgress />
 
@@ -76,7 +76,7 @@ const BlogRenderer = ({
         {/* Table of Contents - Desktop */}
 
         <div className="hidden lg:block flex-shrink-0 order-10 w-fit">
-          <div className="sticky top-24 rounded-[var(--mk-radius-md)]" style={{ border: "1px solid var(--mk-border)", background: "var(--mk-bg-secondary)" }}>
+          <div className="sticky top-24 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-dark-surface-secondary">
             <TableOfContents
               items={toc}
               className="p-4 w-80"

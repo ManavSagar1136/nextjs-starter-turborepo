@@ -7,19 +7,16 @@ const NotFound = () => {
   return (
     <PageWithHeaderFooter>
       <section
-        className="flex min-h-[60vh] flex-col items-center justify-center px-[var(--mk-section-x)]"
-        style={{ background: "var(--mk-bg-primary)" }}
+        className="flex min-h-[60vh] flex-col items-center justify-center px-5 md:px-20 bg-white dark:bg-dark-surface"
       >
         <div className="space-y-4 text-center">
           <h1
-            className="font-extrabold mk-gradient-text"
-            style={{ fontSize: "var(--mk-text-hero)" }}
+            className="font-extrabold mk-gradient-text text-6xl md:text-7xl"
           >
             404
           </h1>
           <p
-            className="mx-auto max-w-md leading-relaxed"
-            style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto max-w-md leading-relaxed text-lg text-slate-600 dark:text-slate-400"
           >
             Oops! The page you&apos;re looking for doesn&apos;t exist. Please verify the URL or navigate back to the homepage.
           </p>

@@ -24,14 +24,12 @@ const ContactUs = () => {
           <div className="text-center">
             <span className="mk-eyebrow mb-3 block">Contact</span>
             <h1
-              className="font-extrabold leading-tight"
-              style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+              className="font-extrabold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
             >
               {ContactUsData.headingText}
             </h1>
             <p
-              className="mx-auto mt-4 max-w-xl leading-relaxed"
-              style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+              className="mx-auto mt-4 max-w-xl leading-relaxed text-lg text-slate-600 dark:text-slate-400"
             >
               {ContactUsData.subText}
             </p>

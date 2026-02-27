@@ -14,8 +14,7 @@ export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-secondary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-slate-50 dark:bg-dark-surface-secondary"
       aria-labelledby="how-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -30,8 +29,7 @@ export function HowItWorks() {
           <span className="mk-eyebrow mb-3 block">How It Works</span>
           <h2
             id="how-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             Up and running in <span className="mk-gradient-text">3 steps.</span>
           </h2>
@@ -47,8 +45,7 @@ export function HowItWorks() {
         >
           {/* Connector line (desktop only) */}
           <div
-            className="absolute top-12 left-[16.66%] right-[16.66%] hidden h-px md:block"
-            style={{ background: "var(--mk-border-bright)" }}
+            className="absolute top-12 left-[16.66%] right-[16.66%] hidden h-px md:block bg-slate-300 dark:bg-slate-700"
             aria-hidden="true"
           />
 
@@ -60,36 +57,28 @@ export function HowItWorks() {
             >
               {/* Step number */}
               <div
-                className="mb-6 flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold text-white"
-                style={{ background: "var(--mk-brand)" }}
+                className="mb-6 flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold text-white bg-indigo-500"
               >
                 {step.step}
               </div>
 
               {/* Title */}
               <h3
-                className="mb-3 font-semibold"
-                style={{ fontSize: "var(--mk-text-xl)", color: "var(--mk-text-primary)" }}
+                className="mb-3 font-semibold text-xl md:text-2xl text-slate-900 dark:text-slate-50"
               >
                 {step.title}
               </h3>
 
               {/* Description */}
               <p
-                className="mb-4 max-w-[320px] leading-relaxed"
-                style={{ fontSize: "var(--mk-text-sm)", color: "var(--mk-text-secondary)" }}
+                className="mb-4 max-w-[320px] leading-relaxed text-sm text-slate-600 dark:text-slate-400"
               >
                 {step.description}
               </p>
 
               {/* Code snippet */}
               <code
-                className="rounded-[var(--mk-radius-sm)] px-4 py-2 font-mono text-sm"
-                style={{
-                  background: "var(--mk-bg-primary)",
-                  color: "var(--mk-accent)",
-                  border: "1px solid var(--mk-border)",
-                }}
+                className="rounded-lg px-4 py-2 font-mono text-sm bg-white dark:bg-dark-surface text-cyan-600 dark:text-cyan-400 border border-slate-200 dark:border-slate-800"
               >
                 {step.code}
               </code>

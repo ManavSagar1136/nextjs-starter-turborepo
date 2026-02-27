@@ -82,8 +82,7 @@ const NewsletterComponent = () => {
 
   return (
     <section
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-label="Newsletter signup"
     >
       <motion.div
@@ -95,14 +94,12 @@ const NewsletterComponent = () => {
       >
         <span className="mk-eyebrow mb-3 block">Newsletter</span>
         <h2
-          className="mb-4 font-bold leading-tight"
-          style={{ fontSize: "var(--mk-text-2xl)", color: "var(--mk-text-primary)" }}
+          className="mb-4 font-bold leading-tight text-2xl md:text-3xl text-slate-900 dark:text-slate-50"
         >
           Stay in the loop.
         </h2>
         <p
-          className="mb-8 leading-relaxed"
-          style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+          className="mb-8 leading-relaxed text-base text-slate-600 dark:text-slate-400"
         >
           Get the latest updates, tutorials, and releases delivered to your inbox.
         </p>
@@ -111,12 +108,7 @@ const NewsletterComponent = () => {
           <Input
             type="email"
             placeholder="you@company.com"
-            className="flex-1 rounded-[var(--mk-radius-sm)] border px-4 py-2.5 text-sm"
-            style={{
-              background: "var(--mk-bg-elevated)",
-              borderColor: "var(--mk-border)",
-              color: "var(--mk-text-primary)",
-            }}
+            className="flex-1 rounded-lg border px-4 py-2.5 text-sm bg-slate-100 dark:bg-dark-surface-elevated border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-50"
             value={email}
             disabled={isLoading}
             onChange={(e) => setEmail(e.target.value)}

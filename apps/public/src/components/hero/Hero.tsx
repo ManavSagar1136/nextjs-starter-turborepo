@@ -54,14 +54,11 @@ function HeroBackground({ shouldReduce }: { shouldReduce: boolean | null }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* Base dark fill */}
-      <div className="absolute inset-0" style={{ background: "var(--mk-bg-primary)" }} />
+      <div className="absolute inset-0 bg-white dark:bg-dark-surface" />
 
       {/* Radial mesh gradient */}
       <motion.div
-        className="absolute inset-0"
-        style={{
-          background: "var(--mk-gradient-hero)",
-        }}
+        className="absolute inset-0 mk-gradient-hero"
         animate={
           shouldReduce
             ? {}
@@ -93,15 +90,13 @@ function PulsingDot({ shouldReduce }: { shouldReduce: boolean | null }) {
     <span className="relative mr-2 inline-flex h-2 w-2" aria-hidden="true">
       {!shouldReduce && (
         <motion.span
-          className="absolute inline-flex h-full w-full rounded-full"
-          style={{ backgroundColor: "var(--mk-brand)" }}
+          className="absolute inline-flex h-full w-full rounded-full bg-indigo-500"
           animate={{ scale: [1, 1.8, 1], opacity: [0.7, 0, 0.7] }}
           transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
         />
       )}
       <span
-        className="relative inline-flex h-2 w-2 rounded-full"
-        style={{ backgroundColor: "var(--mk-brand)" }}
+        className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500"
       />
     </span>
   );
@@ -111,25 +106,23 @@ function PulsingDot({ shouldReduce }: { shouldReduce: boolean | null }) {
 function HeroVisualMockup() {
   return (
     <div
-      className="mk-card relative mx-auto w-full max-w-[520px] overflow-hidden p-5"
-      style={{ background: "var(--mk-bg-secondary)" }}
+      className="mk-card relative mx-auto w-full max-w-[520px] overflow-hidden p-5 bg-slate-50 dark:bg-dark-surface-secondary"
       aria-hidden="true"
     >
       {/* Card header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--mk-brand)" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-500">
             Content Dashboard
           </p>
-          <p className="text-sm font-semibold" style={{ color: "var(--mk-text-primary)" }}>
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
             BuildBase NextJS Starter Admin
           </p>
         </div>
         <span
-          className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+          className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
           style={{
             background: "rgba(16,185,129,0.12)",
-            color: "var(--mk-success)",
           }}
         >
           Live
@@ -146,13 +139,12 @@ function HeroVisualMockup() {
         ].map(({ label, value }) => (
           <div
             key={label}
-            className="rounded-[var(--mk-radius-sm)] p-2.5 text-center"
-            style={{ background: "var(--mk-bg-elevated)" }}
+            className="rounded-lg p-2.5 text-center bg-slate-100 dark:bg-dark-surface-elevated"
           >
-            <p className="text-[10px]" style={{ color: "var(--mk-text-muted)" }}>
+            <p className="text-[10px] text-slate-400 dark:text-slate-600">
               {label}
             </p>
-            <p className="text-sm font-bold" style={{ color: "var(--mk-text-primary)" }}>
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-50">
               {value}
             </p>
           </div>
@@ -168,23 +160,24 @@ function HeroVisualMockup() {
         ].map(({ title, status, type }) => (
           <div
             key={title}
-            className="flex items-center justify-between rounded-[var(--mk-radius-sm)] px-3 py-2"
-            style={{ background: "var(--mk-bg-elevated)" }}
+            className="flex items-center justify-between rounded-lg px-3 py-2 bg-slate-100 dark:bg-dark-surface-elevated"
           >
             <div className="flex min-w-0 items-center gap-2">
               <span
-                className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase"
-                style={{ background: "var(--mk-brand-muted)", color: "var(--mk-brand)" }}
+                className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase bg-indigo-500/[0.08] dark:bg-indigo-500/12 text-indigo-500"
               >
                 {type}
               </span>
-              <span className="truncate text-xs" style={{ color: "var(--mk-text-secondary)" }}>{title}</span>
+              <span className="truncate text-xs text-slate-600 dark:text-slate-400">{title}</span>
             </div>
             <span
-              className="shrink-0 text-[10px] font-medium"
-              style={{
-                color: status === "Published" ? "var(--mk-success)" : status === "Draft" ? "var(--mk-text-muted)" : "var(--mk-warning)",
-              }}
+              className={`shrink-0 text-[10px] font-medium ${
+                status === "Published"
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : status === "Draft"
+                    ? "text-slate-400 dark:text-slate-600"
+                    : "text-amber-600 dark:text-amber-400"
+              }`}
             >
               {status}
             </span>
@@ -194,11 +187,10 @@ function HeroVisualMockup() {
 
       {/* Footer row */}
       <div
-        className="mt-4 flex items-center justify-between border-t pt-3 text-[10px]"
-        style={{ borderColor: "var(--mk-border)", color: "var(--mk-text-muted)" }}
+        className="mt-4 flex items-center justify-between border-t pt-3 text-[10px] border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600"
       >
         <span>5 apps connected</span>
-        <span style={{ color: "var(--mk-accent)" }}>View all content →</span>
+        <span className="text-cyan-600 dark:text-cyan-400">View all content →</span>
       </div>
     </div>
   );
@@ -248,8 +240,7 @@ export const Hero = ({
           variants={headlineVariant}
           initial="hidden"
           animate="visible"
-          className="font-extrabold leading-[1.05] tracking-tight"
-          style={{ fontSize: "var(--mk-text-hero)", color: "var(--mk-text-primary)" }}
+          className="font-extrabold leading-[1.05] tracking-tight text-4xl md:text-6xl lg:text-7xl text-slate-900 dark:text-slate-50"
         >
           Headless CMS,{" "}
           <span className="mk-gradient-text">Your Way.</span>
@@ -260,8 +251,7 @@ export const Hero = ({
           variants={headlineVariant}
           initial="hidden"
           animate="visible"
-          className="max-w-[560px] leading-relaxed"
-          style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+          className="max-w-[560px] leading-relaxed text-lg text-slate-600 dark:text-slate-400"
         >
           A production-ready monorepo with admin dashboard, public site, docs,
           and user portal — all type-safe, all connected, all yours.
@@ -278,8 +268,7 @@ export const Hero = ({
             <button
               onClick={onGetStartedClick}
               disabled={isLoadingCta || isLoginLoading}
-              className="inline-flex items-center justify-center rounded-[var(--mk-radius-sm)] px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-[0_0_32px_rgba(99,102,241,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "var(--mk-brand)" }}
+              className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-[0_0_32px_rgba(99,102,241,0.25)] disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-500"
               aria-label={isLogged ? "Go to the app" : "Start for free"}
             >
               {isLogged ? "Go to app" : "Start for Free"}
@@ -291,7 +280,7 @@ export const Hero = ({
               onClick={() =>
                 window.open(SiteConfig.calendlyLink, "_blank", "noopener,noreferrer")
               }
-              className="inline-flex items-center justify-center gap-2 rounded-[var(--mk-radius-sm)] border border-[var(--mk-border-bright)] px-6 py-3 text-sm font-medium text-[var(--mk-text-secondary)] transition-all duration-200 hover:border-[var(--mk-brand)] hover:text-[var(--mk-text-primary)]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-6 py-3 text-sm font-medium text-slate-600 dark:text-slate-400 transition-all duration-200 hover:border-indigo-500 hover:text-slate-900 dark:hover:text-slate-50"
               aria-label="Watch a product demo"
             >
               <Play size={14} strokeWidth={2} />
@@ -311,7 +300,7 @@ export const Hero = ({
           >
             <AvatarCircles numPeople={497} avatarUrls={AVATAR_URLS} />
             <div className="flex flex-col items-center sm:items-start">
-              <p className="text-sm font-semibold" style={{ color: "var(--mk-text-primary)" }}>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
                 Trusted by 500+ developers
               </p>
               <div className="mt-0.5 flex items-center gap-1">
@@ -323,7 +312,7 @@ export const Hero = ({
                     aria-hidden="true"
                   />
                 ))}
-                <span className="ml-1.5 text-xs" style={{ color: "var(--mk-text-muted)" }}>
+                <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-600">
                   5.0 · 120 reviews
                 </span>
               </div>

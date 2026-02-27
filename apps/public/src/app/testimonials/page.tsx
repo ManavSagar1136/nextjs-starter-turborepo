@@ -69,22 +69,19 @@ const TestimonialWall = () => {
   return (
     <PageWithHeaderFooter>
       <section
-        className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-        style={{ background: "var(--mk-bg-primary)" }}
+        className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       >
         <div className="mx-auto max-w-4xl space-y-10">
           {/* Header */}
           <div className="text-center">
             <span className="mk-eyebrow mb-3 block">Testimonials</span>
             <h1
-              className="font-extrabold leading-tight"
-              style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+              className="font-extrabold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
             >
               Loved by developers <span className="mk-gradient-text">worldwide.</span>
             </h1>
             <p
-              className="mx-auto mt-4 max-w-xl leading-relaxed"
-              style={{ fontSize: "var(--mk-text-lg)", color: "var(--mk-text-secondary)" }}
+              className="mx-auto mt-4 max-w-xl leading-relaxed text-lg text-slate-600 dark:text-slate-400"
             >
               See what our customers are saying about us on Twitter
             </p>

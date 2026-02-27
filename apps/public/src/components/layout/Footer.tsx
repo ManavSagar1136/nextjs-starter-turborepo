@@ -76,29 +76,23 @@ export const Footer = () => {
 
   return (
     <footer
-      className="w-full"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full bg-white dark:bg-dark-surface"
       role="contentinfo"
     >
       <div
-        className="mx-auto max-w-[1280px] border-t px-6 pt-12 pb-8"
-        style={{ borderColor: "var(--mk-border)" }}
+        className="mx-auto max-w-[1280px] border-t border-slate-200 dark:border-slate-800 px-6 pt-12 pb-8"
       >
         <div className="flex flex-col justify-between gap-10 md:flex-row">
           {/* Left Section — Logo + tagline */}
           <div className="flex max-w-xs flex-col items-start">
             <div className="mb-3 flex items-center gap-2">
               <Logo />
-              <span
-                className="text-base font-bold"
-                style={{ color: "var(--mk-text-primary)" }}
-              >
+              <span className="text-base font-bold text-slate-900 dark:text-slate-50">
                 {SiteConfig.name}
               </span>
             </div>
             <p
-              className="mb-4 text-sm leading-relaxed"
-              style={{ color: "var(--mk-text-secondary)" }}
+              className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400"
             >
               The open-source CMS monorepo template for modern teams.
             </p>
@@ -112,7 +106,7 @@ export const Footer = () => {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--mk-text-muted)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                    className="text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200"
                     title={`Visit our ${name} page`}
                   >
                     <Icon className="h-5 w-5" />
@@ -130,8 +124,7 @@ export const Footer = () => {
               section.links.length === 0 ? null : (
                 <div key={section.label} className="flex min-w-[140px] flex-col gap-3">
                   <p
-                    className="text-xs font-bold uppercase tracking-widest"
-                    style={{ color: "var(--mk-text-muted)" }}
+                    className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600"
                   >
                     {section.label}
                   </p>
@@ -141,7 +134,7 @@ export const Footer = () => {
                       <Link
                         key={label}
                         href={href}
-                        className="text-sm text-[var(--mk-text-secondary)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                        className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200"
                         {...(external && {
                           target: "_blank",
                           rel: "noopener noreferrer",
@@ -159,12 +152,10 @@ export const Footer = () => {
 
         {/* Copyright */}
         <div
-          className="mt-10 border-t pt-6 text-center"
-          style={{ borderColor: "var(--mk-border)" }}
+          className="mt-10 border-t border-slate-200 dark:border-slate-800 pt-6 text-center"
         >
           <p
-            className="text-xs"
-            style={{ color: "var(--mk-text-muted)" }}
+            className="text-xs text-slate-400 dark:text-slate-600"
           >
             {FOOTER_CONFIG.copyright}
           </p>

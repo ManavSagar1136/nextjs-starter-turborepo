@@ -53,8 +53,7 @@ export function StatsBar() {
 
   return (
     <section
-      className="w-full px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-label="Key metrics"
     >
       <motion.div
@@ -71,14 +70,12 @@ export function StatsBar() {
             className="flex flex-col items-center gap-1 text-center"
           >
             <span
-              className="font-extrabold"
-              style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+              className="font-extrabold text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
             >
               <AnimatedCounter value={stat.value} suffix={stat.suffix} />
             </span>
             <span
-              className="font-medium uppercase tracking-widest"
-              style={{ fontSize: "var(--mk-text-xs)", color: "var(--mk-text-muted)" }}
+              className="font-medium uppercase tracking-widest text-xs text-slate-400 dark:text-slate-600"
             >
               {stat.label}
             </span>

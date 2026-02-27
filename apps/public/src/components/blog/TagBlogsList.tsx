@@ -112,7 +112,7 @@ const TagBlogsList = ({ tagData, posts, allTags }: TagBlogsListProps) => {
           </div>
 
           {/* Results Count */}
-          <div className="text-xs sm:text-sm" style={{ color: "var(--mk-text-muted)" }}>
+          <div className="text-xs sm:text-sm text-slate-400 dark:text-slate-600">
             Showing{" "}
             {paginatedBlogs.length > 0
               ? (searchParamsValues.page - 1) * ITEMS_PER_PAGE + 1
@@ -153,9 +153,9 @@ const TagBlogsList = ({ tagData, posts, allTags }: TagBlogsListProps) => {
               animate={{ opacity: 1 }}
               className="text-center py-12"
             >
-              <BookOpen className="h-12 w-12 mx-auto mb-4" style={{ color: "var(--mk-text-muted)" }} />
-              <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--mk-text-primary)" }}>No blogs found</h3>
-              <p className="mb-4" style={{ color: "var(--mk-text-secondary)" }}>
+              <BookOpen className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-600" />
+              <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-50">No blogs found</h3>
+              <p className="mb-4 text-slate-600 dark:text-slate-400">
                 {searchParamsValues.search
                   ? "Try adjusting your search criteria"
                   : "There are no blogs available for this tag right now. Please check back later or explore other tags."}

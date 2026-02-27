@@ -84,7 +84,7 @@ export function NavBar() {
           // Glass morphism bg (always on — scroll only adds border)
           "mk-nav-blur",
           // Scroll-dependent border-bottom
-          scrolled ? "border-b border-[var(--mk-border)]" : "border-b border-transparent",
+          scrolled ? "border-b border-slate-200 dark:border-slate-800" : "border-b border-transparent",
           "transition-[border-color] duration-300",
         ].join(" ")}
         role="banner"
@@ -100,7 +100,7 @@ export function NavBar() {
             <div className="w-7 h-7 overflow-hidden">
               <Logo />
             </div>
-            <span className="font-extrabold text-[var(--mk-text-primary)] text-base tracking-tight group-hover:text-[var(--mk-brand)] transition-colors duration-200">
+            <span className="font-extrabold text-slate-900 dark:text-slate-50 text-base tracking-tight group-hover:text-indigo-500 transition-colors duration-200">
               {SiteConfig.name}
             </span>
           </Link>
@@ -112,11 +112,11 @@ export function NavBar() {
                 key={link.label}
                 href={link.href}
                 className={[
-                  "relative text-sm font-medium text-[var(--mk-text-secondary)]",
-                  "hover:text-[var(--mk-text-primary)] transition-colors duration-200",
+                  "relative text-sm font-medium text-slate-600 dark:text-slate-400",
+                  "hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200",
                   // Underline slide-in on hover
                   "after:absolute after:bottom-[-2px] after:left-0 after:h-px after:w-0",
-                  "after:bg-[var(--mk-brand)] after:transition-[width] after:duration-200",
+                  "after:bg-indigo-500 after:transition-[width] after:duration-200",
                   "hover:after:w-full",
                 ].join(" ")}
               >
@@ -130,7 +130,7 @@ export function NavBar() {
             {/* Sign In — ghost, desktop only */}
             <Link
               href={SiteConfig.userAppUrl}
-              className="hidden lg:inline-flex items-center text-sm font-medium text-[var(--mk-text-secondary)] hover:text-[var(--mk-text-primary)] transition-colors duration-200 px-3 py-1.5 rounded-[var(--mk-radius-sm)] hover:bg-[var(--mk-bg-elevated)]"
+              className="hidden lg:inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-surface-elevated"
               aria-label="Sign in to your account"
             >
               Sign In
@@ -143,8 +143,8 @@ export function NavBar() {
               className={[
                 "hidden lg:inline-flex items-center justify-center",
                 "text-sm font-semibold text-white px-4 py-2",
-                "rounded-[var(--mk-radius-sm)] bg-[var(--mk-brand)]",
-                "hover:bg-[var(--mk-brand-glow)] hover:shadow-[0_0_32px_rgba(99,102,241,0.25)]",
+                "rounded-lg bg-indigo-500",
+                "hover:bg-indigo-400 hover:shadow-[0_0_32px_rgba(99,102,241,0.25)]",
                 "transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
               ].join(" ")}
               aria-label={isLogged ? "Go to the app" : "Get started for free"}
@@ -156,7 +156,7 @@ export function NavBar() {
             {mounted && (
               <button
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="flex items-center justify-center w-9 h-9 rounded-[var(--mk-radius-sm)] text-[var(--mk-text-secondary)] hover:bg-[var(--mk-bg-elevated)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+                className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-surface-elevated hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200"
                 aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
               >
                 {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
@@ -166,7 +166,7 @@ export function NavBar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen((v) => !v)}
-              className="lg:hidden flex items-center justify-center w-9 h-9 rounded-[var(--mk-radius-sm)] text-[var(--mk-text-secondary)] hover:bg-[var(--mk-bg-elevated)] hover:text-[var(--mk-text-primary)] transition-colors duration-200"
+              className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-surface-elevated hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
@@ -189,18 +189,17 @@ export function NavBar() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 z-40 flex flex-col lg:hidden"
-            style={{ background: "var(--mk-bg-primary)" }}
+            className="fixed inset-0 z-40 flex flex-col lg:hidden bg-white dark:bg-dark-surface"
             role="dialog"
             aria-modal="true"
             aria-label="Navigation menu"
           >
             {/* Mobile menu header row */}
-            <div className="flex items-center justify-between px-6 h-16 border-b border-[var(--mk-border)]">
+            <div className="flex items-center justify-between px-6 h-16 border-b border-slate-200 dark:border-slate-800">
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 font-extrabold text-[var(--mk-text-primary)]"
+                className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-slate-50"
               >
                 <div className="w-7 h-7 overflow-hidden">
                   <Logo />
@@ -209,7 +208,7 @@ export function NavBar() {
               </Link>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center w-9 h-9 rounded-[var(--mk-radius-sm)] text-[var(--mk-text-secondary)] hover:bg-[var(--mk-bg-elevated)] transition-colors duration-200"
+                className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-surface-elevated transition-colors duration-200"
                 aria-label="Close menu"
               >
                 <X size={18} />
@@ -229,7 +228,7 @@ export function NavBar() {
                   <Link
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="block py-3 text-lg font-medium text-[var(--mk-text-secondary)] hover:text-[var(--mk-text-primary)] border-b border-[var(--mk-border)] transition-colors duration-200"
+                    className="block py-3 text-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200"
                   >
                     {link.label}
                   </Link>
@@ -248,7 +247,7 @@ export function NavBar() {
                 {mounted && (
                   <button
                     onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                    className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-[var(--mk-text-secondary)] rounded-[var(--mk-radius-md)] border border-[var(--mk-border)] hover:border-[var(--mk-border-bright)] hover:text-[var(--mk-text-primary)] transition-all duration-200"
+                    className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-50 transition-all duration-200"
                     aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
                   >
                     {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
@@ -258,14 +257,14 @@ export function NavBar() {
                 <Link
                   href={SiteConfig.userAppUrl}
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center py-3 text-sm font-medium text-[var(--mk-text-secondary)] rounded-[var(--mk-radius-md)] border border-[var(--mk-border)] hover:border-[var(--mk-border-bright)] hover:text-[var(--mk-text-primary)] transition-all duration-200"
+                  className="flex items-center justify-center py-3 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-50 transition-all duration-200"
                 >
                   Sign In
                 </Link>
                 <button
                   onClick={() => { setMobileOpen(false); onGetStartedClick(); }}
                   disabled={isLoadingCta || isLoginLoading}
-                  className="flex items-center justify-center py-3 text-sm font-semibold text-white rounded-[var(--mk-radius-md)] bg-[var(--mk-brand)] hover:bg-[var(--mk-brand-glow)] transition-colors duration-200 disabled:opacity-50"
+                  className="flex items-center justify-center py-3 text-sm font-semibold text-white rounded-xl bg-indigo-500 hover:bg-indigo-400 transition-colors duration-200 disabled:opacity-50"
                 >
                   {isLogged ? "Go to app" : "Get started"}
                 </button>

@@ -37,24 +37,21 @@ function TestimonialCard({
 
   return (
     <article
-      className="mk-card flex flex-col gap-5 p-6"
-      style={{ background: "var(--mk-bg-elevated)" }}
+      className="mk-card flex flex-col gap-5 p-6 bg-slate-100 dark:bg-dark-surface-elevated"
     >
       {/* Quote icon */}
       <TbQuote
-        className="h-8 w-8 opacity-20"
-        style={{ color: "var(--mk-brand)" }}
+        className="h-8 w-8 opacity-20 text-indigo-500"
         aria-hidden="true"
       />
 
       {/* Quote text */}
       <p
-        className="flex-1 leading-relaxed"
-        style={{ fontSize: "var(--mk-text-sm)", color: "var(--mk-text-secondary)" }}
+        className="flex-1 leading-relaxed text-sm text-slate-600 dark:text-slate-400"
       >
         {parts.map((part, i) =>
           part.startsWith("**") ? (
-            <span key={i} className="font-semibold" style={{ color: "var(--mk-text-primary)" }}>
+            <span key={i} className="font-semibold text-slate-900 dark:text-slate-50">
               {part.replace(/\*\*/g, "")}
             </span>
           ) : (
@@ -71,24 +68,21 @@ function TestimonialCard({
       </div>
 
       {/* Author */}
-      <div className="flex items-center gap-3 border-t pt-4" style={{ borderColor: "var(--mk-border)" }}>
+      <div className="flex items-center gap-3 border-t pt-4 border-slate-200 dark:border-slate-800">
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-          style={{ background: "var(--mk-brand)" }}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white bg-indigo-500"
           aria-hidden="true"
         >
           {initials}
         </div>
         <div>
           <p
-            className="text-sm font-semibold"
-            style={{ color: "var(--mk-text-primary)" }}
+            className="text-sm font-semibold text-slate-900 dark:text-slate-50"
           >
             {name}
           </p>
           <p
-            className="text-xs"
-            style={{ color: "var(--mk-text-muted)" }}
+            className="text-xs text-slate-400 dark:text-slate-600"
           >
             {job}
           </p>
@@ -107,8 +101,7 @@ const Testimonials = () => {
   return (
     <section
       id="testimonials"
-      className="w-full py-[var(--mk-section-y)] px-[var(--mk-section-x)]"
-      style={{ background: "var(--mk-bg-primary)" }}
+      className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
       aria-labelledby="testimonials-heading"
     >
       <div className="mx-auto w-full max-w-[1280px]">
@@ -123,14 +116,12 @@ const Testimonials = () => {
           <span className="mk-eyebrow mb-3 block">Testimonials</span>
           <h2
             id="testimonials-heading"
-            className="font-bold leading-tight"
-            style={{ fontSize: "var(--mk-text-3xl)", color: "var(--mk-text-primary)" }}
+            className="font-bold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
             Loved by <span className="mk-gradient-text">developers.</span>
           </h2>
           <p
-            className="mx-auto mt-4 max-w-[480px] leading-relaxed"
-            style={{ fontSize: "var(--mk-text-base)", color: "var(--mk-text-secondary)" }}
+            className="mx-auto mt-4 max-w-[480px] leading-relaxed text-base text-slate-600 dark:text-slate-400"
           >
             See what engineering leaders say about building with our CMS template.
           </p>
