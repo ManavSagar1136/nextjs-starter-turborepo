@@ -183,7 +183,7 @@ function getMDXComponentMapBase(components: MDXComponents = {}): MDXComponents {
     blockquote: ({ className, ...props }) => (
       <blockquote
         className={cn(
-          "mt-6 border-l-2 pl-6 italic [&>*]:text-muted-foreground",
+          "mt-6 border-l-2 pl-6 italic [&>*]:text-slate-400 dark:[&>*]:text-slate-600",
           className,
         )}
         {...props}
@@ -230,7 +230,7 @@ function getMDXComponentMapBase(components: MDXComponents = {}): MDXComponents {
       ...props
     }: React.HTMLAttributes<HTMLTableRowElement>) => (
       <tr
-        className={cn("m-0 border-t p-0 even:bg-muted", className)}
+        className={cn("m-0 border-t p-0 even:bg-slate-100 dark:even:bg-dark-surface-elevated", className)}
         {...props}
       />
     ),
@@ -280,7 +280,7 @@ function getMDXComponentMapBase(components: MDXComponents = {}): MDXComponents {
       return (
         <pre
           className={cn(
-            "mb-4 mt-6 overflow-x-auto rounded-lg border !bg-muted dark:!bg-white py-4 px-4 text-foreground dark:text-black",
+            "mb-4 mt-6 overflow-x-auto rounded-lg border !bg-slate-100 dark:!bg-dark-surface-elevated py-4 px-4 text-slate-900 dark:text-slate-50",
             className,
           )}
           {...props}
@@ -299,7 +299,7 @@ function getMDXComponentMapBase(components: MDXComponents = {}): MDXComponents {
         return (
           <code
             className={cn(
-              "relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm !bg-muted dark:!bg-white text-foreground dark:text-black",
+              "relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm !bg-slate-100 dark:!bg-dark-surface-elevated text-slate-900 dark:text-slate-50",
               className,
             )}
             {...props}
@@ -313,7 +313,7 @@ function getMDXComponentMapBase(components: MDXComponents = {}): MDXComponents {
       return (
         <code
           className={cn(
-            "relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm !bg-muted dark:!bg-white text-foreground dark:text-black",
+            "relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm !bg-slate-100 dark:!bg-dark-surface-elevated text-slate-900 dark:text-slate-50",
             className,
           )}
           {...props}

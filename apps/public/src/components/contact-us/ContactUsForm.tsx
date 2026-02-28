@@ -131,11 +131,12 @@ const ContactUsForm = ({
 
   return (
     <div
-      className="grid w-full grid-cols-1 gap-5 lg:gap-8 rounded-xl md:rounded-3xl bg-cover bg-no-repeat px-6 py-8 md:grid-cols-2 md:p-8 lg:p-20"
-      style={{ backgroundImage: `url("/hero-section-bg.svg")` }}
+      className="grid w-full grid-cols-1 gap-5 lg:gap-8 rounded-[20px] px-6 py-8 md:grid-cols-2 md:p-8 lg:p-20 bg-slate-50 dark:bg-dark-surface-secondary border border-slate-200 dark:border-slate-800"
     >
       <div className="flex flex-col gap-5">
-        <h2 className="text-star text-center text-xl md:text-2xl font-bold text-secondary-foreground dark:text-secondary">
+        <h2
+          className="text-center text-xl md:text-2xl font-bold text-slate-900 dark:text-slate-50"
+        >
           Reach out by filling the form.
         </h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6">
@@ -155,7 +156,7 @@ const ContactUsForm = ({
                     value={inputObject[data.name]}
                     onChange={handleInputChange}
                     placeholder={data.placeholder}
-                    className="w-[100%] border-b dark:bg-white dark:text-black placeholder:text-[16px] focus:outline-none"
+                    className="w-full placeholder:text-[16px] focus:outline-none bg-slate-100 dark:bg-dark-surface-elevated border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-50"
                   />
                 )}
 
@@ -167,12 +168,12 @@ const ContactUsForm = ({
                     placeholder={data.placeholder}
                     value={inputObject.message}
                     onChange={handleInputChange}
-                    className="mt-5 w-[100%] dark:bg-white dark:text-black placeholder:text-[16px] focus:outline-none"
+                    className="mt-5 w-full placeholder:text-[16px] focus:outline-none bg-slate-100 dark:bg-dark-surface-elevated border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-50"
                   />
                 )}
                 {error[data.name] && typeof error[data.name] === 'string' && error[data.name]!.length > 0 && (
                   <div className="relative">
-                    <div className="absolute text-xs text-[red]">
+                    <div className="absolute text-xs text-red-500">
                       {error[data.name]}
                     </div>
                   </div>
@@ -181,15 +182,16 @@ const ContactUsForm = ({
             );
           })}
         </div>
-        <Button
-          className="w-full rounded-10 py-6 text-[16px]"
+        <button
+          className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-500"
           onClick={handleFormSubmit}
-          progress={isLoading}
+          disabled={isLoading}
+          style={{ boxShadow: "0 0 32px rgba(99, 102, 241, 0.15)" }}
         >
-          <p className="px-[30px] py-[5px]">Submit</p>
-        </Button>
+          {isLoading ? "Submitting..." : "Submit"}
+        </button>
 
-        <div className="flex flex-col gap-4 rounded-10 py-4">
+        <div className="flex flex-col gap-4 py-4">
           {detail.map((data) => {
             return (
               <div key={data.id}>
@@ -197,7 +199,7 @@ const ContactUsForm = ({
                   <Link
                     href={data.href}
                     key={data.id}
-                    className="flex gap-2 rounded-5 py-2"
+                    className="flex gap-2 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-50 transition-colors duration-200"
                     target="_blank"
                   >
                     <img
@@ -207,7 +209,7 @@ const ContactUsForm = ({
                       height={24}
                       width={24}
                     />
-                    <p className="dark:text-secondary">{data.description}</p>
+                    <p>{data.description}</p>
                   </Link>
                 )}
               </div>
@@ -218,7 +220,7 @@ const ContactUsForm = ({
       <Link className="flex" href={location.link} target="_blank">
         <img
           src={location.src}
-          className="h-full w-full rounded-xl md:rounded-3xl object-cover"
+          className="h-full w-full rounded-[20px] object-cover"
           alt="company location"
           title="company location"
           height="auto"
@@ -230,12 +232,16 @@ const ContactUsForm = ({
         <DialogContent className="!z-[10000] w-full max-w-sm md:max-w-3xl">
           <DialogTitle className="sr-only">Contact Us</DialogTitle>
           <div className="flex flex-col items-center justify-center gap-1">
-            <Check className="h-36 w-36 font-extrabold text-green-800" />
+            <Check className="h-36 w-36 font-extrabold text-emerald-600 dark:text-emerald-400" />
             <div className="flex flex-col gap-1 text-center leading-tight">
-              <h3 className="text-2xl font-semibold capitalize text-primary md:text-3xl">
-                ✅ Message Sent!
+              <h3
+                className="text-2xl font-semibold capitalize md:text-3xl text-slate-900 dark:text-slate-50"
+              >
+                Message Sent!
               </h3>
-              <DialogDescription className="pt-3 text-base text-primary/50 md:text-xl">
+              <DialogDescription
+                className="pt-3 text-base md:text-xl text-slate-600 dark:text-slate-400"
+              >
                 Thank you for reaching out to us! Your message has been
                 successfully sent.
                 <br />

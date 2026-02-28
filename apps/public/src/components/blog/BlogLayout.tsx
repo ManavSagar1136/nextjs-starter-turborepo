@@ -98,7 +98,7 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
   return (
     <div
       className={cn(
-        "min-h-screen bg-gradient-to-br from-background via-background to-muted/20",
+        "min-h-screen bg-white dark:bg-dark-surface",
         className,
       )}
     >
@@ -106,23 +106,33 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-20"
+        className="relative overflow-hidden rounded-[20px] py-20 bg-slate-50 dark:bg-dark-surface-secondary"
       >
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+        <div
+          className="absolute inset-0 mk-gradient-hero"
+          aria-hidden="true"
+        />
         <div className="relative container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <span className="mk-eyebrow mb-4 block">Blog</span>
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-6"
+            className="font-extrabold leading-tight mb-6 text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
           >
-            Our Blog
+            Our <span className="mk-gradient-text">Blog</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
+            className="max-w-2xl mx-auto mb-8 leading-relaxed text-lg text-slate-600 dark:text-slate-400"
           >
             Discover insights, tutorials, and the latest updates from our team
           </motion.p>
@@ -139,7 +149,7 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
               externalQuery={searchQuery}
               setExternalQuery={setSearchQuery}
               disableUrlStorage={true}
-              className="bg-background/80 backdrop-blur-sm"
+              className="backdrop-blur-sm bg-slate-100 dark:bg-dark-surface-elevated border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-50"
             />
           </motion.div>
         </div>
@@ -155,8 +165,8 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             className="w-full lg:w-80 space-y-6"
           >
             {/* View Toggle */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Card className="p-4 bg-slate-50 dark:bg-dark-surface-secondary border-slate-200 dark:border-slate-800">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-slate-50">
                 <Grid3X3 className="h-4 w-4" />
                 View Mode
               </h3>
@@ -187,8 +197,8 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             </Card>
 
             {/* Sort Options */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Card className="p-4 bg-slate-50 dark:bg-dark-surface-secondary border-slate-200 dark:border-slate-800">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-slate-900 dark:text-slate-50">
                 <TrendingUp className="h-4 w-4" />
                 Sort By
               </h3>
@@ -206,10 +216,10 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             </Card>
 
             {/* Tags Filter */}
-            <Card className="p-4">
+            <Card className="p-4 bg-slate-50 dark:bg-dark-surface-secondary border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center justify-between gap-4 w-full">
-                  <h3 className="font-semibold flex items-center gap-2">
+                  <h3 className="font-semibold flex items-center gap-2 text-slate-900 dark:text-slate-50">
                     <TagIcon className="h-4 w-4" />
                     Tags
                   </h3>
@@ -239,8 +249,9 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
                     }
                     className={cn(
                       "cursor-pointer transition-all",
-                      selectedTags.includes(tag.slug) &&
-                        "bg-primary text-primary-foreground",
+                      selectedTags.includes(tag.slug)
+                        ? "bg-indigo-500 text-white border-indigo-500"
+                        : "border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400",
                     )}
                     onClick={() => handleTagToggle(tag.slug)}
                   >
@@ -251,20 +262,20 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
             </Card>
 
             {/* Stats */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3">Stats</h3>
+            <Card className="p-4 bg-slate-50 dark:bg-dark-surface-secondary border-slate-200 dark:border-slate-800">
+              <h3 className="font-semibold mb-3 text-slate-900 dark:text-slate-50">Stats</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Posts</span>
-                  <span className="font-medium">{posts.length}</span>
+                  <span className="text-slate-400 dark:text-slate-600">Total Posts</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-50">{posts.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Showing</span>
-                  <span className="font-medium">{sortedPosts.length}</span>
+                  <span className="text-slate-400 dark:text-slate-600">Showing</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-50">{sortedPosts.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tags</span>
-                  <span className="font-medium">{allTags.length}</span>
+                  <span className="text-slate-400 dark:text-slate-600">Tags</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-50">{allTags.length}</span>
                 </div>
               </div>
             </Card>
@@ -340,9 +351,9 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
                 animate={{ opacity: 1 }}
                 className="text-center py-12"
               >
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No posts found</h3>
-                <p className="text-muted-foreground mb-4">
+                <BookOpen className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-600" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-50">No posts found</h3>
+                <p className="mb-4 text-slate-600 dark:text-slate-400">
                   Try adjusting your search or filter criteria
                 </p>
                 <Button onClick={clearFilters} variant="outline">

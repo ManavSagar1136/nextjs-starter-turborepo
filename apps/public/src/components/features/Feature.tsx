@@ -78,7 +78,7 @@ export const Feature = ({
         {/* Title */}
         <h2
           className={cn(
-            "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-primary leading-tight",
+            "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-indigo-500 leading-tight",
           )}
         >
           {title}
@@ -90,7 +90,7 @@ export const Feature = ({
             animation="blurInUp"
             by="character"
             className={cn(
-              "text-base sm:text-lg text-muted-foreground",
+              "text-base sm:text-lg text-slate-400 dark:text-slate-600",
               "leading-relaxed max-w-xl",
             )}
           >
@@ -114,7 +114,7 @@ export const Feature = ({
                 🎉 <hr className="mx-2 h-4 shrink-0 bg-gray-300" />
                 <span
                   className={cn(
-                    `inline animate-gradient bg-gradient-to-r from-orange-400 via-brand-400 to-pink-400 bg-clip-text bg-brand-400 text-transparent dark:text-primary`,
+                    `inline animate-gradient bg-gradient-to-r from-orange-400 via-brand-400 to-pink-400 bg-clip-text bg-brand-400 text-transparent dark:text-indigo-500`,
                   )}
                 >
                   Try FREE now

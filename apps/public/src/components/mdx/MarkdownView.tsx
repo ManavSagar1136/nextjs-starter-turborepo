@@ -33,8 +33,8 @@ export default function MarkdownView({
   if (!content || !content.trim()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 p-8 text-center">
-        <div className="rounded-full bg-muted p-4">
-          <p className="text-muted-foreground">No content available</p>
+        <div className="rounded-full bg-slate-100 dark:bg-dark-surface-elevated p-4">
+          <p className="text-slate-400 dark:text-slate-600">No content available</p>
         </div>
       </div>
     );

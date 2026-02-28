@@ -21,8 +21,8 @@ const MDXImage = ({
   // Show placeholder in editor preview if src is missing
   if (!src || typeof src !== "string") {
     return (
-      <div className="my-8 p-8 border-2 border-dashed border-muted rounded-lg text-center">
-        <div className="text-muted-foreground text-sm">
+      <div className="my-8 p-8 border-2 border-dashed border-slate-100 dark:border-dark-surface-elevated rounded-lg text-center">
+        <div className="text-slate-400 dark:text-slate-600 text-sm">
           <p className="font-medium mb-2">MDXImage Component</p>
           <p>Add a src prop to preview the image</p>
         </div>
@@ -33,7 +33,7 @@ const MDXImage = ({
   return (
     <ImagePreview src={src} alt={alt}>
       <span className="block my-8">
-        <span className="block rounded-lg overflow-hidden border border-border shadow-lg group cursor-pointer relative">
+        <span className="block rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg group cursor-pointer relative">
           <span className="block relative overflow-hidden">
             {}
             <LazyImage
@@ -47,7 +47,7 @@ const MDXImage = ({
             />
           </span>
           {alt && (
-            <span className="block px-4 py-3 bg-muted/50 text-sm text-muted-foreground text-center">
+            <span className="block px-4 py-3 bg-slate-100/50 dark:bg-dark-surface-elevated/50 text-sm text-slate-400 dark:text-slate-600 text-center">
               {alt}
             </span>
           )}

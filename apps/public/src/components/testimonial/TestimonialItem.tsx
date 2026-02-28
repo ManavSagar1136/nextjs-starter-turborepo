@@ -57,14 +57,14 @@ export const TestimonialItem = ({
 
         {/* Main Quote Text */}
         <div className="relative pl-8">
-          <blockquote className="text-xl md:text-2xl leading-relaxed font-light text-foreground/90 dark:text-foreground/80">
+          <blockquote className="text-xl md:text-2xl leading-relaxed font-light text-slate-900/90 dark:text-slate-50/80">
             {textChunks}
           </blockquote>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent" />
 
       {/* Trust Signals: Stars, Author, Company */}
       <div className="space-y-6">
@@ -98,17 +98,17 @@ export const TestimonialItem = ({
             </div>
             {/* Verified indicator dot */}
             <div
-              className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-background ring-1 ring-green-500/20"
+              className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-dark-surface ring-1 ring-green-500/20"
               aria-label="Verified"
             />
           </div>
 
           {/* Name, Role, and Company */}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-base text-foreground dark:text-foreground">
+            <p className="font-semibold text-base text-slate-900 dark:text-slate-50">
               {name}
             </p>
-            <p className="text-sm text-muted-foreground mt-0.5">{roleTitle}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{roleTitle}</p>
             {companyName && (
               <p className="text-sm font-medium text-brand-600 dark:text-brand-400 mt-1">
                 {companyName}

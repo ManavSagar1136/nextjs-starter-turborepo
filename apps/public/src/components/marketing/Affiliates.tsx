@@ -3,9 +3,7 @@
 import { useMemo, useState } from "react";
 import { TbCoin, TbPointer, TbShare } from "react-icons/tb";
 
-import HeaderCard from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
-import { Button } from "@buildbase/ui/button";
 import { Slider } from "@buildbase/ui/slider";
 
 import { SiteConfig } from "@/config";
@@ -59,40 +57,45 @@ export function Affiliates() {
   return (
     <PageWithHeaderFooter>
       <div className="relative w-full">
-        <div className="container mx-auto px-4 py-16">
+        <div className="container mx-auto px-5 md:px-20 py-20 md:py-32">
           <div className="text-center">
-            <HeaderCard
-              mainTitle="Be our affiliate"
-              subTitle={
-                <p className="text-lg mb-8">
-                  Partner with us to earn a{" "}
-                  <strong>recurring 30% commission</strong> every month —{" "}
-                  <strong>forever</strong>!
-                </p>
-              }
-              h1
-            />
+            <span className="mk-eyebrow mb-3 block">Affiliates</span>
+            <h1
+              className="font-extrabold leading-tight mb-4 text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
+            >
+              Be our <span className="mk-gradient-text">affiliate</span>
+            </h1>
+            <p
+              className="mb-8 leading-relaxed text-lg text-slate-600 dark:text-slate-400"
+            >
+              Partner with us to earn a{" "}
+              <strong className="text-slate-900 dark:text-slate-50">recurring 30% commission</strong> every month —{" "}
+              <strong className="text-slate-900 dark:text-slate-50">forever</strong>!
+            </p>
 
-            <Button
-              className="px-8 py-4 font-semibold"
+            <button
+              className="inline-flex items-center justify-center rounded-lg px-8 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 bg-indigo-500"
+              style={{ boxShadow: "0 0 32px rgba(99, 102, 241, 0.15)" }}
               onClick={onOpenAffiliate}
             >
               Join our affiliate program
-            </Button>
+            </button>
           </div>
 
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold">
+            <h2
+              className="font-bold text-2xl md:text-3xl text-slate-900 dark:text-slate-50"
+            >
               You can earn{" "}
-              <span className="text-brand-500">{`$${potentialEarnedMoney}`}</span>{" "}
+              <span className="mk-gradient-text">{`$${potentialEarnedMoney}`}</span>{" "}
               every month
             </h2>
-            <p className="text-brand-900 mt-2">
+            <p className="mt-2 text-slate-400 dark:text-slate-600">
               The calculation is based on monthly price
             </p>
           </div>
 
-          <div className="mt-16 space-y-8">
+          <div className="mt-16 space-y-8 max-w-2xl mx-auto">
             {pricingPlans?.map((plan, index) => {
               if (plan.price === 0) {
                 return null;
@@ -103,7 +106,7 @@ export function Affiliates() {
                   className="flex flex-col md:flex-row items-center gap-4"
                   key={plan.title + plan.billingCycle}
                 >
-                  <p className="w-56 text-brand-700">
+                  <p className="w-56 text-slate-600 dark:text-slate-400">
                     {plan.title}/{plan.billingCycle} (
                     {plan.price === 0
                       ? "Free"
@@ -121,14 +124,18 @@ export function Affiliates() {
                       setAffiliateValues(newValues);
                     }}
                   />
-                  <p>{affiliateValues[index] || 0} referrals</p>
+                  <p className="text-slate-900 dark:text-slate-50">{affiliateValues[index] || 0} referrals</p>
                 </div>
               );
             })}
           </div>
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold mb-8">How it works</h2>
-            <div className="space-y-4">
+            <h2
+              className="font-bold mb-8 text-2xl md:text-3xl text-slate-900 dark:text-slate-50"
+            >
+              How it works
+            </h2>
+            <div className="space-y-4 max-w-2xl mx-auto">
               {[
                 {
                   icon: <TbPointer size={24} />,
@@ -144,22 +151,30 @@ export function Affiliates() {
                 },
               ].map(({ icon, text }, index) => (
                 <div key={index + text} className="flex items-center gap-4">
-                  <div className="p-2 rounded-full bg-brand-500 text-secondary">
+                  <div
+                    className="p-2 rounded-full text-white flex-shrink-0 bg-indigo-500"
+                  >
                     {icon}
                   </div>
-                  <p>{text}</p>
+                  <p className="text-slate-600 dark:text-slate-400">{text}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="mt-16 text-center">
-            <h2 className="text-3xl font-bold mb-4">Affiliate terms</h2>
-            <p className="text-secondary-foreground mb-8">
+            <h2
+              className="font-bold mb-4 text-2xl md:text-3xl text-slate-900 dark:text-slate-50"
+            >
+              Affiliate terms
+            </h2>
+            <p className="mb-8 text-slate-600 dark:text-slate-400">
               There are a few rules about our affiliate program you should know
-              about. No "gotchas" here, just some terms to keep everyone happy.
+              about. No &quot;gotchas&quot; here, just some terms to keep everyone happy.
             </p>
-            <ul className="list-disc list-inside text-left mx-auto max-w-2xl space-y-4">
+            <ul
+              className="list-disc list-inside text-left mx-auto max-w-2xl space-y-4 text-slate-600 dark:text-slate-400"
+            >
               <li>
                 Self-referrals are not allowed (i.e., signing up through your
                 own affiliate link).
@@ -178,18 +193,25 @@ export function Affiliates() {
           </div>
 
           <div className="text-center mt-16">
-            <h2 className="text-3xl font-bold mb-4">
+            <h2
+              className="font-bold mb-4 text-2xl md:text-3xl text-slate-900 dark:text-slate-50"
+            >
               Ready to partner with us?
             </h2>
-            <Button
-              className="px-8 py-4 font-semibold"
+            <button
+              className="inline-flex items-center justify-center rounded-lg px-8 py-3 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 bg-indigo-500"
+              style={{ boxShadow: "0 0 32px rgba(99, 102, 241, 0.15)" }}
               onClick={onOpenAffiliate}
             >
               Join our affiliate program
-            </Button>
+            </button>
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-900 to-brand-500 blur-3xl opacity-20 pointer-events-none" />
+        <div
+          className="absolute inset-0 blur-3xl opacity-20 pointer-events-none"
+          style={{ background: "linear-gradient(to right, #6366F1, #06B6D4)" }}
+          aria-hidden="true"
+        />
       </div>
     </PageWithHeaderFooter>
   );

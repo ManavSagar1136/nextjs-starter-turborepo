@@ -23,13 +23,13 @@ export function ReadingProgress() {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 w-full h-1 bg-primary/20 z-50"
+      className="fixed top-0 left-0 w-full h-1 bg-indigo-500/20 z-50"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       <motion.div
-        className="h-full bg-primary"
+        className="h-full bg-indigo-500"
         style={{ width: `${progress}%` }}
         transition={{ duration: 0.1 }}
       />

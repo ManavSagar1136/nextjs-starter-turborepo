@@ -1,0 +1,120 @@
+/**
+ * Brand Utility Classes
+ *
+ * Pure Tailwind approach — no CSS custom properties for colors.
+ * Light/dark switching is handled by Tailwind's dark: modifier in components.
+ * These utility classes provide reusable patterns that can't be expressed
+ * as simple Tailwind classes (gradients, complex hover effects, etc.).
+ */
+
+/* ─── Gradient text effect ─────────────────────────────────────────── */
+
+.mk-gradient-text {
+  background: linear-gradient(90deg, #4F46E5, #0891B2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .mk-gradient-text {
+  background: linear-gradient(90deg, #818CF8, #06B6D4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Brand gradient background ────────────────────────────────────── */
+
+.mk-gradient-brand {
+  background: linear-gradient(135deg, #6366F1, #06B6D4);
+}
+
+/* ─── Hero radial gradient ─────────────────────────────────────────── */
+
+.mk-gradient-hero {
+  background: radial-gradient(ellipse at 50% -20%, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.08) 50%, transparent 70%);
+}
+
+.dark .mk-gradient-hero {
+  background: radial-gradient(ellipse at 50% -20%, rgba(99, 102, 241, 0.35) 0%, rgba(6, 182, 212, 0.15) 50%, transparent 70%);
+}
+
+/* ─── Brand glow shadows ──────────────────────────────────────────── */
+
+.mk-glow-brand {
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.15);
+}
+
+.dark .mk-glow-brand {
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.25);
+}
+
+.mk-glow-brand-lg {
+  box-shadow: 0 0 64px rgba(99, 102, 241, 0.2);
+}
+
+.dark .mk-glow-brand-lg {
+  box-shadow: 0 0 64px rgba(99, 102, 241, 0.35);
+}
+
+/* ─── Grain texture overlay for hero depth ─────────────────────────── */
+
+.mk-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Eyebrow label ────────────────────────────────────────────────── */
+
+.mk-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6366F1;
+}
+
+/* ─── Card base ────────────────────────────────────────────────────── */
+
+.mk-card {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+.dark .mk-card {
+  background: #1A1A24;
+  border-color: #1E293B;
+}
+
+.mk-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.15);
+  transform: scale(1.02);
+}
+
+.dark .mk-card:hover {
+  border-color: #334155;
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.25);
+}
+
+.mk-card-static:hover {
+  transform: none;
+}
+
+/* ─── Sticky nav blur bg ──────────────────────────────────────────── */
+
+.mk-nav-blur {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.dark .mk-nav-blur {
+  background: rgba(10, 10, 15, 0.8);
+}

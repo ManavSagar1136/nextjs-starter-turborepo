@@ -431,7 +431,7 @@ export const AppBreadcrumb = React.forwardRef<HTMLElement, AppBreadcrumbProps>(
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 hover:bg-accent/50"
+              className="h-8 px-2 hover:bg-slate-100/50 dark:hover:bg-dark-surface-elevated/50"
               aria-label="Show more breadcrumb items"
             >
               <MoreHorizontal className="h-4 w-4" />
@@ -566,7 +566,7 @@ export const AppBreadcrumb = React.forwardRef<HTMLElement, AppBreadcrumbProps>(
                   type="button"
                   onClick={item.onClick}
                   className={cn(
-                    "transition-colors hover:text-foreground",
+                    "transition-colors hover:text-slate-900 dark:hover:text-slate-50",
                     item.linkClassName,
                   )}
                   {...(item.linkProps as ComponentPropsWithoutRef<"button">)}
@@ -579,7 +579,7 @@ export const AppBreadcrumb = React.forwardRef<HTMLElement, AppBreadcrumbProps>(
                 <LinkComponent
                   href={item.href!}
                   className={cn(
-                    "transition-colors hover:text-foreground",
+                    "transition-colors hover:text-slate-900 dark:hover:text-slate-50",
                     item.linkClassName,
                   )}
                   {...item.linkProps}

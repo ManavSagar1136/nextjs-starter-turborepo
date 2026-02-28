@@ -114,10 +114,10 @@ export const FeaturedBlogPostSlider = ({
               onClick={() => scrollTo(index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={cn(
-                "h-2.5 w-2.5 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                "h-2.5 w-2.5 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
                 current === index + 1
-                  ? "bg-primary w-8"
-                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
+                  ? "bg-indigo-500 w-8"
+                  : "bg-slate-400/30 dark:bg-slate-600/30 hover:bg-slate-400/50 dark:hover:bg-slate-600/50",
               )}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={current === index + 1 ? "true" : "false"}
@@ -129,7 +129,7 @@ export const FeaturedBlogPostSlider = ({
       {/* Slide Counter */}
       {count > 1 && (
         <div className="text-center mt-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-400 dark:text-slate-600">
             <span className="font-medium">{current}</span> of{" "}
             <span className="font-medium">{count}</span>
           </p>

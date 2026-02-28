@@ -3,7 +3,6 @@ import { SiteConfig } from "@/config";
 import { Routes } from "@/data/routes";
 
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
-import { PageWrapper } from "@buildbase/ui/components/ui/page-wrapper";
 import { PublicPricing } from "@/components/pricing/PublicPricing";
 import { PublicPricingProvider } from "@/components/pricing/PublicPricingProvider";
 
@@ -18,14 +17,21 @@ export async function generateMetadata() {
 export default function PricingPage() {
   return (
     <PageWithHeaderFooter>
-      <PageWrapper>
+      <section
+        className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
+      >
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <div className="mb-12 text-center">
-            <h1 className="mb-4 text-4xl font-extrabold tracking-tight md:text-5xl">
-              Simple Pricing. No Surprises.
+            <span className="mk-eyebrow mb-3 block">Pricing</span>
+            <h1
+              className="mb-4 font-extrabold tracking-tight leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
+            >
+              Simple Pricing. <span className="mk-gradient-text">No Surprises.</span>
             </h1>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
+            <p
+              className="mx-auto max-w-2xl leading-relaxed text-lg text-slate-600 dark:text-slate-400"
+            >
               Start free and scale as you grow. Upgrade, downgrade, or cancel anytime.
             </p>
           </div>
@@ -35,7 +41,7 @@ export default function PricingPage() {
             <PublicPricing />
           </PublicPricingProvider>
         </div>
-      </PageWrapper>
+      </section>
     </PageWithHeaderFooter>
   );
 }

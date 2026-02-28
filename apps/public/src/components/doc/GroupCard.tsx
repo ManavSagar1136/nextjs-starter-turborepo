@@ -44,27 +44,36 @@ const GroupCard = ({ groupPath, docCount }: GroupCardProps) => {
   return (
     <Link
       href={href}
-      className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg transition-all"
+      className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded-[20px] transition-all"
       aria-label={`Navigate to ${groupName} documentation group with ${docCount} ${docCount === 1 ? "document" : "documents"}`}
       tabIndex={0}
     >
-      <Card className="h-full hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1.5 cursor-pointer group border-2 border-border/50 hover:border-primary/60 bg-gradient-to-br from-card via-card to-primary/5 hover:to-primary/10 relative overflow-hidden">
+      <div
+        className="h-full mk-card mk-card-static hover:-translate-y-1.5 cursor-pointer group relative overflow-hidden bg-slate-50 dark:bg-dark-surface-secondary"
+      >
         {/* Decorative background element */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-300" />
+        <div
+          className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-colors duration-300 bg-indigo-500/[0.08] dark:bg-indigo-500/12"
+          aria-hidden="true"
+        />
 
-        <CardHeader className="pb-4 relative z-10">
+        <div className="p-6 pb-4 relative z-10">
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="flex-shrink-0 p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 shadow-sm">
-                <Folder className="h-5 w-5 text-primary group-hover:hidden" />
-                <FolderOpen className="h-5 w-5 text-primary hidden group-hover:block" />
+              <div
+                className="flex-shrink-0 p-2.5 rounded-xl transition-all duration-300 shadow-sm bg-indigo-500/[0.08] dark:bg-indigo-500/12"
+              >
+                <Folder className="h-5 w-5 group-hover:hidden text-indigo-500" />
+                <FolderOpen className="h-5 w-5 hidden group-hover:block text-indigo-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors duration-200 truncate mb-1">
+                <h3
+                  className="font-semibold text-lg transition-colors duration-200 truncate mb-1 group-hover:text-indigo-500 text-slate-900 dark:text-slate-50"
+                >
                   {groupName}
                 </h3>
                 {isNested && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+                  <div className="flex items-center gap-1.5 text-xs truncate text-slate-400 dark:text-slate-600">
                     <span className="opacity-60">
                       {pathSegments.slice(0, -1).join(" / ")}
                     </span>
@@ -74,35 +83,37 @@ const GroupCard = ({ groupPath, docCount }: GroupCardProps) => {
             </div>
             <Badge
               variant="secondary"
-              className="text-xs flex-shrink-0 bg-primary/10 text-primary border-primary/20 group-hover:bg-primary/20 group-hover:border-primary/30 transition-colors"
+              className="text-xs flex-shrink-0 transition-colors bg-indigo-500/[0.08] dark:bg-indigo-500/12 text-indigo-500"
             >
               Group
             </Badge>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="pt-0 relative z-10">
+        <div className="px-6 pb-6 pt-0 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-muted/50 group-hover:bg-muted transition-colors">
-                <Files className="h-4 w-4 text-primary/70 group-hover:text-primary transition-colors" />
-                <span className="text-sm font-medium text-foreground">
+              <div
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors bg-slate-100 dark:bg-dark-surface-elevated"
+              >
+                <Files className="h-4 w-4 transition-colors text-indigo-500" />
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-50">
                   {docCount}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-slate-400 dark:text-slate-600">
                   {docCount === 1 ? "doc" : "docs"}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-primary transition-colors">
+            <div className="flex items-center gap-1.5 transition-colors group-hover:text-indigo-500 text-slate-400 dark:text-slate-600">
               <span className="text-xs font-medium hidden sm:inline-block">
                 Explore
               </span>
               <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 };
