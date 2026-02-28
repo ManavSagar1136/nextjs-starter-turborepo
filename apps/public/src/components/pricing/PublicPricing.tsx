@@ -31,7 +31,7 @@ export function PublicPricing() {
         if (loading) {
           return (
             <div className="flex min-h-[300px] items-center justify-center">
-              <Loader2 className="text-muted-foreground size-8 animate-spin" />
+              <Loader2 className="text-slate-400 dark:text-slate-600 size-8 animate-spin" />
             </div>
           );
         }
@@ -39,7 +39,7 @@ export function PublicPricing() {
         if (error || !plans?.length) {
           return (
             <div className="flex min-h-[300px] items-center justify-center">
-              <p className="text-muted-foreground text-sm">
+              <p className="text-slate-400 dark:text-slate-600 text-sm">
                 Pricing is not available right now. Please try again in a few minutes.
               </p>
             </div>
@@ -83,7 +83,7 @@ function BillingToggle({
 
   return (
     <div
-      className="inline-flex items-center rounded-lg border border-border bg-background"
+      className="inline-flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-dark-surface"
       role="tablist"
       aria-label="Billing period"
     >
@@ -97,10 +97,10 @@ function BillingToggle({
             aria-selected={isActive}
             onClick={() => onChange(option.value)}
             className={cn(
-              "px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               isActive
-                ? "bg-foreground text-background"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-slate-900 dark:bg-slate-50 text-white dark:text-dark-surface"
+                : "text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-50"
             )}
           >
             {option.label}
@@ -130,17 +130,17 @@ function ComparisonTable({
   const colCount = plans.length + 1; // +1 for the "Item" label column
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="w-full border-collapse text-sm">
         {/* Plan name header */}
         <thead>
-          <tr className="border-b border-border">
-            <th className="text-left px-4 py-3 font-medium text-muted-foreground bg-muted/30 w-[200px] min-w-[180px]">
+          <tr className="border-b border-slate-200 dark:border-slate-800">
+            <th className="text-left px-4 py-3 font-medium text-slate-400 dark:text-slate-600 bg-slate-100/30 dark:bg-dark-surface-elevated/30 w-[200px] min-w-[180px]">
             </th>
             {plans.map((plan) => (
               <th
                 key={plan._id}
-                className="text-center px-4 py-3 font-semibold bg-muted/30"
+                className="text-center px-4 py-3 font-semibold bg-slate-100/30 dark:bg-dark-surface-elevated/30"
               >
                 <div>{plan.name}</div>
               </th>
@@ -148,7 +148,7 @@ function ComparisonTable({
           </tr>
 
           {/* Price row */}
-          <tr className="border-b border-border">
+          <tr className="border-b border-slate-200 dark:border-slate-800">
             <td className="px-4 py-3" />
             {plans.map((plan) => (
               <td key={plan._id} className="text-center px-4 py-3 font-semibold">
@@ -170,7 +170,7 @@ function ComparisonTable({
                 color="blue"
               />
               {featureItems.map((item) => (
-                <tr key={item._id} className="border-b border-border">
+                <tr key={item._id} className="border-b border-slate-200 dark:border-slate-800">
                   <ItemLabel item={item} />
                   {plans.map((plan) => (
                     <td key={plan._id} className="px-4 py-3 text-center">
@@ -193,7 +193,7 @@ function ComparisonTable({
                 color="amber"
               />
               {limitItems.map((item) => (
-                <tr key={item._id} className="border-b border-border">
+                <tr key={item._id} className="border-b border-slate-200 dark:border-slate-800">
                   <ItemLabel item={item} />
                   {plans.map((plan) => (
                     <td key={plan._id} className="px-4 py-3">
@@ -216,7 +216,7 @@ function ComparisonTable({
                 color="purple"
               />
               {quotaItems.map((item) => (
-                <tr key={item._id} className="border-b border-border last:border-b-0">
+                <tr key={item._id} className="border-b border-slate-200 dark:border-slate-800 last:border-b-0">
                   <ItemLabel item={item} />
                   {plans.map((plan) => (
                     <td key={plan._id} className="px-4 py-3">
@@ -292,10 +292,10 @@ function SectionHeader({
 
 function ItemLabel({ item }: { item: IPublicPlanItem }) {
   return (
-    <td className="px-4 py-3 align-top border-r border-border w-[200px] min-w-[180px]">
+    <td className="px-4 py-3 align-top border-r border-slate-200 dark:border-slate-800 w-[200px] min-w-[180px]">
       <div className="font-medium">{item.name}</div>
       {item.description && (
-        <div className="text-xs text-muted-foreground">{item.description}</div>
+        <div className="text-xs text-slate-400 dark:text-slate-600">{item.description}</div>
       )}
     </td>
   );
@@ -325,7 +325,7 @@ function PriceCell({
     }
   }
 
-  return <span className="text-muted-foreground">—</span>;
+  return <span className="text-slate-400 dark:text-slate-600">—</span>;
 }
 
 // ─── Feature Cell ────────────────────────────────────────────────────────────
@@ -334,14 +334,14 @@ function FeatureCell({ value }: { value?: boolean }) {
   if (value === true) {
     return <Check className="inline-block size-5 text-green-600" />;
   }
-  return <X className="inline-block size-5 text-muted-foreground" />;
+  return <X className="inline-block size-5 text-slate-400 dark:text-slate-600" />;
 }
 
 // ─── Limit Cell ──────────────────────────────────────────────────────────────
 
 function LimitCell({ value }: { value?: number }) {
   if (typeof value !== "number") {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-slate-400 dark:text-slate-600">—</span>;
   }
   return <span>{value.toLocaleString()}</span>;
 }
@@ -360,12 +360,12 @@ function QuotaCell({
   itemSlug: string;
 }) {
   if (!quota) {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-slate-400 dark:text-slate-600">—</span>;
   }
 
   const intervalData = quota[billingCycle] ?? quota.monthly;
   if (!intervalData || typeof intervalData.included !== "number") {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-slate-400 dark:text-slate-600">—</span>;
   }
 
   const included = intervalData.included.toLocaleString();

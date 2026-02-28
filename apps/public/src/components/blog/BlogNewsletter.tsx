@@ -41,13 +41,13 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
       transition={{ duration: 0.6 }}
       className={cn("w-full", className)}
     >
-      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10">
+      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-indigo-500/10 via-indigo-500/5 to-indigo-500/10">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
 
         {/* Decorative Elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-12 -translate-x-12" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -translate-y-16 translate-x-16" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/5 rounded-full translate-y-12 -translate-x-12" />
 
         <CardContent className="relative p-6 sm:p-8 lg:p-12">
           <div className="text-center space-y-6">
@@ -58,7 +58,7 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <Badge className="bg-primary/50 text-white border-primary/30 dark:bg-primary/20 dark:hover:bg-primary/50 px-4 py-2">
+              <Badge className="bg-indigo-500/50 text-white border-indigo-500/30 dark:bg-indigo-500/20 dark:hover:bg-indigo-500/50 px-4 py-2">
                 <Mail className="h-3 w-3 mr-2" />
                 Newsletter
               </Badge>
@@ -70,7 +70,7 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
+              className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 dark:from-slate-50 to-slate-900/70 dark:to-slate-50/70 bg-clip-text text-transparent"
             >
               Stay Updated
             </motion.h2>
@@ -81,7 +81,7 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4 }}
-              className="text-lg text-muted-foreground max-w-2xl mx-auto"
+              className="text-lg text-slate-400 dark:text-slate-600 max-w-2xl mx-auto"
             >
               Get the latest insights, tutorials, and updates delivered directly
               to your inbox. Join thousands of developers and designers who
@@ -94,7 +94,7 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.5 }}
-              className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground"
+              className="flex flex-wrap justify-center gap-4 text-sm text-slate-400 dark:text-slate-600"
             >
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -126,7 +126,7 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
                     placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 bg-background/80 dark:bg-white/10 backdrop-blur-sm border-muted"
+                    className="flex-1 bg-white/80 dark:bg-white/10 backdrop-blur-sm border-slate-100 dark:border-dark-surface-elevated"
                     required
                   />
                   <Button type="submit" disabled={isLoading} className="px-6">
@@ -158,12 +158,12 @@ export function BlogNewsletter({ className }: BlogNewsletterProps) {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.7 }}
-              className="text-xs text-muted-foreground"
+              className="text-xs text-slate-400 dark:text-slate-600"
             >
               By subscribing, you agree to our{" "}
               <Link
                 href="/privacy"
-                className="underline hover:text-primary transition-colors"
+                className="underline hover:text-indigo-500 transition-colors"
               >
                 Privacy Policy
               </Link>{" "}

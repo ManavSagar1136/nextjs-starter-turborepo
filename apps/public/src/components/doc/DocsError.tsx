@@ -29,7 +29,7 @@ const DocsError = ({
       <AlertCircle className="w-16 h-16 text-destructive" />
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-semibold">{title}</h2>
-        <p className="text-muted-foreground max-w-md">
+        <p className="text-slate-400 dark:text-slate-600 max-w-md">
           {error instanceof Error ? error.message : description}
         </p>
       </div>

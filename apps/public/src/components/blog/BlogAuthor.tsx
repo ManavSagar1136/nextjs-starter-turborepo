@@ -116,7 +116,7 @@ export function BlogAuthor({
     return (
       <div
         className={cn(
-          "text-sm text-muted-foreground",
+          "text-sm text-slate-400 dark:text-slate-600",
           align === "center" && "text-center",
           align === "right" && "text-right",
           className,
@@ -144,7 +144,7 @@ export function BlogAuthor({
       )}
     >
       {showLabel && (
-        <p className="font-medium text-sm text-foreground dark:text-foreground">
+        <p className="font-medium text-sm text-slate-900 dark:text-slate-50">
           Written by
         </p>
       )}
@@ -152,7 +152,7 @@ export function BlogAuthor({
         {displayAuthors.map((author, index) => (
           <div
             key={author.id || index}
-            className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg bg-slate-100/30 dark:bg-dark-surface-elevated/30 hover:bg-slate-100/50 dark:hover:bg-dark-surface-elevated/50 transition-colors"
           >
             <Avatar className={avatarSizeClasses[avatarSize]}>
               <AvatarImage src={author.image || getAvatarUrl(author)} />
@@ -172,11 +172,11 @@ export function BlogAuthor({
                 align === "right" && "items-end text-right",
               )}
             >
-              <p className="font-medium text-sm text-foreground dark:text-foreground">
+              <p className="font-medium text-sm text-slate-900 dark:text-slate-50">
                 {getAuthorName(author)}
               </p>
               {author.username && (
-                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                <p className="text-xs text-slate-400 dark:text-slate-600">
                   @{author.username}
                 </p>
               )}
@@ -185,7 +185,7 @@ export function BlogAuthor({
         ))}
         {remainingCount > 0 && (
           <div className="flex items-center justify-center p-3">
-            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
+            <p className="text-sm text-slate-400 dark:text-slate-600">
               and {remainingCount} more
             </p>
           </div>

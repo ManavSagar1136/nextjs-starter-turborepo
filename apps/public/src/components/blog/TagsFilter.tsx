@@ -76,7 +76,7 @@ const TagsFilter = ({
             className={cn(
               "cursor-pointer transition-all text-xs py-1 px-2 dark:border-white/20",
               selectedTags.includes(tag.slug) &&
-                "bg-primary text-primary-foreground",
+                "bg-indigo-500 text-white",
             )}
             onClick={() => onTagToggle(tag.slug)}
           >

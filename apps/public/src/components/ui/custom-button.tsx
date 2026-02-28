@@ -22,7 +22,7 @@ const CustomButton = ({
         <Link
           href={href}
           className={cn(
-            "bg-primary-200 p-3 px-5 text-center rounded-lg text-secondary-foreground text-lg font-bold flex justify-center items-center",
+            "bg-indigo-200 p-3 px-5 text-center rounded-lg text-slate-900 dark:text-slate-50 text-lg font-bold flex justify-center items-center",
             classNames,
           )}
         >

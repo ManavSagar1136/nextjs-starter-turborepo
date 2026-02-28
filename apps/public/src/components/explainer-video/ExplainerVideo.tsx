@@ -7,10 +7,10 @@ export const ExplainerVideo = () => {
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Headline Section */}
       <div className="mb-8 sm:mb-10 lg:mb-12 text-center">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground mb-3 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-slate-900 dark:text-slate-50 mb-3 tracking-tight">
           See how it works in under 2 minutes
         </h2>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg text-slate-400 dark:text-slate-600 max-w-2xl mx-auto leading-relaxed">
           Watch our quick demo to discover how you can start making money with
           our platform
         </p>

@@ -223,8 +223,8 @@ export function TableOfContents({ items, className, classNames, onItemClick }: T
     <ScrollArea className={cn("max-h-[calc(100vh-var(--header-height)-2rem)]", classNames?.scrollArea)}>
       <nav className={cn("scroll-parent space-y-1", className)} aria-label="Table of contents">
         {/* Header */}
-        <div className="border-border/50 mb-4 border-b pb-3">
-          <h3 className="text-muted-foreground px-3 text-xs font-semibold uppercase tracking-wider">On This Page</h3>
+        <div className="border-slate-200/50 dark:border-slate-800/50 mb-4 border-b pb-3">
+          <h3 className="text-slate-400 dark:text-slate-600 px-3 text-xs font-semibold uppercase tracking-wider">On This Page</h3>
         </div>
         <ul className="space-y-1">
           {items.map((item, index) => {
@@ -287,12 +287,12 @@ export function TableOfContents({ items, className, classNames, onItemClick }: T
                     levelStyles[item.level as keyof typeof levelStyles] || "py-2 text-sm",
                     // Active state
                     isActive
-                      ? "text-primary bg-primary/10 dark:bg-primary/20 border-primary border-l-[3px] shadow-sm"
-                      : "text-muted-foreground",
+                      ? "text-indigo-500 bg-indigo-500/10 dark:bg-indigo-500/20 border-indigo-500 border-l-[3px] shadow-sm"
+                      : "text-slate-400 dark:text-slate-600",
                     // Hover state (only when not active)
-                    !isActive && "hover:text-foreground hover:bg-accent/50 dark:hover:bg-accent/30",
+                    !isActive && "hover:text-slate-900 dark:hover:text-slate-50 hover:bg-accent/50 dark:hover:bg-accent/30",
                     // Visual hierarchy indicator for nested items (subtle left border)
-                    item.level > 1 && !isActive && "hover:border-primary/20 border-l border-transparent"
+                    item.level > 1 && !isActive && "hover:border-indigo-500/20 border-l border-transparent"
                   )}
                 >
                   <span
@@ -308,7 +308,7 @@ export function TableOfContents({ items, className, classNames, onItemClick }: T
                   {isActive && (
                     <span
                       className={cn(
-                        "bg-primary absolute top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full opacity-80",
+                        "bg-indigo-500 absolute top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full opacity-80",
                         // Position based on level to account for padding
                         item.level === 1 ? "left-0" : "left-0"
                       )}
