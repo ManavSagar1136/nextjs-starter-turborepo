@@ -48,7 +48,7 @@ export interface CookieStore {
       path?: string;
       expires?: Date;
       maxAge?: number;
-    },
+    }
   ): void;
   delete(name: string): void;
 }
@@ -135,18 +135,14 @@ export function isSessionExpiringSoon(session: SaaSSession): boolean {
 // ─── Session Creation / Refresh ───────────────────────────────────────────────
 
 async function fetchNewSession(baseUrl?: string): Promise<SaaSSession | null> {
-  const orgId = env.NEXT_PUBLIC_SAAS_ORG_ID;
-  const apiTokenSecret = env.SAAS_API_TOKEN_SECRET ?? env.SAAS_CLIENT_SECRET;
+  const apiTokenSecret = env.SAAS_API_TOKEN_SECRET;
 
-  if (!orgId || !apiTokenSecret) {
-    console.error(
-      "[SaaSSession] Missing NEXT_PUBLIC_SAAS_ORG_ID or SAAS_API_TOKEN_SECRET. " +
-        "Set SAAS_API_TOKEN_SECRET in your server environment.",
-    );
+  if (!apiTokenSecret) {
+    console.error("[SaaSSession] Missing SAAS_API_TOKEN_SECRET. Set it in your server environment.");
     return null;
   }
 
-  const result = await exchangeToken({ token: `${orgId}:${apiTokenSecret}`, baseUrl });
+  const result = await exchangeToken({ token: apiTokenSecret, baseUrl });
 
   if (!result.success || !result.sessionId) {
     console.error("[SaaSSession] Token exchange failed:", result.message);
@@ -199,7 +195,7 @@ export async function getOrRefreshSession(options: {
  */
 export async function getOrRefreshSessionFromRequest(
   request: Request,
-  baseUrl?: string,
+  baseUrl?: string
 ): Promise<{ session: SaaSSession | null; setCookieHeader: string | null }> {
   const cookieHeader = request.headers.get("cookie");
   const existing = parseSessionFromCookieHeader(cookieHeader);
