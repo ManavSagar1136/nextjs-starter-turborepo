@@ -244,10 +244,12 @@ const BlogExplorer = ({
             {/* Item Selector (Tags or Groups) */}
             <div className="w-full">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-medium text-muted-foreground select-none">
+                <span className="text-xs font-medium select-none text-slate-400 dark:text-slate-600">
                   {selectorLabel}
                 </span>
-                <span className="text-[10px] text-muted-foreground bg-muted dark:bg-white/20 dark:text-white px-2 py-0.5 rounded ml-1">
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded ml-1 bg-slate-100 dark:bg-dark-surface-elevated text-slate-400 dark:text-slate-600"
+                >
                   Tap or click to filter
                 </span>
               </div>
@@ -262,8 +264,8 @@ const BlogExplorer = ({
                       "cursor-pointer transition-all text-xs py-1.5 px-3 font-medium",
                       "hover:scale-105 active:scale-95",
                       selectedItemSlug === item.slug
-                        ? "bg-primary text-primary-foreground shadow-md dark:bg-primary dark:text-primary-foreground"
-                        : "bg-background text-foreground border border-border dark:bg-[#111] dark:text-white dark:border-[#3f3e3e]",
+                        ? "bg-indigo-500 text-white border-indigo-500"
+                        : "bg-slate-50 dark:bg-dark-surface-secondary text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700",
                     )}
                     onClick={() => handleItemSelect(item.slug)}
                     role="button"
@@ -314,8 +316,8 @@ const BlogExplorer = ({
             {/* Selected Item Blogs */}
             {selectedItem && (
               <section className="overflow-visible w-full flex flex-col gap-3 mt-2">
-                <div className="w-full border-b mb-2 py-1">
-                  <h2 className="text-lg md:text-xl font-bold capitalize">
+                <div className="w-full mb-2 py-1 border-b border-slate-200 dark:border-slate-800">
+                  <h2 className="text-lg md:text-xl font-bold capitalize text-slate-900 dark:text-slate-50">
                     Articles {mode === "tags" ? "about" : "in"}{" "}
                     {selectedItem.title}
                   </h2>
@@ -355,10 +357,10 @@ const BlogExplorer = ({
                   </>
                 ) : (
                   <div className="flex flex-col justify-center items-center py-8 text-center">
-                    <p className="text-muted-foreground text-sm mb-1">
+                    <p className="text-sm mb-1 text-slate-600 dark:text-slate-400">
                       {noArticlesMessage}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-400 dark:text-slate-600">
                       {tryDifferentMessage}
                     </p>
                   </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, createNewsletterSubscriber } from "@buildbase/database";
 import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
+import { env } from "@buildbase/env";
 import type { NewsletterSubscribeRequest } from "@/types/api";
 
 // Initialize email service
@@ -59,8 +60,8 @@ export async function POST(request: NextRequest) {
         to: subscriber.email,
         variables: {
           email: subscriber.email,
-          companyName: process.env.COMPANY_NAME || "Our Company",
-          siteUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "#",
+          companyName: env.COMPANY_NAME || "Our Company",
+          siteUrl: env.NEXT_PUBLIC_PUBLIC_APP_URL || "#",
         },
       });
       console.log("[Newsletter API] Welcome email sent to:", subscriber.email);
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send admin notification (optional - only if ADMIN_EMAIL is set)
-    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminEmail = env.ADMIN_EMAIL;
     if (adminEmail && isNew) {
       try {
         await EmailService.sendTemplate(EMAIL_TEMPLATES.NEWSLETTER_ADMIN_NOTIFICATION, {
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
             email: subscriber.email,
             source: "website",
             subscribedAt: new Date().toISOString(),
-            adminUrl: process.env.ADMIN_URL || "#",
+            adminUrl: env.ADMIN_URL || "#",
           },
         });
         console.log("[Newsletter API] Admin notification sent");
@@ -109,3 +110,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

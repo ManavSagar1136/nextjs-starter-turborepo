@@ -2,7 +2,7 @@
  * @buildbase/database - Contact Submission Types
  */
 
-import type { ContactSubmission, ContactSubmissionStatus } from "../generated/client";
+import type { ContactSubmission, ContactSubmissionStatus } from "@prisma/client";
 
 export type { ContactSubmission, ContactSubmissionStatus };
 

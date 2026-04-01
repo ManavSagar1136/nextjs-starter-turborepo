@@ -33,7 +33,7 @@ export function BlogContent({ post, className, allTags }: BlogContentProps) {
       className={cn("w-full space-y-6 md:space-y-10 lg:space-y-16", className)}
     >
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-8 md:py-10  lg:py-16 rounded-2xl">
+      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-500/10 via-indigo-500/5 to-indigo-500/10 py-8 md:py-10  lg:py-16 rounded-2xl">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
         <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-6">
@@ -42,7 +42,7 @@ export function BlogContent({ post, className, allTags }: BlogContentProps) {
               as="h1"
               preset="slideUp"
               delay={0.3}
-              className="text-2xl md:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent scroll-m-40"
+              className="text-2xl md:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-slate-900 dark:from-slate-50 to-slate-900/70 dark:to-slate-50/70 bg-clip-text text-transparent scroll-m-40"
               elementProps={{ [TOC_ATTRIBUTES.EXCLUDE]: "true" }}
             >
               {post.title}
@@ -54,7 +54,7 @@ export function BlogContent({ post, className, allTags }: BlogContentProps) {
                 as="p"
                 preset="slideUp"
                 delay={0.4}
-                className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto"
+                className="text-base md:text-lg lg:text-xl text-slate-400 dark:text-slate-600 max-w-3xl mx-auto"
               >
                 {post.description || post.excerpt}
               </MotionWrapper>
@@ -64,7 +64,7 @@ export function BlogContent({ post, className, allTags }: BlogContentProps) {
             <MotionWrapper
               preset="slideUp"
               delay={0.5}
-              className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"
+              className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400 dark:text-slate-600"
             >
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -110,7 +110,7 @@ export function BlogContent({ post, className, allTags }: BlogContentProps) {
                   >
                     <Badge
                       variant="secondary"
-                      className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+                      className="bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 transition-colors cursor-pointer"
                     >
                       {tag.title}
                     </Badge>
@@ -152,7 +152,7 @@ export function BlogContent({ post, className, allTags }: BlogContentProps) {
           <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-muted-foreground">Loading content...</div>
+                <div className="text-slate-400 dark:text-slate-600">Loading content...</div>
               </div>
             }
           >

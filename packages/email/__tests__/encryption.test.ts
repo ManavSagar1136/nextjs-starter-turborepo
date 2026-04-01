@@ -3,6 +3,21 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
+// Mock @buildbase/env to allow test environment variable control
+vi.mock("@buildbase/env", () => {
+  return {
+    env: new Proxy({} as Record<string, string | undefined>, {
+      get(_target, prop: string) {
+        return process.env[prop];
+      },
+    }),
+    isDevelopment: () => process.env.NODE_ENV === "development",
+    isProduction: () => process.env.NODE_ENV === "production",
+    isTest: () => process.env.NODE_ENV === "test",
+  };
+});
+
 import { encrypt, decrypt, encryptConfig, decryptConfig, generateEncryptionKey } from "../src/core/encryption.js";
 import { ConfigurationError, EncryptionError } from "../src/core/errors.js";
 

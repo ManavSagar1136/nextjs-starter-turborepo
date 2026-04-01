@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { env } from "@buildbase/env";
+
 // Cache configuration
 export interface CacheConfig {
   // Redis configuration
@@ -66,8 +68,8 @@ export const createCacheConfig = (options?: {
 }): CacheConfig => {
   return {
     redis: {
-      url: options?.redisUrl || process.env.UPSTASH_REDIS_REST_URL || "",
-      token: options?.redisToken || process.env.UPSTASH_REDIS_REST_TOKEN || "",
+      url: options?.redisUrl || env.UPSTASH_REDIS_REST_URL || "",
+      token: options?.redisToken || env.UPSTASH_REDIS_REST_TOKEN || "",
     },
     defaultTTL: options?.defaultTTL ?? 300, // 5 minutes
     shortTTL: options?.shortTTL ?? 60, // 1 minute

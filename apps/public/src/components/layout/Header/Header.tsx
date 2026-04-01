@@ -26,7 +26,7 @@ const Header = () => {
       id="header"
       key="header"
     >
-      <div className="max-w-[1280px] w-full flex items-center justify-between bg-primary-foreground px-6 py-4 rounded gap-3">
+      <div className="max-w-[1280px] w-full flex items-center justify-between bg-white px-6 py-4 rounded gap-3">
         {/* Logo and Brand */}
         <div className="flex items-center min-w-[133px] shrink-0">
           <div className="w-8 h-8 mr-2 overflow-hidden">

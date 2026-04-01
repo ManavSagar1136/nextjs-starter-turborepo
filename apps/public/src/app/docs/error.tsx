@@ -14,7 +14,7 @@ export default function DocsError({ error, reset }: { error: Error & { digest?: 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
       <h2 className="text-2xl font-bold">Something went wrong!</h2>
-      <p className="text-muted-foreground">{error.message || "An error occurred while loading documentation."}</p>
+      <p className="text-slate-400 dark:text-slate-600">{error.message || "An error occurred while loading documentation."}</p>
       <div className="flex gap-4">
         <Button onClick={reset}>Try again</Button>
         <Button variant="outline">

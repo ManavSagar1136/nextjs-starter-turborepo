@@ -44,6 +44,11 @@ export const NAVIGATION_ITEMS: INavigationItem[] = [
     key: HEADER_KEYS.DOCS,
   },
   {
+    href: Routes.pricing,
+    label: "Pricing",
+    requiresProductLive: true,
+  },
+  {
     href: Routes.contactus,
     label: "Contact Us",
   },
@@ -57,7 +62,7 @@ export const NAVIGATION_ITEMS: INavigationItem[] = [
  */
 export const HeaderDropDownErrorView = ({ message }: { message: string }) => {
   return (
-    <div className="flex-center text-muted-foreground bg-destructive/10 border-destructive/50 flex-col gap-2 rounded-lg border px-4 py-4 text-sm">
+    <div className="flex-center text-slate-400 dark:text-slate-600 bg-destructive/10 border-destructive/50 flex-col gap-2 rounded-lg border px-4 py-4 text-sm">
       <AlertCircle className="text-destructive size-6 flex-shrink-0" />
       <span>{message}</span>
     </div>
@@ -72,8 +77,8 @@ export const HeaderDropDownErrorView = ({ message }: { message: string }) => {
  */
 export const HeaderDropDownEmptyView = ({ message }: { message: string }) => {
   return (
-    <div className="flex-center text-muted-foreground bg-muted/50 border-muted/50 flex-col gap-2 rounded-lg border px-4 py-4 text-sm">
-      <Inbox className="text-muted-foreground size-6 flex-shrink-0" />
+    <div className="flex-center text-slate-400 dark:text-slate-600 bg-slate-100/50 dark:bg-dark-surface-elevated/50 border-slate-100/50 dark:border-dark-surface-elevated/50 flex-col gap-2 rounded-lg border px-4 py-4 text-sm">
+      <Inbox className="text-slate-400 dark:text-slate-600 size-6 flex-shrink-0" />
       <span>{message}</span>
     </div>
   );
@@ -114,8 +119,8 @@ export const HeaderDropDownLinkItem = ({
         onClick={handleClick}
         className={cn(
           "block rounded-lg px-2 py-1.5 text-sm",
-          "bg-background hover:bg-accent hover:text-accent-foreground",
-          "hover:border-border border border-transparent",
+          "bg-white dark:bg-dark-surface hover:bg-slate-100 dark:hover:bg-dark-surface-elevated hover:text-slate-900 dark:hover:text-slate-50",
+          "hover:border-slate-200 dark:hover:border-slate-800 border border-transparent",
           "transition-all duration-200 ease-in-out",
           "truncate",
           "font-medium",
@@ -135,8 +140,8 @@ export const HeaderDropDownLinkItem = ({
       onClick={handleClick}
       className={cn(
         "block rounded-lg px-2 py-1.5 text-sm",
-        "bg-background hover:bg-accent hover:text-accent-foreground",
-        "hover:border-border border border-transparent",
+        "bg-white dark:bg-dark-surface hover:bg-slate-100 dark:hover:bg-dark-surface-elevated hover:text-slate-900 dark:hover:text-slate-50",
+        "hover:border-slate-200 dark:hover:border-slate-800 border border-transparent",
         "transition-all duration-200 ease-in-out",
         "truncate",
         "font-medium",

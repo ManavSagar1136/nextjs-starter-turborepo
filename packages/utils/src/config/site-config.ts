@@ -109,9 +109,9 @@ export const SiteConfig: ISiteConfig = {
   // Support and other links
   supportEmail: "support@company.org",
   signInCallbackUrl: "/",
-  affiliateProgramLink: (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK) || "",
-  affiliateStoreName: (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AFFILIATE_STORE_NAME) || "",
-  calendlyLink: (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BOOK_MEETING_LINK) || "",
+  affiliateProgramLink: env.NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK || "",
+  affiliateStoreName: env.NEXT_PUBLIC_AFFILIATE_STORE_NAME || "",
+  calendlyLink: env.NEXT_PUBLIC_BOOK_MEETING_LINK || "",
 
   // Login page configuration
   // Note: title and buttonText will be overridden by app-specific configs

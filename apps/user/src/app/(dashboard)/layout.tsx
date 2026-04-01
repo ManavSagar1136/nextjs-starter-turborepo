@@ -58,7 +58,8 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
 }
 
 // Apply auth protection to all routes in this group
+// Allow both USER and ADMIN roles - admins should also be able to access the user dashboard
 export default withServerAuth(ProtectedLayout, {
   redirectTo: Routes.login,
-  allowedRoles: [APP_ROLES.USER],
+  allowedRoles: [APP_ROLES.USER, APP_ROLES.ADMIN],
 });

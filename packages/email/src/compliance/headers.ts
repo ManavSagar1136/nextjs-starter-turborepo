@@ -3,6 +3,7 @@
  * Add required headers for email compliance
  */
 
+import { env } from "@buildbase/env";
 import { randomUUID } from "crypto";
 import type { ComplianceHeaders } from "./types.js";
 
@@ -10,7 +11,7 @@ import type { ComplianceHeaders } from "./types.js";
  * Get domain from APP_URL or fallback
  */
 function getDomain(): string {
-  const appUrl = process.env.APP_URL || "";
+  const appUrl = env.NEXT_PUBLIC_PUBLIC_APP_URL || "";
   try {
     const url = new URL(appUrl);
     return url.hostname;
@@ -63,7 +64,7 @@ export function addComplianceHeaders(
  * Generate unsubscribe URL
  */
 export function generateUnsubscribeUrl(token: string, baseUrl?: string): string {
-  const base = baseUrl || process.env.APP_URL || "";
+  const base = baseUrl || env.NEXT_PUBLIC_PUBLIC_APP_URL || "";
   return `${base}/api/email/unsubscribe/${token}`;
 }
 
@@ -71,6 +72,6 @@ export function generateUnsubscribeUrl(token: string, baseUrl?: string): string 
  * Generate one-click unsubscribe URL (for header)
  */
 export function generateOneClickUnsubscribeUrl(token: string, baseUrl?: string): string {
-  const base = baseUrl || process.env.APP_URL || "";
+  const base = baseUrl || env.NEXT_PUBLIC_PUBLIC_APP_URL || "";
   return `${base}/api/email/unsubscribe/${token}?oneClick=true`;
 }

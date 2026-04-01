@@ -104,10 +104,10 @@ export function BlogTableOfContents({ className }: BlogTableOfContentsProps) {
       transition={{ duration: 0.3 }}
       className={cn("sticky top-24", className)}
     >
-      <Card className="border-0 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
+      <Card className="border-0 bg-gradient-to-br from-white dark:from-dark-surface to-slate-100/20 dark:to-dark-surface-elevated/20 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-primary" />
+            <BookOpen className="h-4 w-4 text-indigo-500" />
             <h3 className="font-semibold text-sm">Table of Contents</h3>
           </div>
         </CardHeader>
@@ -118,11 +118,11 @@ export function BlogTableOfContents({ className }: BlogTableOfContentsProps) {
                 key={item.id}
                 onClick={() => scrollToHeading(item.id)}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 hover:bg-primary/10 group",
+                  "w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 hover:bg-indigo-500/10 group",
                   getIndentClass(item.level),
                   item.isActive
-                    ? "bg-primary/20 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-indigo-500/20 text-indigo-500 font-medium"
+                    : "text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-50",
                 )}
                 whileHover={{ x: 4 }}
                 transition={{ duration: 0.2 }}
@@ -132,8 +132,8 @@ export function BlogTableOfContents({ className }: BlogTableOfContentsProps) {
                     className={cn(
                       "h-3 w-3 transition-colors",
                       item.isActive
-                        ? "text-primary"
-                        : "text-muted-foreground group-hover:text-foreground",
+                        ? "text-indigo-500"
+                        : "text-slate-400 dark:text-slate-600 group-hover:text-slate-900 dark:group-hover:text-slate-50",
                     )}
                   />
                   <span className="truncate">{item.text}</span>

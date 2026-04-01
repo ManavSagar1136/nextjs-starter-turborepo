@@ -1,10 +1,11 @@
+import { env } from "@buildbase/env";
 import type { StorageConfig, StorageProvider } from "./types";
 
 /**
  * Get storage provider from environment
  */
 export function getStorageProvider(): StorageProvider {
-  const provider = process.env.STORAGE_PROVIDER || "gcs";
+  const provider = env.STORAGE_PROVIDER || "gcs";
   const validProviders: StorageProvider[] = ["gcs", "s3", "azure", "local"];
 
   if (!validProviders.includes(provider as StorageProvider)) {
@@ -19,10 +20,10 @@ export function getStorageProvider(): StorageProvider {
  * Uses individual credential fields (client_email and private_key)
  */
 export function getGcsConfig() {
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || "";
-  const bucket = process.env.GOOGLE_CLOUD_BUCKET_NAME || "";
-  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL || "";
-  const privateKey = process.env.GOOGLE_CLOUD_PRIVATE_KEY || "";
+  const projectId = env.GOOGLE_CLOUD_PROJECT_ID || "";
+  const bucket = env.GOOGLE_CLOUD_BUCKET_NAME || "";
+  const clientEmail = env.GOOGLE_CLOUD_CLIENT_EMAIL || "";
+  const privateKey = env.GOOGLE_CLOUD_PRIVATE_KEY || "";
 
   if (!projectId || !bucket || !clientEmail || !privateKey) {
     throw new Error(
@@ -47,10 +48,10 @@ export function getGcsConfig() {
  */
 export function getS3Config() {
   return {
-    region: process.env.AWS_REGION || "us-east-1",
-    bucket: process.env.S3_BUCKET_NAME || "",
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: env.AWS_REGION || "us-east-1",
+    bucket: env.S3_BUCKET_NAME || "",
+    accessKeyId: env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   };
 }
 
@@ -59,8 +60,8 @@ export function getS3Config() {
  */
 export function getLocalConfig() {
   return {
-    basePath: process.env.LOCAL_STORAGE_PATH || "./uploads",
-    baseUrl: process.env.LOCAL_STORAGE_URL || "/uploads",
+    basePath: env.LOCAL_STORAGE_PATH || "./uploads",
+    baseUrl: env.LOCAL_STORAGE_URL || "/uploads",
   };
 }
 

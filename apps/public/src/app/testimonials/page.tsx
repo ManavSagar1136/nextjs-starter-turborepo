@@ -2,7 +2,6 @@ import { Routes } from "@/data/routes";
 import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
-import { HeaderCard } from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 import TestimonialMarquee, { ITestimonial } from "@/components/testimonials/TestimonialMarquee";
 
@@ -68,15 +67,29 @@ const testimonials: ITestimonial[] = [
 
 const TestimonialWall = () => {
   return (
-    <PageWithHeaderFooter className="space-y-10">
-      <HeaderCard
-        mainTitle="Loved by developers worldwide"
-        subTitle="See what our customers are saying about us on Twitter"
-        h1
-      />
-      <div className="mx-auto grid max-w-4xl gap-6">
-        <TestimonialMarquee testimonials={testimonials} />
-      </div>
+    <PageWithHeaderFooter>
+      <section
+        className="w-full py-20 md:py-32 px-5 md:px-20 bg-white dark:bg-dark-surface"
+      >
+        <div className="mx-auto max-w-4xl space-y-10">
+          {/* Header */}
+          <div className="text-center">
+            <span className="mk-eyebrow mb-3 block">Testimonials</span>
+            <h1
+              className="font-extrabold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
+            >
+              Loved by developers <span className="mk-gradient-text">worldwide.</span>
+            </h1>
+            <p
+              className="mx-auto mt-4 max-w-xl leading-relaxed text-lg text-slate-600 dark:text-slate-400"
+            >
+              See what our customers are saying about us on Twitter
+            </p>
+          </div>
+
+          <TestimonialMarquee testimonials={testimonials} />
+        </div>
+      </section>
     </PageWithHeaderFooter>
   );
 };

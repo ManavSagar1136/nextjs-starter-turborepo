@@ -41,7 +41,7 @@ const DocRenderer = ({ data, allDocs }: DocRendererProps) => {
       description={data.subtitle || data.description}
       lastUpdatedAt={data.updatedAt}
     >
-      <article className="prose prose-gray dark:prose-invert max-w-none">
+      <article className="prose max-w-none">
         {/* The rendered markdown content for the documentation page */}
         <div className="mdx-content">
           <MarkdownView content={content} />

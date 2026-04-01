@@ -2,7 +2,7 @@
  * @buildbase/database - Update Newsletter Subscriber
  */
 
-import type { PrismaClient, NewsletterSubscriber, Prisma } from "../generated/client";
+import type { PrismaClient, NewsletterSubscriber, Prisma } from "@prisma/client";
 import type { UpdateNewsletterSubscriberInput } from "./types";
 
 /**
@@ -84,10 +84,7 @@ export async function unsubscribeNewsletterByEmail(
 /**
  * Unsubscribe a newsletter subscriber by ID
  */
-export async function unsubscribeNewsletterById(
-  prisma: PrismaClient,
-  id: string
-): Promise<NewsletterSubscriber> {
+export async function unsubscribeNewsletterById(prisma: PrismaClient, id: string): Promise<NewsletterSubscriber> {
   return prisma.newsletterSubscriber.update({
     where: { id },
     data: {
@@ -134,10 +131,7 @@ export async function markNewsletterSubscriberComplained(
 /**
  * Delete a newsletter subscriber (hard delete)
  */
-export async function deleteNewsletterSubscriber(
-  prisma: PrismaClient,
-  id: string
-): Promise<void> {
+export async function deleteNewsletterSubscriber(prisma: PrismaClient, id: string): Promise<void> {
   await prisma.newsletterSubscriber.delete({
     where: { id },
   });

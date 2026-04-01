@@ -8,6 +8,7 @@ import { SiteConfig } from "@/config";
 
 import { AppProviders } from "@/components/providers/AppProviders";
 import { InitializeDialogs } from "@/dialogs/initialize";
+import { GoogleAnalytics } from "@buildbase/components";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GoogleAnalytics />
         <AppProviders>
           <InitializeDialogs />
           {children}

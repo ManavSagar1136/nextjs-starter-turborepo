@@ -20,6 +20,12 @@
     "NEXT_PUBLIC_SAAS_ORG_ID",
     "NEXT_PUBLIC_SAAS_CLIENT_ID",
 
+    "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID",
+
+    "NEXT_PUBLIC_AFFILIATE_PROGRAM_LINK",
+    "NEXT_PUBLIC_AFFILIATE_STORE_NAME",
+    "NEXT_PUBLIC_BOOK_MEETING_LINK",
+
     "UPSTASH_REDIS_REST_URL",
     "UPSTASH_REDIS_REST_TOKEN",
     "ENABLE_CACHE_WARMING",
@@ -42,6 +48,10 @@
     "NEXT_RUNTIME",
 
     "STORAGE_PROVIDER",
+    "GOOGLE_CLOUD_PROJECT_ID",
+    "GOOGLE_CLOUD_CLIENT_EMAIL",
+    "GOOGLE_CLOUD_PRIVATE_KEY",
+    "GOOGLE_CLOUD_BUCKET_NAME",
     "GOOGLE_CLOUD_PROJECT",
     "GCS_BUCKET_NAME",
     "GOOGLE_APPLICATION_CREDENTIALS",
@@ -54,21 +64,29 @@
 
     "COMPANY_NAME",
     "ADMIN_EMAIL",
-    "ADMIN_URL"
+    "ADMIN_URL",
+
+    "EMAIL_ENCRYPTION_KEY",
+    "VERCEL_ENV"
   ],
   "globalDependencies": [],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "src/generated/**"]
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "node_modules/.prisma/**"
+      ]
     },
     "@buildbase/eslint-config#build": {
       "cache": false
     },
     "db:generate": {
       "cache": false,
-      "outputs": ["src/generated/**"]
+      "outputs": ["node_modules/.prisma/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -129,6 +147,12 @@
     "test:watch": {
       "cache": false,
       "persistent": true
+    },
+
+    "render": {
+      "dependsOn": ["^build"],
+      "outputs": ["out/**"],
+      "inputs": ["src/**", "remotion.config.*", "public/**"]
     }
   }
 }

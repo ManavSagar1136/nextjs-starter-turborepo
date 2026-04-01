@@ -160,7 +160,7 @@ function DocNavItem({ item, level = 0 }: { item: DocItem; level?: number }) {
         "hover:bg-accent hover:text-accent-foreground",
         isActive
           ? "bg-accent text-accent-foreground font-medium"
-          : "text-muted-foreground",
+          : "text-slate-400 dark:text-slate-600",
         level > 0 && "pl-4",
       )}
     >

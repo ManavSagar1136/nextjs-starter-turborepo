@@ -2,7 +2,7 @@
  * @buildbase/database - Create Email Provider
  */
 
-import type { PrismaClient, EmailProvider } from "../generated/client";
+import type { PrismaClient, EmailProvider } from "@prisma/client";
 import type { CreateEmailProviderInput, ProviderType } from "./types";
 import { PROVIDER_REQUIRED_FIELDS } from "./constants";
 

@@ -244,7 +244,7 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
           <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-muted-foreground">Loading content...</div>
+                <div className="text-slate-400 dark:text-slate-600">Loading content...</div>
               </div>
             }
           >

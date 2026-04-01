@@ -1,5 +1,5 @@
 import { Footer } from "@/components/layout/Footer";
-import Header from "@/components/layout/Header/Header";
+import { NavBar } from "@/components/layout/NavBar/NavBar";
 
 import { cn } from "@buildbase/ui/lib/utils";
 
@@ -19,11 +19,12 @@ export default function PageWithHeaderFooter({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-items-center min-h-screen gap-10 font-[family-name:var(--font-geist-sans)]",
+        "flex flex-col items-center justify-items-center min-h-screen font-[family-name:var(--font-geist-sans)] bg-white dark:bg-dark-surface text-slate-900 dark:text-slate-50",
+        !noWrapper && "gap-10",
         wrapperClassName,
       )}
     >
-      <Header />
+      <NavBar />
       {noWrapper ? (
         children
       ) : (

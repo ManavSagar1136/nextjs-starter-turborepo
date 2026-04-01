@@ -22,7 +22,7 @@ export const ErrorScreen = ({ error, reset }: ErrorScreenProps) => {
       {reset && (
         <button
           onClick={reset}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
         >
           Try again
         </button>

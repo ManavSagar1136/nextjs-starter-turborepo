@@ -38,7 +38,7 @@ export function RelatedPosts({
       preset="slideUp"
       duration={0.5}
       className={cn(
-        "py-10 md:py-20 bg-gradient-to-br from-muted/20 to-background",
+        "py-10 md:py-20 bg-gradient-to-br from-slate-100/20 dark:from-dark-surface-elevated/20 to-white dark:to-dark-surface",
         className,
       )}
     >
@@ -51,7 +51,7 @@ export function RelatedPosts({
         >
           <>
             <div className="flex items-center justify-center gap-2 mb-4">
-              <BookOpen className="h-6 w-6 text-primary" />
+              <BookOpen className="h-6 w-6 text-indigo-500" />
               <h2
                 className="text-3xl font-bold"
                 {...{ [TOC_ATTRIBUTES.EXCLUDE]: "true" }}
@@ -59,7 +59,7 @@ export function RelatedPosts({
                 Related Articles
               </h2>
             </div>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-slate-400 dark:text-slate-600 text-lg max-w-2xl mx-auto">
               Discover more insights and tutorials that might interest you
             </p>
           </>
@@ -86,7 +86,7 @@ export function RelatedPosts({
         <MotionWrapper preset="slideUp" delay={0.6} className="text-center">
           <Button
             size="lg"
-            className="gap-2 hover:bg-primary/90 transition-colors"
+            className="gap-2 hover:bg-indigo-500/90 transition-colors"
           >
             View All Posts
             <ArrowRight />

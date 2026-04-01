@@ -60,6 +60,8 @@ export interface ISessionResponse {
     id: string;
     email?: string;
     role?: string;
+    workspaceId?: string;
+    workspaceName?: string;
   };
 }
 

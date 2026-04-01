@@ -1,4 +1,5 @@
-import { PrismaClient } from "./generated/client";
+import { env, isDevelopment } from "@buildbase/env";
+import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -7,12 +8,12 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: isDevelopment() ? ["query", "error", "warn"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (isDevelopment()) globalForPrisma.prisma = prisma;
 
-export * from "./generated/client";
+export * from "@prisma/client";
 
 // Export user service functions
 export * from "./user";

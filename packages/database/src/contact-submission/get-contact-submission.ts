@@ -2,15 +2,12 @@
  * @buildbase/database - Get Contact Submission
  */
 
-import type { PrismaClient, ContactSubmission } from "../generated/client";
+import type { PrismaClient, ContactSubmission } from "@prisma/client";
 
 /**
  * Get a contact submission by ID
  */
-export async function getContactSubmissionById(
-  prisma: PrismaClient,
-  id: string
-): Promise<ContactSubmission | null> {
+export async function getContactSubmissionById(prisma: PrismaClient, id: string): Promise<ContactSubmission | null> {
   return prisma.contactSubmission.findUnique({
     where: { id },
   });
@@ -34,10 +31,7 @@ export async function getContactSubmissionsByEmail(
 /**
  * Get unread (new) contact submissions count
  */
-export async function getUnreadContactSubmissionsCount(
-  prisma: PrismaClient,
-  workspaceId?: string
-): Promise<number> {
+export async function getUnreadContactSubmissionsCount(prisma: PrismaClient, workspaceId?: string): Promise<number> {
   return prisma.contactSubmission.count({
     where: {
       status: "NEW",

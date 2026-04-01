@@ -36,7 +36,7 @@ export function FeaturedBlogPost({
     >
       <Card
         className={cn(
-          "relative rounded-xl overflow-hidden transition-all duration-300 cursor-pointer bg-gradient-to-br from-background to-muted/20 dark:from-card dark:to-muted/30",
+          "relative rounded-xl overflow-hidden transition-all duration-300 cursor-pointer bg-gradient-to-br from-white dark:from-dark-surface-secondary to-slate-100/20 dark:to-dark-surface-elevated/30",
           disableHoverEffect ? "hover:shadow-none" : "hover:shadow-2xl",
         )}
       >
@@ -97,16 +97,16 @@ export function FeaturedBlogPost({
           </div>
 
           {/* Content Section */}
-          <CardContent className="p-6 md:p-8 flex flex-col justify-center bg-card dark:bg-card max-lg:flex-1">
+          <CardContent className="p-6 md:p-8 flex flex-col justify-center bg-slate-50 dark:bg-dark-surface-secondary max-lg:flex-1">
             <div className="space-y-6 flex flex-col max-lg:flex-1">
               {/* Title */}
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-foreground dark:text-foreground group-hover:text-primary dark:group-hover:text-primary transition-colors line-clamp-2">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-slate-900 dark:text-slate-50 group-hover:text-indigo-500 dark:group-hover:text-indigo-500 transition-colors line-clamp-2">
                 {post.title}
               </h2>
 
               {/* Description (excerpt prioritized for short UI) */}
               {(post.excerpt || post.description) && (
-                <p className="text-muted-foreground dark:text-muted-foreground text-lg leading-relaxed line-clamp-3">
+                <p className="text-slate-400 dark:text-slate-600 text-lg leading-relaxed line-clamp-3">
                   {post.excerpt || post.description}
                 </p>
               )}
@@ -132,7 +132,7 @@ export function FeaturedBlogPost({
         </div>
 
         {/* Hover Effect Border */}
-        <div className="absolute inset-0 border-2 border-primary/20 dark:border-primary/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-[1.02] pointer-events-none" />
+        <div className="absolute inset-0 border-2 border-indigo-500/20 dark:border-indigo-500/30 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-[1.02] pointer-events-none" />
       </Card>
     </MotionWrapper>
   );

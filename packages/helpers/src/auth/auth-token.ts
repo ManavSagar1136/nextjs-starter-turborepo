@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { isProduction } from "@buildbase/env";
+import { isProduction, env, getEnvironment } from "@buildbase/env";
 import type { AuthenticatedUser } from "./auth-middleware";
-import { env } from "@buildbase/env";
 
 /**
  * Cookie name for authentication token
  * Shared across all apps (admin and user)
  */
-export const AUTH_TOKEN_COOKIE_NAME = "cms-auth-token";
+const getCookieName = (): string => {
+  const baseName = "cms-auth-token";
+  const nodeEnv = getEnvironment();
+
+  return `${nodeEnv}-${baseName}`;
+};
+
+export const AUTH_TOKEN_COOKIE_NAME = getCookieName();
 
 const TOKEN_EXPIRY_DAYS = 7;
 const TOKEN_EXPIRY_SECONDS = 60 * 60 * 24 * TOKEN_EXPIRY_DAYS;

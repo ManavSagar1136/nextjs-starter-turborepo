@@ -1,5 +1,6 @@
 @import "../../../../packages/tailwind-config/themes.css";
 @import "../../../../packages/tailwind-config/shared-styles.css";
+@import "../styles/design-tokens.css";
 
 @tailwind base;
 @tailwind components;
@@ -7,10 +8,50 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-slate-200 dark:border-slate-800;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white dark:bg-dark-surface text-slate-900 dark:text-slate-50;
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   }
+}
+
+/* Prose overrides for blog/doc content — light mode */
+.prose {
+  --tw-prose-body: #475569;
+  --tw-prose-headings: #0F172A;
+  --tw-prose-lead: #475569;
+  --tw-prose-links: #6366F1;
+  --tw-prose-bold: #0F172A;
+  --tw-prose-counters: #94A3B8;
+  --tw-prose-bullets: #94A3B8;
+  --tw-prose-hr: #E2E8F0;
+  --tw-prose-quotes: #0F172A;
+  --tw-prose-quote-borders: #6366F1;
+  --tw-prose-captions: #94A3B8;
+  --tw-prose-code: #0F172A;
+  --tw-prose-pre-code: #0F172A;
+  --tw-prose-pre-bg: #F1F5F9;
+  --tw-prose-th-borders: #CBD5E1;
+  --tw-prose-td-borders: #E2E8F0;
+}
+
+/* Prose overrides — dark mode */
+.dark .prose {
+  --tw-prose-body: #94A3B8;
+  --tw-prose-headings: #F8FAFC;
+  --tw-prose-lead: #94A3B8;
+  --tw-prose-links: #6366F1;
+  --tw-prose-bold: #F8FAFC;
+  --tw-prose-counters: #475569;
+  --tw-prose-bullets: #475569;
+  --tw-prose-hr: #1E293B;
+  --tw-prose-quotes: #F8FAFC;
+  --tw-prose-quote-borders: #6366F1;
+  --tw-prose-captions: #475569;
+  --tw-prose-code: #F8FAFC;
+  --tw-prose-pre-code: #F8FAFC;
+  --tw-prose-pre-bg: #1A1A24;
+  --tw-prose-th-borders: #334155;
+  --tw-prose-td-borders: #1E293B;
 }

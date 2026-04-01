@@ -33,14 +33,14 @@ export default function ClientMDX({
   if (!code.trim()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 p-8 text-center">
-        <div className="rounded-full bg-muted p-4">
-          <FileX className="w-12 h-12 text-muted-foreground" />
+        <div className="rounded-full bg-slate-100 dark:bg-dark-surface-elevated p-4">
+          <FileX className="w-12 h-12 text-slate-400 dark:text-slate-600" />
         </div>
         <div className="space-y-2">
           <h3 className="text-xl font-semibold">
             {config.empty?.title || "Content Not Available"}
           </h3>
-          <p className="text-muted-foreground max-w-md">
+          <p className="text-slate-400 dark:text-slate-600 max-w-md">
             {config.empty?.description ||
               "The content for this page is currently unavailable. Please check back later or contact support if this issue persists."}
           </p>

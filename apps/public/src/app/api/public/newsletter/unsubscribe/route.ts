@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, unsubscribeNewsletterByEmail } from "@buildbase/database";
 import { EmailService, EMAIL_TEMPLATES } from "@buildbase/email";
+import { env } from "@buildbase/env";
 import type { NewsletterUnsubscribeRequest } from "@/types/api";
 
 // Initialize email service
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
           to: subscriberEmail,
           variables: {
             email: subscriberEmail,
-            companyName: process.env.COMPANY_NAME || "Our Company",
-            resubscribeUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || ""}/#newsletter`,
+            companyName: env.COMPANY_NAME || "Our Company",
+            resubscribeUrl: `${env.NEXT_PUBLIC_PUBLIC_APP_URL || ""}/#newsletter`,
           },
         });
         console.log("[Newsletter Unsubscribe API] Confirmation email sent to:", subscriberEmail);
@@ -90,4 +91,27 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Also support GET for one-click unsubscribe links
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const email = url.searchParams.get("email");
+  const token = url.searchParams.get("token");
+
+  if (!email && !token) {
+    return NextResponse.json(
+      { success: false, message: "Email or token parameter is required" },
+      { status: 400 }
+    );
+  }
+
+  // Reuse POST logic
+  const fakeRequest = new NextRequest(request.url, {
+    method: "POST",
+    body: JSON.stringify({ email, token }),
+    headers: { "Content-Type": "application/json" },
+  });
+
+  return POST(fakeRequest);
 }

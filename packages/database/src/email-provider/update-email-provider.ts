@@ -2,7 +2,7 @@
  * @buildbase/database - Update Email Provider
  */
 
-import type { PrismaClient, EmailProvider } from "../generated/client";
+import type { PrismaClient, EmailProvider } from "@prisma/client";
 import type { UpdateEmailProviderInput } from "./types";
 
 /**

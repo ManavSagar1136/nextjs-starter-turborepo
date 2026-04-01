@@ -66,7 +66,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
       </div>
       <pre
         className={cn(
-          "mb-4 mt-6 overflow-x-auto rounded-lg border !bg-muted dark:!bg-white py-4 px-4 text-foreground",
+          "mb-4 mt-6 overflow-x-auto rounded-lg border !bg-slate-100 dark:!bg-dark-surface-elevated dark:!bg-white py-4 px-4 text-slate-900 dark:text-slate-50",
           className,
         )}
       >

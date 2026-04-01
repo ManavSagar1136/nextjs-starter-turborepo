@@ -3,6 +3,7 @@
  * Main service for email tracking
  */
 
+import { env } from "@buildbase/env";
 import type { PrismaClient } from "@buildbase/database";
 import type { TrackingConfig, TrackingContext, EmailMetrics, TrackingRequestInfo, EmailEventType } from "./types.js";
 import { DEFAULT_TRACKING_CONFIG } from "./types.js";
@@ -23,7 +24,7 @@ export class TrackingService {
     this.config = {
       ...DEFAULT_TRACKING_CONFIG,
       ...config,
-      baseUrl: config?.baseUrl || process.env.APP_URL || "",
+      baseUrl: config?.baseUrl || env.NEXT_PUBLIC_PUBLIC_APP_URL || "",
     };
   }
 

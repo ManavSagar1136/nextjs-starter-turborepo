@@ -17,8 +17,8 @@ const MDXVideo = ({
   // Show placeholder in editor preview if src is missing
   if (!src || typeof src !== "string") {
     return (
-      <div className="my-8 p-8 border-2 border-dashed border-muted rounded-lg text-center">
-        <div className="text-muted-foreground text-sm">
+      <div className="my-8 p-8 border-2 border-dashed border-slate-100 dark:border-dark-surface-elevated rounded-lg text-center">
+        <div className="text-slate-400 dark:text-slate-600 text-sm">
           <p className="font-medium mb-2">CustomVideo Component</p>
           <p>Add a src prop to preview the video</p>
         </div>
@@ -39,7 +39,7 @@ const MDXVideo = ({
         {...props}
       />
       {alt && (
-        <div className="mt-2 text-center text-sm text-muted-foreground">
+        <div className="mt-2 text-center text-sm text-slate-400 dark:text-slate-600">
           {alt}
         </div>
       )}

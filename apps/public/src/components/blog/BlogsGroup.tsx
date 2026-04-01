@@ -232,7 +232,7 @@ const BlogsGroup = ({
       </div>
 
       {/* Results Count */}
-      <div className="text-xs sm:text-sm text-muted-foreground">
+      <div className="text-xs sm:text-sm text-slate-400 dark:text-slate-600">
         Showing{" "}
         {paginatedBlogs.length > 0
           ? (searchParamsValues.page - 1) * ITEMS_PER_PAGE + 1
@@ -271,9 +271,9 @@ const BlogsGroup = ({
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <BookOpen className="h-12 w-12 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No blogs found</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-slate-400 dark:text-slate-600 mb-4">
               Try adjusting your search or filter criteria
             </p>
             <Button onClick={clearFilters} variant="outline">

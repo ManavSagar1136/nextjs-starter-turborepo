@@ -2,7 +2,7 @@
  * @buildbase/database - Get Email Provider
  */
 
-import type { PrismaClient, EmailProvider } from "../generated/client";
+import type { PrismaClient, EmailProvider } from "@prisma/client";
 
 /**
  * Find email provider by ID

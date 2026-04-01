@@ -106,7 +106,7 @@ const getSections = ({
   {
     // Category section enumerates doc groups ("folders")
     title: "Category",
-    icon: <Folder className="h-4 w-4 text-muted-foreground" />,
+    icon: <Folder className="h-4 w-4 text-slate-400 dark:text-slate-600" />,
     data: groups.items,
     viewAllHref: Routes.docs,
     showError: groups.error,
@@ -131,7 +131,7 @@ const getSections = ({
   {
     // Documents section enumerates root-level individual doc pages
     title: "Documents",
-    icon: <FileText className="h-4 w-4 text-muted-foreground" />,
+    icon: <FileText className="h-4 w-4 text-slate-400 dark:text-slate-600" />,
     data: docs.items,
     viewAllHref: Routes.docs,
     showError: docs.error,
@@ -245,12 +245,12 @@ const DocsDropdownContent = ({
             value={section.title}
             className={cn("border-none")}
           >
-            <AccordionTrigger className="hover:no-underline hover:bg-accent p-2 rounded-lg">
+            <AccordionTrigger className="hover:no-underline hover:bg-slate-100 dark:hover:bg-dark-surface-elevated p-2 rounded-lg">
               <div className="flex items-center gap-2.5">
                 <div className="flex items-center justify-center">
                   {section.icon}
                 </div>
-                <h3 className="text-sm font-semibold text-foreground tracking-tight">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
                   {section.title}
                 </h3>
               </div>
@@ -277,10 +277,10 @@ const DocsDropdownContent = ({
                     onClick={onLinkClick}
                     className={cn(
                       "group flex-center gap-1.5 text-xs font-medium",
-                      "text-muted-foreground hover:text-foreground",
+                      "text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-50",
                       "transition-all duration-200 ease-in-out",
                       "px-2 py-1.5 rounded-lg",
-                      "hover:bg-accent",
+                      "hover:bg-slate-100 dark:hover:bg-dark-surface-elevated",
                     )}
                     tabIndex={0}
                     aria-label={`View all ${section.title.toLowerCase()}`}
@@ -307,7 +307,7 @@ const DocsDropdownContent = ({
           className={cn(
             "space-y-4 p-5",
             // Add border for all except last section
-            sectionIndex < sections.length - 1 && "border-b border-border/50",
+            sectionIndex < sections.length - 1 && "border-b border-slate-200/50 dark:border-slate-800/50",
           )}
         >
           {/* Section heading (icon and title) and optional "View all" link */}
@@ -316,7 +316,7 @@ const DocsDropdownContent = ({
               <div className="flex items-center justify-center">
                 {section.icon}
               </div>
-              <h3 className="text-sm font-semibold text-foreground tracking-tight">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
                 {section.title}
               </h3>
             </div>
@@ -328,7 +328,7 @@ const DocsDropdownContent = ({
                   href={section.viewAllHref}
                   className={cn(
                     "group flex items-center gap-1.5 text-xs font-medium",
-                    "text-muted-foreground hover:text-foreground",
+                    "text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-50",
                     "transition-all duration-200 ease-in-out",
                     "px-1.5 py-0.5 -mr-1.5",
                   )}

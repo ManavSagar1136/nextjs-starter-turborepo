@@ -2,7 +2,7 @@
  * @buildbase/database - Asset Types
  */
 
-import type { Asset } from "../generated/client";
+import type { Asset } from "@prisma/client";
 
 export interface ListAssetsOptions {
   workspaceId?: string; // Optional for admin context

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+out/
+.env
+.env.local
+
+# Generated audio from ElevenLabs
+public/audio/*.mp3
+public/audio/*.wav
+
+# Remotion cache
+.remotion/

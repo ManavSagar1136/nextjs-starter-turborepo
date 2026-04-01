@@ -42,7 +42,7 @@ export function DocLayout({
   return (
     <div
       className={cn(
-        "min-h-screen bg-background max-w-[1440px] w-full px-4 md:px-8",
+        "min-h-screen max-w-[1440px] w-full px-4 md:px-8 bg-white dark:bg-dark-surface",
         className,
       )}
     >
@@ -83,7 +83,7 @@ export function DocLayout({
                     ? lastUpdatedAt
                     : lastUpdatedAt.toISOString()
                 }
-                className="flex items-center justify-center gap-2 text-sm text-white/70"
+                className="flex items-center justify-center gap-2 text-sm text-slate-400 dark:text-slate-600"
               >
                 <Calendar className="h-4 w-4" />
                 <span>
@@ -96,24 +96,23 @@ export function DocLayout({
             )}
           </HeroBgWrapper>
           {/* Breadcrumbs */}
-          <div className="px-4 py-2">
+          <div className="mt-3 mb-4">
             <AppBreadcrumb
               items={breadcrumbs}
-              className="text-sm text-muted-foreground"
+              className="text-sm text-slate-400 dark:text-slate-600"
             />
           </div>
 
           {/* Main content */}
           <main className="flex-1">
-            <div className="py-8">{children}</div>
-            {/* <div className="max-w-4xl mx-auto px-4 py-8">{children}</div> */}
+            {children}
           </main>
         </div>
 
         {/* Table of contents */}
         {toc && toc.length > 0 && (
           <div className="hidden xl:block max-w-80 flex-shrink-0 flex-1">
-            <div className="sticky top-24 border rounded-md">
+            <div className="sticky top-24 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-dark-surface-secondary">
               <TableOfContents
                 items={toc}
                 className="p-4"

@@ -20,7 +20,7 @@ import {
   getNewsletterSubscriberStats,
   getActiveNewsletterEmails,
 } from "../list-newsletter-subscribers";
-import type { PrismaClient, NewsletterSubscriber } from "../../generated/client";
+import type { PrismaClient, NewsletterSubscriber } from "@prisma/client";
 
 // Mock prisma client
 const mockPrisma = {

@@ -3,7 +3,7 @@
  * CRUD operations for sent emails
  */
 
-import type { PrismaClient, SentEmail, Prisma } from "../generated/client";
+import type { PrismaClient, SentEmail, Prisma } from "@prisma/client";
 import type { CreateSentEmailInput, UpdateSentEmailInput, SentEmailFilters } from "./types";
 
 /**

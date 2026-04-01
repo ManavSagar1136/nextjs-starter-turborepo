@@ -5,7 +5,6 @@ import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 
 import ContactUsForm from "@/components/contact-us/ContactUsForm";
-import { HeaderCard } from "@buildbase/components/common/header-card";
 import PageWithHeaderFooter from "@/components/layout/PageWithHeaderFooter";
 
 export async function generateMetadata() {
@@ -19,18 +18,29 @@ export async function generateMetadata() {
 const ContactUs = () => {
   return (
     <PageWithHeaderFooter>
-      <section className="space-y-6 py-16">
-        <HeaderCard
-          mainTitle={ContactUsData.headingText}
-          subTitle={ContactUsData.subText}
-          button={false}
-          h1
-        />
-        <ContactUsForm
-          location={ContactUsData.companyLocation}
-          formDetail={ContactUsData.formDetail}
-          detail={ContactUsData.detail}
-        />
+      <section className="w-full py-8 md:py-12">
+        <div className="mx-auto max-w-6xl space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <span className="mk-eyebrow mb-3 block">Contact</span>
+            <h1
+              className="font-extrabold leading-tight text-3xl md:text-4xl text-slate-900 dark:text-slate-50"
+            >
+              {ContactUsData.headingText}
+            </h1>
+            <p
+              className="mx-auto mt-4 max-w-xl leading-relaxed text-lg text-slate-600 dark:text-slate-400"
+            >
+              {ContactUsData.subText}
+            </p>
+          </div>
+
+          <ContactUsForm
+            location={ContactUsData.companyLocation}
+            formDetail={ContactUsData.formDetail}
+            detail={ContactUsData.detail}
+          />
+        </div>
       </section>
     </PageWithHeaderFooter>
   );

@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "../auth/auth-server";
+import { AccessDenied } from "./access-denied";
 
 /**
  * Options for withServerAuth HOC
@@ -15,6 +16,25 @@ export interface WithServerAuthOptions {
    * @default []
    */
   allowedRoles?: string[];
+  /**
+   * Behavior when user is authenticated but doesn't have required role
+   * - "redirect": Redirect to a specific path (use roleFailureRedirectTo)
+   * - "notFound": Show 404 page using Next.js notFound()
+   * - "error": Show error layout using AccessDenied component
+   * - "accessDenied": Alias for "error" - shows access denied error layout
+   * @default "error"
+   */
+  onRoleFailure?: "redirect" | "notFound" | "error" | "accessDenied";
+  /**
+   * Redirect path when role check fails (only used if onRoleFailure is "redirect")
+   * @default "/access-denied"
+   */
+  roleFailureRedirectTo?: string;
+  /**
+   * Custom error component to show when role check fails (only used if onRoleFailure is "error" or "accessDenied")
+   * If not provided, uses default AccessDenied component
+   */
+  roleFailureComponent?: React.ComponentType<{ userRole?: string; allowedRoles?: string[] }>;
 }
 
 /**
@@ -46,7 +66,13 @@ export function withServerAuth<P extends object>(
   Component: React.ComponentType<P>,
   options: WithServerAuthOptions = {}
 ) {
-  const { redirectTo = "/login", allowedRoles = [] } = options;
+  const {
+    redirectTo = "/login",
+    allowedRoles = [],
+    onRoleFailure = "error",
+    roleFailureRedirectTo = "/access-denied",
+    roleFailureComponent,
+  } = options;
 
   return async function AuthenticatedComponent(props: P) {
     // Get session from default getServerSession function
@@ -60,7 +86,19 @@ export function withServerAuth<P extends object>(
     // Check roles if specified
     if (allowedRoles.length > 0 && session.user.role) {
       if (!allowedRoles.includes(session.user.role)) {
-        redirect(redirectTo);
+        // Handle role failure based on onRoleFailure option
+        switch (onRoleFailure) {
+          case "redirect":
+            return redirect(roleFailureRedirectTo);
+          case "notFound":
+            return notFound();
+          case "error":
+          case "accessDenied":
+          default:
+            // Show error layout with AccessDenied component
+            const ErrorComponent = roleFailureComponent || AccessDenied;
+            return <ErrorComponent userRole={session.user.role} allowedRoles={allowedRoles} />;
+        }
       }
     }
 

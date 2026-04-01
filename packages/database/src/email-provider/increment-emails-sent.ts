@@ -2,7 +2,7 @@
  * @buildbase/database - Increment Emails Sent Counter
  */
 
-import type { PrismaClient } from "../generated/client";
+import type { PrismaClient } from "@prisma/client";
 
 /**
  * Increment the emails sent counter and update last used timestamp

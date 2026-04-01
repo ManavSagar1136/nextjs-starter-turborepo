@@ -1,3 +1,4 @@
+import { env } from "@buildbase/env";
 import type { QStashConfig } from "./types";
 
 // Re-export QStashConfig for convenience
@@ -11,10 +12,10 @@ export const createQStashConfig = (options?: {
   nextSigningKey?: string;
 }): QStashConfig => {
   return {
-    token: options?.qstashToken || process.env.QSTASH_TOKEN || "",
-    url: options?.qstashUrl || process.env.QSTASH_URL || undefined,
-    currentSigningKey: options?.currentSigningKey || process.env.QSTASH_CURRENT_SIGNING_KEY || "",
-    nextSigningKey: options?.nextSigningKey || process.env.QSTASH_NEXT_SIGNING_KEY || undefined,
+    token: options?.qstashToken || env.QSTASH_TOKEN || "",
+    url: options?.qstashUrl || env.QSTASH_URL || undefined,
+    currentSigningKey: options?.currentSigningKey || env.QSTASH_CURRENT_SIGNING_KEY || "",
+    nextSigningKey: options?.nextSigningKey || env.QSTASH_NEXT_SIGNING_KEY || undefined,
   };
 };
 

@@ -5,14 +5,60 @@
   "subject": "New Contact Form Submission from {{email}}",
   "category": "NOTIFICATION",
   "variables": [
-    { "name": "firstName", "type": "string", "required": false, "default": "-", "description": "User's first name" },
-    { "name": "lastName", "type": "string", "required": false, "default": "-", "description": "User's last name" },
-    { "name": "email", "type": "string", "required": true, "description": "User's email" },
-    { "name": "phone", "type": "string", "required": false, "default": "-", "description": "User's phone" },
-    { "name": "subject", "type": "string", "required": false, "default": "No subject", "description": "Message subject" },
-    { "name": "message", "type": "string", "required": true, "description": "Message content" },
-    { "name": "submittedAt", "type": "string", "required": false, "default": "", "description": "Submission timestamp" },
-    { "name": "adminUrl", "type": "string", "required": false, "default": "#", "description": "Link to admin panel" }
+    {
+      "name": "firstName",
+      "type": "string",
+      "required": false,
+      "default": "-",
+      "description": "User's first name"
+    },
+    {
+      "name": "lastName",
+      "type": "string",
+      "required": false,
+      "default": "-",
+      "description": "User's last name"
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "required": true,
+      "description": "User's email"
+    },
+    {
+      "name": "phone",
+      "type": "string",
+      "required": false,
+      "default": "-",
+      "description": "User's phone"
+    },
+    {
+      "name": "subject",
+      "type": "string",
+      "required": false,
+      "default": "No subject",
+      "description": "Message subject"
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "required": true,
+      "description": "Message content"
+    },
+    {
+      "name": "submittedAt",
+      "type": "string",
+      "required": false,
+      "default": "",
+      "description": "Submission timestamp"
+    },
+    {
+      "name": "adminUrl",
+      "type": "string",
+      "required": false,
+      "default": "#",
+      "description": "Link to admin panel"
+    }
   ],
   "html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"><title>New Contact Form Submission</title></head><body style=\"margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:600px;margin:0 auto;background-color:#ffffff\"><tr><td style=\"padding:40px 30px;text-align:center;background-color:#28a745\"><h1 style=\"color:#ffffff;margin:0;font-size:24px\">📬 New Contact Form Submission</h1></td></tr><tr><td style=\"padding:40px 30px\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background-color:#f8f9fa;border-radius:8px;padding:20px\"><tr><td style=\"padding:10px 20px;border-bottom:1px solid #dee2e6\"><strong style=\"color:#495057\">Name:</strong><br><span style=\"color:#212529\">{{firstName}} {{lastName}}</span></td></tr><tr><td style=\"padding:10px 20px;border-bottom:1px solid #dee2e6\"><strong style=\"color:#495057\">Email:</strong><br><span style=\"color:#212529\">{{email}}</span></td></tr><tr><td style=\"padding:10px 20px;border-bottom:1px solid #dee2e6\"><strong style=\"color:#495057\">Phone:</strong><br><span style=\"color:#212529\">{{phone}}</span></td></tr><tr><td style=\"padding:10px 20px;border-bottom:1px solid #dee2e6\"><strong style=\"color:#495057\">Subject:</strong><br><span style=\"color:#212529\">{{subject}}</span></td></tr><tr><td style=\"padding:10px 20px\"><strong style=\"color:#495057\">Message:</strong><br><span style=\"color:#212529\">{{message}}</span></td></tr></table><table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" style=\"margin:30px auto 0\"><tr><td style=\"background-color:#0e7dc2;border-radius:5px\"><a href=\"{{adminUrl}}\" style=\"display:inline-block;padding:15px 30px;color:#ffffff;text-decoration:none;font-weight:bold\">View in Admin</a></td></tr></table></td></tr><tr><td style=\"padding:20px 30px;background-color:#f8f8f8;text-align:center\"><p style=\"font-size:12px;color:#666666;margin:0\">This is an automated notification from your website's contact form.</p></td></tr></table></body></html>",
   "text": "📬 New Contact Form Submission\n\n---\nName: {{firstName}} {{lastName}}\nEmail: {{email}}\nPhone: {{phone}}\nSubject: {{subject}}\n---\n\nMessage:\n{{message}}\n\n---\nView in Admin: {{adminUrl}}\n\nThis is an automated notification from your website's contact form."

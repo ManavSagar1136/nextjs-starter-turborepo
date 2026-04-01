@@ -25,6 +25,8 @@ export { default as NotLoggedInDefault } from "./common/NotLoggedIn";
 export { AppIcon } from "./common/AppIcon";
 export { default as AppIconDefault } from "./common/AppIcon";
 
+export { GoogleAnalytics } from "./common/GoogleAnalytics";
+
 // Dashboard components
 export { DashboardLayout } from "./dashboard/dashboard-layout";
 export { ConditionalDashboardLayout } from "./dashboard/conditional-dashboard-layout";

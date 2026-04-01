@@ -2,7 +2,7 @@
  * @buildbase/database - Set Default Email Provider
  */
 
-import type { PrismaClient, EmailProvider } from "../generated/client";
+import type { PrismaClient, EmailProvider } from "@prisma/client";
 
 /**
  * Set a provider as the default for its workspace
