@@ -66,5 +66,8 @@ export type {
 export * from "./provider/SaaSProvider";
 export * from "./types";
 export * from "./token-verification";
+export * from "./token-exchange";
+export * from "./usage";
 export * from "./hooks/useSDKAuth";
 export type { UseSDKAuthReturn } from "./hooks/useSDKAuth";
+export * from "./hooks/useUsage";

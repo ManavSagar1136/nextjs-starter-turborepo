@@ -21,7 +21,10 @@
     "./provider": "./dist/provider/SaaSProvider.js",
     "./types": "./dist/types.js",
     "./token-verification": "./dist/token-verification.js",
-    "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js"
+    "./token-exchange": "./dist/token-exchange.js",
+    "./usage": "./dist/usage.js",
+    "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js",
+    "./hooks/useUsage": "./dist/hooks/useUsage.js"
   },
   "dependencies": {
     "@buildbase/sdk": "0.0.21",
