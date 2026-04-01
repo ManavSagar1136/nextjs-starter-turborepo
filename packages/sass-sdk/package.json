@@ -23,6 +23,8 @@
     "./token-verification": "./dist/token-verification.js",
     "./token-exchange": "./dist/token-exchange.js",
     "./usage": "./dist/usage.js",
+    "./session": "./dist/session.js",
+    "./route-handlers": "./dist/route-handlers.js",
     "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js",
     "./hooks/useUsage": "./dist/hooks/useUsage.js"
   },

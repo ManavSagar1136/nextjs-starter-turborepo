@@ -1,21 +1,58 @@
 "use client";
 
+/**
+ * Server-side Proxy Usage Hooks
+ *
+ * These hooks call your app's own BACKEND routes — NOT the buildbase API directly.
+ * The sessionId (org-level API token session) stays in an HttpOnly cookie and
+ * NEVER reaches the browser.
+ *
+ * Use these when you need server-side quota recording (e.g. billing-critical events
+ * that should not be triggered from the browser with the user's own session).
+ *
+ * For standard client-side quota tracking, use the built-in SDK hooks instead:
+ *   useRecordUsage(workspaceId)       — from @buildbase/sdk
+ *   useQuotaUsageStatus(workspaceId, quotaSlug)
+ *   useAllQuotaUsage(workspaceId)
+ *
+ * Your app must register the route handlers from @buildbase/saas-sdk/route-handlers:
+ *
+ *   // app/api/saas/usage/record/route.ts
+ *   import { createRecordUsageHandler } from "@buildbase/saas-sdk/route-handlers";
+ *   export const POST = createRecordUsageHandler();
+ *
+ *   // app/api/saas/usage/status/route.ts
+ *   import { createQuotaStatusHandler } from "@buildbase/saas-sdk/route-handlers";
+ *   export const GET = createQuotaStatusHandler();
+ *
+ *   // app/api/saas/usage/all/route.ts
+ *   import { createAllQuotasHandler } from "@buildbase/saas-sdk/route-handlers";
+ *   export const GET = createAllQuotasHandler();
+ */
 import { useState, useEffect, useCallback } from "react";
-import {
-  recordUsage,
-  getQuotaStatus,
-  getAllQuotas,
-  type RecordUsageResponse,
-  type QuotaStatusResponse,
-  type AllQuotasResponse,
-  type QuotaStatus,
-  type QuotaMap,
-} from "../usage";
+import type { RecordUsageResponse, QuotaStatus, QuotaMap } from "../usage";
 
-// ─── useRecordUsage ───────────────────────────────────────────────────────────
+const DEFAULT_BASE_PATH = "/api/saas/usage";
 
-export interface UseRecordUsageReturn {
-  record: (quotaSlug: string, quantity: number) => Promise<RecordUsageResponse>;
+// ─── useServerRecordUsage ─────────────────────────────────────────────────────
+
+export interface ServerRecordUsageParams {
+  workspaceId: string;
+  quotaSlug: string;
+  quantity: number;
+  /** Optional: identify where usage originated (e.g. 'web-app', 'worker') */
+  source?: string;
+  /** Optional: unique key to prevent duplicate recordings */
+  idempotencyKey?: string;
+}
+
+export interface UseServerRecordUsageReturn {
+  /**
+   * Record quota usage via your app's secure backend route.
+   * Provide workspaceId (from useSaaSWorkspaces) and the quota details.
+   * The sessionId is never sent from the browser — it lives in an HttpOnly cookie.
+   */
+  record: (params: ServerRecordUsageParams) => Promise<RecordUsageResponse>;
   isLoading: boolean;
   error: string | null;
   data: RecordUsageResponse | null;
@@ -23,40 +60,47 @@ export interface UseRecordUsageReturn {
 }
 
 /**
- * Hook for recording quota usage.
- * The sessionId should come from your backend (obtained via exchangeToken).
+ * Server-side proxy hook for recording quota usage.
+ * Calls your app's `/api/saas/usage/record` route (POST).
  *
  * @example
- * const { record, isLoading } = useRecordUsage({ workspaceId, sessionId });
- * await record("emails", 10);
+ * const { workspaces } = useSaaSWorkspaces();
+ * const { record, isLoading } = useServerRecordUsage();
+ * await record(workspaces[0].id, "emails", 10);
  */
-export function useRecordUsage({
-  workspaceId,
-  sessionId,
-  baseUrl,
-}: {
-  workspaceId: string;
-  sessionId: string;
-  baseUrl?: string;
-}): UseRecordUsageReturn {
+export function useServerRecordUsage(options?: { basePath?: string }): UseServerRecordUsageReturn {
+  const basePath = options?.basePath ?? DEFAULT_BASE_PATH;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<RecordUsageResponse | null>(null);
 
   const record = useCallback(
-    async (quotaSlug: string, quantity: number): Promise<RecordUsageResponse> => {
+    async (params: ServerRecordUsageParams): Promise<RecordUsageResponse> => {
       setIsLoading(true);
       setError(null);
 
-      const result = await recordUsage({ workspaceId, quotaSlug, quantity, sessionId, baseUrl });
+      try {
+        const response = await fetch(`${basePath}/record`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+        });
 
-      setData(result);
-      if (!result.success) setError(result.message ?? "Failed to record usage");
-      setIsLoading(false);
-
-      return result;
+        const result: RecordUsageResponse = await response.json();
+        setData(result);
+        if (!result.success) setError(result.message ?? "Failed to record usage");
+        return result;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to record usage";
+        setError(message);
+        const result: RecordUsageResponse = { success: false, message };
+        setData(result);
+        return result;
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [workspaceId, sessionId, baseUrl],
+    [basePath],
   );
 
   const reset = useCallback(() => {
@@ -67,9 +111,9 @@ export function useRecordUsage({
   return { record, isLoading, error, data, reset };
 }
 
-// ─── useQuotaStatus ───────────────────────────────────────────────────────────
+// ─── useServerQuotaStatus ─────────────────────────────────────────────────────
 
-export interface UseQuotaStatusReturn {
+export interface UseServerQuotaStatusReturn {
   data: QuotaStatus | null;
   isLoading: boolean;
   error: string | null;
@@ -77,59 +121,64 @@ export interface UseQuotaStatusReturn {
 }
 
 /**
- * Hook for fetching the current status of a single quota.
- * Fetches on mount and whenever workspaceId, quotaSlug, or sessionId changes.
+ * Server-side proxy hook for fetching a single quota status.
+ * Calls your app's `/api/saas/usage/status` route (GET).
  *
  * @example
- * const { data, isLoading } = useQuotaStatus({ workspaceId, quotaSlug: "emails", sessionId });
+ * const { workspaces } = useSaaSWorkspaces();
+ * const { data } = useServerQuotaStatus({ workspaceId: workspaces[0].id, quotaSlug: "emails" });
  * if (data?.hasOverage) { ... }
  */
-export function useQuotaStatus({
-  workspaceId,
-  quotaSlug,
-  sessionId,
-  baseUrl,
-}: {
+export function useServerQuotaStatus(options: {
   workspaceId: string;
   quotaSlug: string;
-  sessionId: string;
-  baseUrl?: string;
-}): UseQuotaStatusReturn {
+  basePath?: string;
+}): UseServerQuotaStatusReturn {
+  const { workspaceId, quotaSlug, basePath = DEFAULT_BASE_PATH } = options;
   const [data, setData] = useState<QuotaStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    if (!workspaceId || !quotaSlug || !sessionId) return;
+    if (!workspaceId || !quotaSlug) return;
 
     let cancelled = false;
     setIsLoading(true);
     setError(null);
 
-    getQuotaStatus({ workspaceId, quotaSlug, sessionId, baseUrl }).then((result: QuotaStatusResponse) => {
-      if (cancelled) return;
-      if (result.success && result.data) {
-        setData(result.data);
-      } else {
-        setError(result.message ?? "Failed to fetch quota status");
-      }
-      setIsLoading(false);
-    });
+    const params = new URLSearchParams({ workspaceId, quotaSlug });
+    fetch(`${basePath}/status?${params}`)
+      .then((res) => res.json())
+      .then((result: { success: boolean; data?: QuotaStatus; message?: string }) => {
+        if (cancelled) return;
+        if (result.success && result.data) {
+          setData(result.data);
+        } else {
+          setError(result.message ?? "Failed to fetch quota status");
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch quota status");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [workspaceId, quotaSlug, sessionId, baseUrl, tick]);
+  }, [workspaceId, quotaSlug, basePath, tick]);
 
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   return { data, isLoading, error, refetch };
 }
 
-// ─── useAllQuotas ─────────────────────────────────────────────────────────────
+// ─── useServerAllQuotas ───────────────────────────────────────────────────────
 
-export interface UseAllQuotasReturn {
+export interface UseServerAllQuotasReturn {
   quotas: QuotaMap | null;
   isLoading: boolean;
   error: string | null;
@@ -137,48 +186,51 @@ export interface UseAllQuotasReturn {
 }
 
 /**
- * Hook for fetching all quota statuses for a workspace.
- * Fetches on mount and whenever workspaceId or sessionId changes.
+ * Server-side proxy hook for fetching all quota statuses.
+ * Calls your app's `/api/saas/usage/all` route (GET).
  *
  * @example
- * const { quotas } = useAllQuotas({ workspaceId, sessionId });
+ * const { workspaces } = useSaaSWorkspaces();
+ * const { quotas } = useServerAllQuotas({ workspaceId: workspaces[0].id });
  * const emailsOverage = quotas?.emails?.hasOverage;
  */
-export function useAllQuotas({
-  workspaceId,
-  sessionId,
-  baseUrl,
-}: {
-  workspaceId: string;
-  sessionId: string;
-  baseUrl?: string;
-}): UseAllQuotasReturn {
+export function useServerAllQuotas(options: { workspaceId: string; basePath?: string }): UseServerAllQuotasReturn {
+  const { workspaceId, basePath = DEFAULT_BASE_PATH } = options;
   const [quotas, setQuotas] = useState<QuotaMap | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    if (!workspaceId || !sessionId) return;
+    if (!workspaceId) return;
 
     let cancelled = false;
     setIsLoading(true);
     setError(null);
 
-    getAllQuotas({ workspaceId, sessionId, baseUrl }).then((result: AllQuotasResponse) => {
-      if (cancelled) return;
-      if (result.success && result.quotas) {
-        setQuotas(result.quotas);
-      } else {
-        setError(result.message ?? "Failed to fetch quotas");
-      }
-      setIsLoading(false);
-    });
+    const params = new URLSearchParams({ workspaceId });
+    fetch(`${basePath}/all?${params}`)
+      .then((res) => res.json())
+      .then((result: { success: boolean; quotas?: QuotaMap; message?: string }) => {
+        if (cancelled) return;
+        if (result.success && result.quotas) {
+          setQuotas(result.quotas);
+        } else {
+          setError(result.message ?? "Failed to fetch quotas");
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch quotas");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [workspaceId, sessionId, baseUrl, tick]);
+  }, [workspaceId, basePath, tick]);
 
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 

@@ -1,50 +1,124 @@
 // Re-export all functionalities from @buildbase/sdk
 export {
-  // Core Provider and Types
+  // Core Provider and Config
   ApiVersion,
   SaaSOSProvider,
-  SubscriptionContextProvider,
+  useSaaSOs,
+  useSaaSSettings,
 
-  // Components
+  // Auth
+  useSaaSAuth,
+  AuthStatus,
+
+  // Conditional render — Auth
   WhenAuthenticated,
   WhenUnauthenticated,
+
+  // Conditional render — Roles & Features
   WhenRoles,
   WhenWorkspaceRoles,
   WhenWorkspaceFeatureDisabled,
   WhenWorkspaceFeatureEnabled,
   WhenUserFeatureEnabled,
   WhenUserFeatureDisabled,
-  PricingPage,
-  // Subscription HOCs
+
+  // Workspace
+  useSaaSWorkspaces,
+  WorkspaceSwitcher,
+
+  // User
+  useUserFeatures,
+  useUserAttributes,
+
+  // Subscription
+  SubscriptionContextProvider,
+  useSubscriptionContext,
+  useSubscription,
+  useSubscriptionManagement,
+  useCancelSubscription,
+  useResumeSubscription,
+  usePlanGroup,
+  usePlanGroupVersions,
+  useCreateCheckoutSession,
+  useUpdateSubscription,
+  invalidateSubscription,
+
+  // Subscription conditional render
   WhenSubscription,
   WhenNoSubscription,
   WhenSubscriptionToPlans,
 
-  // Hooks
-  useSaaSAuth,
-  useSaaSWorkspaces,
-  useUserFeatures,
-  // Subscription Hooks
-  useSubscriptionContext,
-  useSubscription,
-  useSubscriptionManagement,
-  usePlanGroup,
-  usePlanGroupVersions,
+  // Public pricing
   usePublicPlans,
   usePublicPlanGroupVersion,
+  PricingPage,
+  BetaForm,
+
+  // Invoices
   useInvoices,
   useInvoice,
-  useCreateCheckoutSession,
-  useUpdateSubscription,
 
-  // Workspace
-  WorkspaceSwitcher,
+  // Quota Usage — client-side (uses the signed-in user's session)
+  // For server-side secure usage recording, use useServerRecordUsage / route-handlers instead
+  QuotaUsageContextProvider,
+  useQuotaUsageContext,
+  useRecordUsage,
+  useQuotaUsageStatus,
+  useAllQuotaUsage,
+  useUsageLogs,
+  invalidateQuotaUsage,
+
+  // Quota Usage — conditional render
+  WhenQuotaAvailable,
+  WhenQuotaExhausted,
+  WhenQuotaOverage,
+  WhenQuotaThreshold,
+
+  // Utilities — formatting & pricing display
+  formatCents,
+  formatOverageRate,
+  formatOverageRateWithLabel,
+  formatQuotaIncludedOverage,
+  formatQuotaWithPrice,
+  getQuotaDisplayValue,
+  getQuotaDisplayWithVariant,
+  getQuotaUnitLabelFromName,
+
+  // Utilities — plan & pricing
+  getPricingVariant,
+  getBasePriceCents,
+  getStripePriceIdForInterval,
+  getQuotaOverageCents,
+  getAvailableCurrenciesFromPlans,
+  getDisplayCurrency,
+  getBillingIntervalAndCurrencyFromPriceId,
+
+  // Utilities — currency
+  getCurrencySymbol,
+  getCurrencyFlag,
+
+  // Constants — currency
+  CURRENCY_DISPLAY,
+  CURRENCY_FLAG,
+  PLAN_CURRENCY_CODES,
+  PLAN_CURRENCY_OPTIONS,
+
+  // Low-level API classes (advanced use)
+  BaseApi,
+  UserApi,
+  WorkspaceApi,
+  SettingsApi,
+
+  // Event system
+  eventEmitter,
 } from "@buildbase/sdk";
 
 // Re-export types from @buildbase/sdk
 export type {
+  // Events
   EventData,
   EventType,
+  OnWorkspaceChangeParams,
   UserCreatedEventData,
   UserUpdatedEventData,
   WorkspaceChangedEventData,
@@ -54,20 +128,92 @@ export type {
   WorkspaceUserAddedEventData,
   WorkspaceUserRemovedEventData,
   WorkspaceUserRoleChangedEventData,
-  // Public pricing types
+
+  // Subscription & Plans
   BillingInterval,
+  ISubscription,
+  ISubscriptionItem,
+  ISubscriptionResponse,
+  ISubscriptionUpdateRequest,
+  ISubscriptionUpdateResponse,
+  IPlan,
+  IPlanVersion,
+  IPlanVersionSummary,
+  IPlanVersionWithPlan,
+  PlanVersionWithPricingVariants,
+  IPlanGroup,
+  IPlanGroupLatestVersion,
+  IPlanGroupVersion,
+  IPlanGroupVersionWithPlans,
+  IPlanGroupInfo,
+  IPlanGroupResponse,
+  IPricingVariant,
+  IBasePricing,
+  IStripePricesByInterval,
+  IQuotaByInterval,
+  IQuotaIntervalValue,
+  IQuotaOveragesByInterval,
+  IQuotaOveragePriceIdsByInterval,
+  SubscriptionContextValue,
+
+  // Public pricing
   IPublicPlanItem,
+  IPublicPlanItemCategory,
   IPublicPlanVersion,
+  IPublicPlansResponse,
   PricingPageDetails,
   PricingPageProps,
+
+  // Checkout & Invoices
+  ICheckoutSessionRequest,
+  ICheckoutSessionResponse,
+  IInvoice,
+  IInvoiceResponse,
+  IInvoiceListResponse,
+  InvoiceStatus,
+
+  // Quota Usage
+  IRecordUsageRequest,
+  IRecordUsageResponse,
+  IQuotaUsageStatus,
+  IQuotaUsageStatusResponse,
+  IAllQuotaUsageResponse,
+  IUsageLogEntry,
+  IUsageLogsQuery,
+  IUsageLogsResponse,
+  QuotaUsageContextValue,
+  QuotaDisplayValue,
+  QuotaDisplayWithOverage,
+  FormatQuotaWithPriceOptions,
+
+  // Utilities
+  IBaseApiConfig,
 } from "@buildbase/sdk";
 
-// Export our custom wrapper and utilities
+// ─── Custom wrappers & server-side utilities ──────────────────────────────────
+
+// Provider (wraps SaaSOSProvider with env config)
 export * from "./provider/SaaSProvider";
+
+// Types for SaaSProvider
 export * from "./types";
+
+// Token verification (OAuth code → sessionId for the frontend auth flow)
 export * from "./token-verification";
+
+// Token exchange (API token → sessionId for server-side usage recording)
 export * from "./token-exchange";
+
+// Server-side usage recording utilities (called by route-handlers internally)
 export * from "./usage";
+
+// Server-side session management (HttpOnly cookie — sessionId never reaches the browser)
+export * from "./session";
+
+// Auth hook wrapper
 export * from "./hooks/useSDKAuth";
 export type { UseSDKAuthReturn } from "./hooks/useSDKAuth";
+
+// Server-side proxy usage hooks (call your app's BE routes, not buildbase directly)
+// Named useServer* to distinguish from the SDK's built-in useRecordUsage / useAllQuotaUsage
 export * from "./hooks/useUsage";

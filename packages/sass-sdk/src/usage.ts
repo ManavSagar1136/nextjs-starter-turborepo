@@ -26,6 +26,12 @@ export interface RecordUsageConfig {
   quantity: number;
   sessionId: string;
   baseUrl?: string;
+  /** Optional: identify where usage originated (e.g. 'backend', 'worker', 'cron') */
+  source?: string;
+  /** Optional: unique key to prevent duplicate recordings */
+  idempotencyKey?: string;
+  /** Optional: custom metadata to attach to the usage record */
+  metadata?: Record<string, unknown>;
 }
 
 export interface RecordUsageResponse {
@@ -57,7 +63,7 @@ export interface RecordUsageResponse {
  * });
  */
 export const recordUsage = async (config: RecordUsageConfig): Promise<RecordUsageResponse> => {
-  const { workspaceId, quotaSlug, quantity, sessionId, baseUrl } = config;
+  const { workspaceId, quotaSlug, quantity, sessionId, baseUrl, source, idempotencyKey, metadata } = config;
 
   if (!workspaceId || !quotaSlug || !sessionId) {
     return { success: false, message: "workspaceId, quotaSlug, and sessionId are required" };
@@ -69,10 +75,15 @@ export const recordUsage = async (config: RecordUsageConfig): Promise<RecordUsag
   }
 
   try {
+    const body: Record<string, unknown> = { quotaSlug, quantity };
+    if (source !== undefined) body.source = source;
+    if (idempotencyKey !== undefined) body.idempotencyKey = idempotencyKey;
+    if (metadata !== undefined) body.metadata = metadata;
+
     const response = await fetch(`${base}/api/v1/public/workspaces/${workspaceId}/subscription/usage`, {
       method: "POST",
       headers: usageHeaders(sessionId),
-      body: JSON.stringify({ quotaSlug, quantity }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
