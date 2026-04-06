@@ -29,7 +29,7 @@
     "./hooks/useUsage": "./dist/hooks/useUsage.js"
   },
   "dependencies": {
-    "@buildbase/sdk": "0.0.21",
+    "@buildbase/sdk": "0.0.26",
     "@buildbase/env": "*"
   },
   "peerDependencies": {
