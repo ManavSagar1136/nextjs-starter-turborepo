@@ -1,29 +1,42 @@
 "use client";
 
 import React, { useState } from "react";
-import { useServerRecordUsage, useServerQuotaStatus, useServerAllQuotas } from "@buildbase/saas-sdk/hooks/useUsage";
 import {
+  // Subscription gates (read-only — cancel/purchase/resume handled by SDK modal)
   WhenSubscription,
   WhenNoSubscription,
   WhenSubscriptionToPlans,
+  WhenTrialing,
+  WhenNotTrialing,
+  WhenTrialEnding,
+
+  // Feature gates
   WhenWorkspaceFeatureEnabled,
   WhenWorkspaceFeatureDisabled,
   WhenUserFeatureEnabled,
   WhenUserFeatureDisabled,
+
+  // Role gates
   WhenRoles,
   WhenWorkspaceRoles,
+
+  // Subscription data (read-only)
   useSubscriptionContext,
   useSubscription,
   useSubscriptionManagement,
-  usePlanGroup,
-  usePlanGroupVersions,
-  usePublicPlans,
-  useInvoices,
-  useCreateCheckoutSession,
-  useUpdateSubscription,
+
+  // Feature & auth hooks
   useSaaSWorkspaces,
   useSaaSAuth,
   useUserFeatures,
+
+  // Trial hook
+  useTrialStatus,
+
+  // Server-side proxy hooks
+  useServerRecordUsage,
+  useServerQuotaStatus,
+  useServerAllQuotas,
 } from "@buildbase/saas-sdk";
 
 /**
@@ -52,27 +65,14 @@ export default function TestSubscriptionHocsPage() {
     refetch: refetchSubscription,
   } = useSubscription(workspaceId);
   const {
-    planGroup,
-    loading: planGroupLoading,
-    error: planGroupError,
-    refetch: refetchPlanGroup,
-  } = usePlanGroup(workspaceId);
-  const { versions, loading: versionsLoading } = usePlanGroupVersions(workspaceId);
-  const {
     subscription: mgmtSubscription,
     planGroup: mgmtPlanGroup,
     loading: mgmtLoading,
-    updateSubscription: mgmtUpdateSubscription,
     refetch: refetchManagement,
   } = useSubscriptionManagement(workspaceId);
-  const {
-    invoices,
-    hasMore: hasMoreInvoices,
-    loading: invoicesLoading,
-    refetch: refetchInvoices,
-  } = useInvoices(workspaceId, 5);
-  const { createCheckoutSession, loading: checkoutLoading } = useCreateCheckoutSession(workspaceId);
-  const { updateSubscription: updateSub, loading: updateLoading } = useUpdateSubscription(workspaceId);
+
+  // Trial status (no args — reads from SubscriptionContext)
+  const { isTrialing, isTrialEnding, daysRemaining } = useTrialStatus();
 
   // Extract subscription data
   const subscriptionStatus =
@@ -922,6 +922,118 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
           </div>
         </div>
 
+        {/* ====================================================================
+            SECTION 4: TRIAL STATUS GATES
+            ==================================================================== */}
+        <div className="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">4. Trial Status Gates</h2>
+          <p className="mb-6 text-gray-600 dark:text-gray-400">
+            Use trial HOCs and{" "}
+            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">useTrialStatus</code> to
+            conditionally render content based on trial state. Subscription cancel/resume/purchase is handled by the SDK
+            manage workspace modal — read-only from our app.
+          </p>
+
+          {/* useTrialStatus */}
+          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">useTrialStatus Hook</h3>
+            <div className="mb-3 rounded border-l-4 border-teal-500 bg-teal-50 p-4 dark:bg-teal-900/20">
+              <p className="mb-2 font-mono text-sm text-teal-800 dark:text-teal-200">
+                {"const { isTrialing, isTrialEnding, daysRemaining } = useTrialStatus();"}
+              </p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Is Trialing:</span>
+                  <span
+                    className={`rounded px-2 py-1 text-xs font-semibold ${isTrialing ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}
+                  >
+                    {isTrialing ? "Yes" : "No"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Trial Ending Soon:</span>
+                  <span
+                    className={`rounded px-2 py-1 text-xs font-semibold ${isTrialEnding ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-800"}`}
+                  >
+                    {isTrialEnding ? "Yes" : "No"}
+                  </span>
+                </div>
+                {daysRemaining !== undefined && daysRemaining !== null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">Days Remaining:</span>
+                    <span className="font-mono text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      {daysRemaining}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Trial HOCs */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* WhenTrialing */}
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenTrialing</h4>
+              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
+                {"<WhenTrialing>...</WhenTrialing>"}
+              </p>
+              <WhenTrialing
+                fallbackComponent={
+                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Not currently trialing</p>
+                  </div>
+                }
+              >
+                <div className="rounded border-l-4 border-teal-500 bg-teal-50 p-3 dark:bg-teal-900/20">
+                  <p className="text-sm font-semibold text-teal-800 dark:text-teal-200">Currently on trial</p>
+                </div>
+              </WhenTrialing>
+            </div>
+
+            {/* WhenNotTrialing */}
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenNotTrialing</h4>
+              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
+                {"<WhenNotTrialing>...</WhenNotTrialing>"}
+              </p>
+              <WhenNotTrialing
+                fallbackComponent={
+                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Currently trialing</p>
+                  </div>
+                }
+              >
+                <div className="rounded border-l-4 border-green-500 bg-green-50 p-3 dark:bg-green-900/20">
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-200">Not on trial (active/paid)</p>
+                </div>
+              </WhenNotTrialing>
+            </div>
+
+            {/* WhenTrialEnding */}
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenTrialEnding</h4>
+              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
+                {"<WhenTrialEnding daysThreshold={7}>...</WhenTrialEnding>"}
+              </p>
+              <WhenTrialEnding
+                daysThreshold={7}
+                fallbackComponent={
+                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Trial not ending within 7 days</p>
+                  </div>
+                }
+              >
+                <div className="rounded border-l-4 border-amber-500 bg-amber-50 p-3 dark:bg-amber-900/20">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Trial ending soon! (&lt;7 days)
+                  </p>
+                </div>
+              </WhenTrialEnding>
+            </div>
+          </div>
+        </div>
+
         {/* ── Usage Tracking ─────────────────────────────────────────────── */}
         <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <h2 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -1172,12 +1284,30 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
               </ul>
             </div>
             <div>
-              <h3 className="mb-1 font-semibold">4. Usage Tracking (Server-side):</h3>
+              <h3 className="mb-1 font-semibold">4. Trial Status Gates:</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• useTrialStatus(workspaceId) - Get trial status data</li>
+                <li>• WhenTrialing - Render only when on trial</li>
+                <li>• WhenNotTrialing - Render when not on trial</li>
+                <li>• WhenTrialEnding daysThreshold - Render when trial ending soon</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-1 font-semibold">5. Usage Tracking (Server-side Secure):</h3>
               <ul className="ml-4 space-y-1 text-sm">
                 <li>• useServerRecordUsage() → record() — POST /api/saas/usage/record</li>
                 <li>• useServerQuotaStatus(workspaceId, quotaSlug) — GET /api/saas/usage/status</li>
                 <li>• useServerAllQuotas(workspaceId) — GET /api/saas/usage/all</li>
                 <li>• sessionId stays in HttpOnly cookie — never sent from browser</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-1 font-semibold">6. Quota Gate HOCs (wrap feature code):</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• WhenQuotaAvailable slug — render when quota not exhausted</li>
+                <li>• WhenQuotaExhausted slug — render when quota is exhausted</li>
+                <li>• WhenQuotaOverage slug — render when in overage</li>
+                <li>• WhenQuotaThreshold slug threshold — render near quota limit</li>
               </ul>
             </div>
           </div>

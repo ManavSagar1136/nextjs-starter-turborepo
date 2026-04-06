@@ -48,6 +48,11 @@ export {
   WhenNoSubscription,
   WhenSubscriptionToPlans,
 
+  // Trial conditional render
+  WhenTrialing,
+  WhenNotTrialing,
+  WhenTrialEnding,
+
   // Public pricing
   usePublicPlans,
   usePublicPlanGroupVersion,
@@ -57,6 +62,13 @@ export {
   // Invoices
   useInvoices,
   useInvoice,
+
+  // Trial & Seats
+  useTrialStatus,
+  useSeatStatus,
+
+  // Billing portal (opens Stripe portal — managed by SDK)
+  useBillingPortal,
 
   // Quota Usage — client-side (uses the signed-in user's session)
   // For server-side secure usage recording, use useServerRecordUsage / route-handlers instead
@@ -188,6 +200,11 @@ export type {
 
   // Utilities
   IBaseApiConfig,
+
+  // Trial & Seats
+  TrialStatus,
+  SeatStatus,
+  CheckoutResult,
 } from "@buildbase/sdk";
 
 // ─── Custom wrappers & server-side utilities ──────────────────────────────────
