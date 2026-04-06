@@ -822,10 +822,10 @@
   resolved "https://registry.npmjs.org/@braintree/sanitize-url/-/sanitize-url-7.1.2.tgz"
   integrity sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==
 
-"@buildbase/sdk@0.0.21":
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/@buildbase/sdk/-/sdk-0.0.21.tgz#d87dd2b79458d45b2cb0e1c5e1d2434e811871fa"
-  integrity sha512-aT641wwARzQgkHlIxRQMBYuH6PHjI7FMTvcMfG8HZFJLSQlpn+5tawDvoSq17TjEIB9qLzqHG8/Y3oh7R0aFew==
+"@buildbase/sdk@0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@buildbase/sdk/-/sdk-0.0.26.tgz#98b26ee4a544989978483ee93c7c4b4b9c6c501d"
+  integrity sha512-cW5rAKj3mOUuU1Tr6VJiFGKm2EsNpch8w5mt4mMtpzuxzVBSnKaeCD/qIn65NXJ0B4x41wMX7hLmjqr9VMJVsw==
   dependencies:
     "@radix-ui/react-alert-dialog" "^1.1.13"
     "@radix-ui/react-avatar" "^1.1.9"
