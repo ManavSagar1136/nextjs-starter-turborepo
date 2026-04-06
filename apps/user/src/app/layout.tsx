@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 
 import "@buildbase/sdk/dist/saas-os.css";
 import "./globals.css";
@@ -8,15 +9,8 @@ import { AppProviders } from "@/components/providers/AppProviders";
 import { InitializeDialogs } from "@/dialogs/initialize";
 import { GoogleAnalytics } from "@buildbase/components";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = GeistSans;
+const geistMono = GeistMono;
 
 export const metadata: Metadata = {
   title: "User App",

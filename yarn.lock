@@ -822,10 +822,10 @@
   resolved "https://registry.npmjs.org/@braintree/sanitize-url/-/sanitize-url-7.1.2.tgz"
   integrity sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==
 
-"@buildbase/sdk@0.0.19":
-  version "0.0.19"
-  resolved "https://registry.npmjs.org/@buildbase/sdk/-/sdk-0.0.19.tgz"
-  integrity sha512-G72KriLbQyZIRaM/9MmtQ2NrY+HMhMV28iloSmujdagoP0fA3qcTzd76NYw6yB/BHIsVx2amhYG1tSX9XBtUow==
+"@buildbase/sdk@0.0.21":
+  version "0.0.21"
+  resolved "https://registry.yarnpkg.com/@buildbase/sdk/-/sdk-0.0.21.tgz#d87dd2b79458d45b2cb0e1c5e1d2434e811871fa"
+  integrity sha512-aT641wwARzQgkHlIxRQMBYuH6PHjI7FMTvcMfG8HZFJLSQlpn+5tawDvoSq17TjEIB9qLzqHG8/Y3oh7R0aFew==
   dependencies:
     "@radix-ui/react-alert-dialog" "^1.1.13"
     "@radix-ui/react-avatar" "^1.1.9"
@@ -7625,6 +7625,11 @@ gcp-metadata@^6.1.0:
     gaxios "^6.1.1"
     google-logging-utils "^0.0.2"
     json-bigint "^1.0.0"
+
+geist@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/geist/-/geist-1.7.0.tgz#ec8af7c444bd07610bd559ea9db1a895cd0d460e"
+  integrity sha512-ZaoiZwkSf0DwwB1ncdLKp+ggAldqxl5L1+SXaNIBGkPAqcu+xjVJLxlf3/S8vLt9UHx1xu5fz3lbzKCj5iOVdQ==
 
 generator-function@^2.0.0:
   version "2.0.1"

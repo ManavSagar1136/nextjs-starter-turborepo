@@ -12,6 +12,7 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "geist": "^1.7.0",
     "@buildbase/ui": "*",
     "@buildbase/magicui": "*",
     "@buildbase/components": "*",

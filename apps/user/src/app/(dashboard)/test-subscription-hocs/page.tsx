@@ -1,28 +1,42 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
+  // Subscription gates (read-only — cancel/purchase/resume handled by SDK modal)
   WhenSubscription,
   WhenNoSubscription,
   WhenSubscriptionToPlans,
+  WhenTrialing,
+  WhenNotTrialing,
+  WhenTrialEnding,
+
+  // Feature gates
   WhenWorkspaceFeatureEnabled,
   WhenWorkspaceFeatureDisabled,
   WhenUserFeatureEnabled,
   WhenUserFeatureDisabled,
+
+  // Role gates
   WhenRoles,
   WhenWorkspaceRoles,
+
+  // Subscription data (read-only)
   useSubscriptionContext,
   useSubscription,
   useSubscriptionManagement,
-  usePlanGroup,
-  usePlanGroupVersions,
-  usePublicPlans,
-  useInvoices,
-  useCreateCheckoutSession,
-  useUpdateSubscription,
+
+  // Feature & auth hooks
   useSaaSWorkspaces,
   useSaaSAuth,
   useUserFeatures,
+
+  // Trial hook
+  useTrialStatus,
+
+  // Server-side proxy hooks
+  useServerRecordUsage,
+  useServerQuotaStatus,
+  useServerAllQuotas,
 } from "@buildbase/saas-sdk";
 
 /**
@@ -51,27 +65,14 @@ export default function TestSubscriptionHocsPage() {
     refetch: refetchSubscription,
   } = useSubscription(workspaceId);
   const {
-    planGroup,
-    loading: planGroupLoading,
-    error: planGroupError,
-    refetch: refetchPlanGroup,
-  } = usePlanGroup(workspaceId);
-  const { versions, loading: versionsLoading } = usePlanGroupVersions(workspaceId);
-  const {
     subscription: mgmtSubscription,
     planGroup: mgmtPlanGroup,
     loading: mgmtLoading,
-    updateSubscription: mgmtUpdateSubscription,
     refetch: refetchManagement,
   } = useSubscriptionManagement(workspaceId);
-  const {
-    invoices,
-    hasMore: hasMoreInvoices,
-    loading: invoicesLoading,
-    refetch: refetchInvoices,
-  } = useInvoices(workspaceId, 5);
-  const { createCheckoutSession, loading: checkoutLoading } = useCreateCheckoutSession(workspaceId);
-  const { updateSubscription: updateSub, loading: updateLoading } = useUpdateSubscription(workspaceId);
+
+  // Trial status (no args — reads from SubscriptionContext)
+  const { isTrialing, isTrialEnding, daysRemaining } = useTrialStatus();
 
   // Extract subscription data
   const subscriptionStatus =
@@ -121,6 +122,34 @@ export default function TestSubscriptionHocsPage() {
     (Array.isArray(workspaceUsers)
       ? workspaceUsers.find((u: any) => u._id === user?.id || u.userId === user?.id)?.role
       : undefined) || "none";
+
+  // ── Usage Tracking ────────────────────────────────────────────────────────────
+  const [recordQuotaSlug, setRecordQuotaSlug] = useState("emails");
+  const [recordQuantity, setRecordQuantity] = useState(1);
+  const [statusQuotaSlug, setStatusQuotaSlug] = useState("emails");
+
+  const {
+    record,
+    isLoading: recordLoading,
+    data: recordData,
+    error: recordError,
+    reset: resetRecord,
+  } = useServerRecordUsage();
+  const {
+    data: quotaStatus,
+    isLoading: statusLoading,
+    error: statusError,
+    refetch: refetchStatus,
+  } = useServerQuotaStatus({
+    workspaceId: workspaceId ?? "",
+    quotaSlug: statusQuotaSlug,
+  });
+  const {
+    quotas: allQuotas,
+    isLoading: allQuotasLoading,
+    error: allQuotasError,
+    refetch: refetchAllQuotas,
+  } = useServerAllQuotas({ workspaceId: workspaceId ?? "" });
 
   return (
     <div className="min-h-screen bg-gray-50 p-8 dark:bg-gray-900">
@@ -893,6 +922,334 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
           </div>
         </div>
 
+        {/* ====================================================================
+            SECTION 4: TRIAL STATUS GATES
+            ==================================================================== */}
+        <div className="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">4. Trial Status Gates</h2>
+          <p className="mb-6 text-gray-600 dark:text-gray-400">
+            Use trial HOCs and{" "}
+            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">useTrialStatus</code> to
+            conditionally render content based on trial state. Subscription cancel/resume/purchase is handled by the SDK
+            manage workspace modal — read-only from our app.
+          </p>
+
+          {/* useTrialStatus */}
+          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">useTrialStatus Hook</h3>
+            <div className="mb-3 rounded border-l-4 border-teal-500 bg-teal-50 p-4 dark:bg-teal-900/20">
+              <p className="mb-2 font-mono text-sm text-teal-800 dark:text-teal-200">
+                {"const { isTrialing, isTrialEnding, daysRemaining } = useTrialStatus();"}
+              </p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Is Trialing:</span>
+                  <span
+                    className={`rounded px-2 py-1 text-xs font-semibold ${isTrialing ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}
+                  >
+                    {isTrialing ? "Yes" : "No"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">Trial Ending Soon:</span>
+                  <span
+                    className={`rounded px-2 py-1 text-xs font-semibold ${isTrialEnding ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-800"}`}
+                  >
+                    {isTrialEnding ? "Yes" : "No"}
+                  </span>
+                </div>
+                {daysRemaining !== undefined && daysRemaining !== null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">Days Remaining:</span>
+                    <span className="font-mono text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      {daysRemaining}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Trial HOCs */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* WhenTrialing */}
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenTrialing</h4>
+              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
+                {"<WhenTrialing>...</WhenTrialing>"}
+              </p>
+              <WhenTrialing
+                fallbackComponent={
+                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Not currently trialing</p>
+                  </div>
+                }
+              >
+                <div className="rounded border-l-4 border-teal-500 bg-teal-50 p-3 dark:bg-teal-900/20">
+                  <p className="text-sm font-semibold text-teal-800 dark:text-teal-200">Currently on trial</p>
+                </div>
+              </WhenTrialing>
+            </div>
+
+            {/* WhenNotTrialing */}
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenNotTrialing</h4>
+              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
+                {"<WhenNotTrialing>...</WhenNotTrialing>"}
+              </p>
+              <WhenNotTrialing
+                fallbackComponent={
+                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Currently trialing</p>
+                  </div>
+                }
+              >
+                <div className="rounded border-l-4 border-green-500 bg-green-50 p-3 dark:bg-green-900/20">
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-200">Not on trial (active/paid)</p>
+                </div>
+              </WhenNotTrialing>
+            </div>
+
+            {/* WhenTrialEnding */}
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenTrialEnding</h4>
+              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
+                {"<WhenTrialEnding daysThreshold={7}>...</WhenTrialEnding>"}
+              </p>
+              <WhenTrialEnding
+                daysThreshold={7}
+                fallbackComponent={
+                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Trial not ending within 7 days</p>
+                  </div>
+                }
+              >
+                <div className="rounded border-l-4 border-amber-500 bg-amber-50 p-3 dark:bg-amber-900/20">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Trial ending soon! (&lt;7 days)
+                  </p>
+                </div>
+              </WhenTrialEnding>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Usage Tracking ─────────────────────────────────────────────── */}
+        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Usage Tracking (Server-side Secure)
+          </h2>
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+            All calls go through{" "}
+            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">/api/saas/usage/*</code> — the{" "}
+            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">sessionId</code> stays in an
+            HttpOnly cookie and never reaches the browser.
+            {!workspaceId && (
+              <span className="ml-2 font-semibold text-amber-600 dark:text-amber-400">
+                ⚠ No workspace selected — hooks are paused until workspaceId is available.
+              </span>
+            )}
+          </p>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Record Usage */}
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-700 dark:bg-purple-900/20">
+              <h3 className="mb-3 font-semibold text-purple-900 dark:text-purple-200">1. Record Usage</h3>
+              <p className="mb-3 text-xs text-purple-700 dark:text-purple-300">
+                POST <code>/api/saas/usage/record</code>
+              </p>
+              <div className="mb-2 space-y-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-purple-800 dark:text-purple-300">
+                    Quota Slug
+                  </label>
+                  <input
+                    type="text"
+                    value={recordQuotaSlug}
+                    onChange={e => setRecordQuotaSlug(e.target.value)}
+                    placeholder="e.g. emails"
+                    className="w-full rounded border border-purple-300 bg-white px-2 py-1 text-sm dark:border-purple-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-purple-800 dark:text-purple-300">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={recordQuantity}
+                    onChange={e => setRecordQuantity(Number(e.target.value))}
+                    className="w-full rounded border border-purple-300 bg-white px-2 py-1 text-sm dark:border-purple-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    workspaceId &&
+                    record({ workspaceId, quotaSlug: recordQuotaSlug, quantity: recordQuantity, source: "test-page" })
+                  }
+                  disabled={recordLoading || !workspaceId}
+                  className="flex-1 rounded bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {recordLoading ? "Recording..." : "Record"}
+                </button>
+                {recordData && (
+                  <button
+                    onClick={resetRecord}
+                    className="rounded border border-purple-300 px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-100 dark:text-purple-300 dark:hover:bg-purple-900"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {recordError && (
+                <div className="mt-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                  Error: {recordError}
+                </div>
+              )}
+              {recordData && (
+                <div
+                  className={`mt-2 rounded p-2 text-xs ${recordData.success ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"}`}
+                >
+                  <pre className="overflow-auto whitespace-pre-wrap">{JSON.stringify(recordData, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+
+            {/* Single Quota Status */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+              <h3 className="mb-3 font-semibold text-blue-900 dark:text-blue-200">2. Quota Status</h3>
+              <p className="mb-3 text-xs text-blue-700 dark:text-blue-300">
+                GET <code>/api/saas/usage/status</code>
+              </p>
+              <div className="mb-3 space-y-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-blue-800 dark:text-blue-300">Quota Slug</label>
+                  <input
+                    type="text"
+                    value={statusQuotaSlug}
+                    onChange={e => setStatusQuotaSlug(e.target.value)}
+                    placeholder="e.g. emails"
+                    className="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={refetchStatus}
+                disabled={statusLoading || !workspaceId}
+                className="w-full rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {statusLoading ? "Fetching..." : "Fetch Status"}
+              </button>
+              {statusError && (
+                <div className="mt-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                  Error: {statusError}
+                </div>
+              )}
+              {quotaStatus && (
+                <div className="mt-2 space-y-1 rounded bg-white p-3 text-xs dark:bg-gray-700">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Slug</span>
+                    <span className="font-mono font-medium">{quotaStatus.quotaSlug}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Consumed</span>
+                    <span className="font-medium">{quotaStatus.consumed}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Included (limit)</span>
+                    <span className="font-medium">{quotaStatus.included}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Available</span>
+                    <span className="font-medium">{quotaStatus.available}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Overage</span>
+                    <span className="font-medium">{quotaStatus.overage}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Has Overage</span>
+                    <span
+                      className={`font-medium ${quotaStatus.hasOverage ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}
+                    >
+                      {quotaStatus.hasOverage ? "Yes" : "No"}
+                    </span>
+                  </div>
+                  {quotaStatus.included > 0 && (
+                    <div className="mt-2">
+                      <div className="mb-1 flex justify-between text-gray-500 dark:text-gray-400">
+                        <span>Usage</span>
+                        <span>{Math.round((quotaStatus.consumed / quotaStatus.included) * 100)}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                        <div
+                          className={`h-full rounded-full ${quotaStatus.available <= 0 ? "bg-red-500" : quotaStatus.hasOverage ? "bg-orange-500" : "bg-blue-500"}`}
+                          style={{ width: `${Math.min(100, (quotaStatus.consumed / quotaStatus.included) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* All Quotas */}
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
+              <h3 className="mb-3 font-semibold text-green-900 dark:text-green-200">3. All Quotas</h3>
+              <p className="mb-3 text-xs text-green-700 dark:text-green-300">
+                GET <code>/api/saas/usage/all</code>
+              </p>
+              <button
+                onClick={refetchAllQuotas}
+                disabled={allQuotasLoading || !workspaceId}
+                className="w-full rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {allQuotasLoading ? "Fetching..." : "Fetch All Quotas"}
+              </button>
+              {allQuotasError && (
+                <div className="mt-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                  Error: {allQuotasError}
+                </div>
+              )}
+              {allQuotas && (
+                <div className="mt-2 space-y-2">
+                  {Object.keys(allQuotas).length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">No quotas found for this workspace.</p>
+                  ) : (
+                    Object.entries(allQuotas).map(([slug, quota]) => (
+                      <div key={slug} className="rounded bg-white p-2 text-xs dark:bg-gray-700">
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">{slug}</span>
+                          <span
+                            className={`rounded px-1.5 py-0.5 text-xs font-medium ${quota.available <= 0 ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : quota.hasOverage ? "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"}`}
+                          >
+                            {quota.available <= 0 ? "Exhausted" : quota.hasOverage ? "Overage" : "OK"}
+                          </span>
+                        </div>
+                        <div className="text-gray-500 dark:text-gray-400">
+                          {quota.consumed} / {quota.included}
+                          {quota.available > 0 && ` (${quota.available} left)`}
+                        </div>
+                        {quota.included > 0 && (
+                          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                            <div
+                              className={`h-full rounded-full ${quota.available <= 0 ? "bg-red-500" : quota.hasOverage ? "bg-orange-500" : "bg-green-500"}`}
+                              style={{ width: `${Math.min(100, (quota.consumed / quota.included) * 100)}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Summary */}
         <div className="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-6 dark:bg-blue-900/20">
           <h2 className="mb-3 text-xl font-semibold text-blue-900 dark:text-blue-200">📋 Quick Reference</h2>
@@ -924,6 +1281,33 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
                 <li>• WhenUserFeatureEnabled - Check user feature</li>
                 <li>• WhenRoles / WhenWorkspaceRoles - Check user roles</li>
                 <li>• useUserFeatures().isFeatureEnabled() - Programmatic check</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-1 font-semibold">4. Trial Status Gates:</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• useTrialStatus(workspaceId) - Get trial status data</li>
+                <li>• WhenTrialing - Render only when on trial</li>
+                <li>• WhenNotTrialing - Render when not on trial</li>
+                <li>• WhenTrialEnding daysThreshold - Render when trial ending soon</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-1 font-semibold">5. Usage Tracking (Server-side Secure):</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• useServerRecordUsage() → record() — POST /api/saas/usage/record</li>
+                <li>• useServerQuotaStatus(workspaceId, quotaSlug) — GET /api/saas/usage/status</li>
+                <li>• useServerAllQuotas(workspaceId) — GET /api/saas/usage/all</li>
+                <li>• sessionId stays in HttpOnly cookie — never sent from browser</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-1 font-semibold">6. Quota Gate HOCs (wrap feature code):</h3>
+              <ul className="ml-4 space-y-1 text-sm">
+                <li>• WhenQuotaAvailable slug — render when quota not exhausted</li>
+                <li>• WhenQuotaExhausted slug — render when quota is exhausted</li>
+                <li>• WhenQuotaOverage slug — render when in overage</li>
+                <li>• WhenQuotaThreshold slug threshold — render near quota limit</li>
               </ul>
             </div>
           </div>

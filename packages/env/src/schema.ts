@@ -31,6 +31,8 @@ export const env = createEnv({
 
     // SaaS SDK (Server-side only - secrets should never be exposed to client)
     SAAS_CLIENT_SECRET: z.string().optional(),
+    // Secret part of the "orgId:secret" API token used for usage/quota session exchange
+    SAAS_API_TOKEN_SECRET: z.string().optional(),
 
     // Cache (Redis/Upstash)
     // Both are optional, but if URL is provided, token should also be provided
@@ -148,6 +150,7 @@ export const env = createEnv({
     APP_JWT_SECRET: process.env.APP_JWT_SECRET,
 
     SAAS_CLIENT_SECRET: process.env.SAAS_CLIENT_SECRET,
+    SAAS_API_TOKEN_SECRET: process.env.SAAS_API_TOKEN_SECRET,
     // SaaS SDK
     NEXT_PUBLIC_SAAS_SERVER_URL: process.env.NEXT_PUBLIC_SAAS_SERVER_URL,
     NEXT_PUBLIC_SAAS_ORG_ID: process.env.NEXT_PUBLIC_SAAS_ORG_ID,
