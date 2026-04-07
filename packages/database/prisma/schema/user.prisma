@@ -25,6 +25,13 @@ model User {
   assetFolders AssetFolder[]
   mediaTags    MediaTag[]
 
+  // Blog post audit
+  blogPostsCreated BlogPost[] @relation("BlogPostCreatedBy")
+  blogPostsUpdated BlogPost[] @relation("BlogPostUpdatedBy")
+
+  // Doc post audit
+  docPostsUpdated DocPost[] @relation("DocPostUpdatedBy")
+
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
