@@ -20,9 +20,13 @@ import BlogRenderer from "@/components/blog/BlogRenderer";
 import { BlogContentServer } from "@/components/blog/BlogContentServer";
 import BlogMarkdownContent from "@/components/blog/BlogMarkdownContent";
 import BlogsGroup from "@/components/blog/BlogsGroup";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 // Force static generation
 export const dynamic = "force-static";
+export const revalidate = 3600;
+// Unmatched slugs → 404, not 500
+export const dynamicParams = false;
 
 /**
  * Generates all possible static paths for blog posts and folders.
@@ -45,13 +49,16 @@ export async function generateStaticParams() {
       : postsResult?.data || postsResult?.docs || [];
     const folders = Array.isArray(foldersResult) ? foldersResult : [];
 
-    // Flatten folder tree structure
-    const flattenFolders = (folders: any[]): any[] => {
+    // Flatten folder tree structure, computing full paths from hierarchy
+    // The API returns `children` (not `subFolders`), and `path` may be null for nested folders
+    const flattenFolders = (folders: any[], parentPath = ""): any[] => {
       const result: any[] = [];
       folders.forEach((folder) => {
-        result.push(folder);
-        if (folder.subFolders) {
-          result.push(...flattenFolders(folder.subFolders));
+        const computedPath = folder.path || (parentPath ? `${parentPath}/${folder.slug}` : folder.slug);
+        result.push({ ...folder, _fullPath: computedPath });
+        const nested = folder.children || folder.subFolders;
+        if (nested?.length) {
+          result.push(...flattenFolders(nested, computedPath));
         }
       });
       return result;
@@ -63,7 +70,7 @@ export async function generateStaticParams() {
       // Extract slug from post - handle both full path and slug
       const slug = post.slug || post.path || post.id;
       // If slug is a full path like "/blogs/tech/react", extract the path part
-      const slugPath = typeof slug === "string" 
+      const slugPath = typeof slug === "string"
         ? slug.replace(/^\/blogs\//, "").split("/")
         : [slug];
       return {
@@ -71,10 +78,10 @@ export async function generateStaticParams() {
       };
     });
 
-    // Generate paths for all folders
+    // Generate paths for all folders using the computed full path
     const folderParams = allFolders.map((folder: any) => {
-      const path = folder.path || folder.slug || folder.id;
-      const slugArray = typeof path === "string" ? path.split("/") : path;
+      const path = folder._fullPath || folder.path || folder.slug || folder.id;
+      const slugArray = typeof path === "string" ? path.split("/") : [path];
       return {
         slug: slugArray,
       };
@@ -109,14 +116,23 @@ export async function generateMetadata({
     const post = await API.blogs.getByPath(path);
 
     if (post && post.published) {
-      // Return SEO metadata for an individual blog post
+      const authorNames = post.authors?.map((a: any) => (a.author || a)?.name).filter(Boolean) as string[] | undefined;
+      const tagTitles = post.tags?.map((t: any) => (t.tag || t)?.title).filter(Boolean) as string[] | undefined;
       return generateSEOMetadata({
         title: post.seoTitle || post.title,
         description: post.seoDescription || post.description,
         url: `${SiteConfig.baseUrl}${Routes.blogs}/${path}`,
         type: "article",
         image: post.image || `${SiteConfig.baseUrl}/og.jpg`,
-        keywords: post.seoKeywords || [],
+        keywords: [
+          ...(post.seoKeywords || []),
+          ...(tagTitles || []),
+        ],
+        publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        authors: authorNames,
+        section: post.folder?.name,
+        articleTags: tagTitles,
       });
     }
 
@@ -131,6 +147,7 @@ export async function generateMetadata({
         description: `Explore blog posts about ${folderName.toLowerCase()}. Comprehensive articles and tutorials to help you master the topic.`,
         url: folderUrl,
         type: "website",
+        keywords: [folderName],
       });
     }
   } catch (error) {
@@ -233,35 +250,71 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
       }
 
       const blogPost = adaptBlogPost(post);
+      const postUrl = `${SiteConfig.baseUrl}${Routes.blogs}/${path}`;
+
+      const blogPostingLd = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: post.seoTitle || post.title,
+        description: post.seoDescription || post.description,
+        image: post.image || `${SiteConfig.baseUrl}/og.jpg`,
+        datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        url: postUrl,
+        author: post.authors?.map((a: any) => ({
+          "@type": "Person",
+          name: (a.author || a)?.name,
+        })) ?? [],
+        publisher: {
+          "@type": "Organization",
+          name: SiteConfig.name,
+          url: SiteConfig.baseUrl,
+        },
+        keywords: (post.seoKeywords ?? []).join(", "),
+      };
+
+      const breadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${SiteConfig.baseUrl}${Routes.blogs}` },
+          { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
+        ],
+      };
 
       return (
-        <BlogRenderer
-          post={blogPost}
-          similarBlogs={relatedBlogs}
-          allTags={allTags}
-        >
-          <BlogContentServer post={blogPost} allTags={allTags} />
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-slate-400 dark:text-slate-600">Loading content...</div>
-              </div>
-            }
+        <>
+          <JsonLd data={blogPostingLd} />
+          <JsonLd data={breadcrumbLd} />
+          <BlogRenderer
+            post={blogPost}
+            similarBlogs={relatedBlogs}
+            allTags={allTags}
           >
-            <BlogMarkdownContent
-              content={blogPost.content || ""}
-              postTitle={blogPost.title}
-            />
-          </Suspense>
-        </BlogRenderer>
+            <BlogContentServer post={blogPost} allTags={allTags} />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-slate-400 dark:text-slate-600">Loading content...</div>
+                </div>
+              }
+            >
+              <BlogMarkdownContent
+                content={blogPost.content || ""}
+                postTitle={blogPost.title}
+              />
+            </Suspense>
+          </BlogRenderer>
+        </>
       );
     }
 
-    // Try to get as folder
-    const folder = await BlogFolderService.getFolderByPath(path, false);
+    // Try to get as folder (with sub-folders preserved)
+    const folder = await BlogFolderService.getFolderWithChildren(path);
 
     if (folder) {
-      // Get all published posts in this folder
+      // Get all published posts directly in this folder and sub-folders in parallel
       const folderPostsResult = await API.blogs.getAllPublished({
         $page: 1,
         $limit: 1000,
@@ -282,12 +335,36 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
         })
         .map((p: any) => adaptBlogPost(p));
 
+      const folderUrl = `${SiteConfig.baseUrl}${Routes.blogs}/${path}`;
+      const collectionLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: `${folder.name} - Blog`,
+        url: folderUrl,
+        publisher: { "@type": "Organization", name: SiteConfig.name, url: SiteConfig.baseUrl },
+      };
+      const folderBreadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${SiteConfig.baseUrl}${Routes.blogs}` },
+          { "@type": "ListItem", position: 3, name: folder.name, item: folderUrl },
+        ],
+      };
+
       return (
-        <BlogsGroup
-          blogs={groupBlogs}
-          allTags={allTags}
-          groupName={folder.path || folder.slug}
-        />
+        <>
+          <JsonLd data={collectionLd} />
+          <JsonLd data={folderBreadcrumbLd} />
+          <BlogsGroup
+            blogs={groupBlogs}
+            allTags={allTags}
+            groupName={folder.path || folder.slug}
+            subFolders={folder.subFolders ?? []}
+            folderName={folder.name}
+          />
+        </>
       );
     }
   } catch (error: any) {

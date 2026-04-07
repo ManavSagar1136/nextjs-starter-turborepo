@@ -22,6 +22,7 @@ interface PostPageProps {
 
 // Force static generation
 export const dynamic = "force-static";
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   try {
@@ -78,9 +79,10 @@ export async function generateMetadata({
     const urlSlug = slug;
     return generateSEOMetadata({
       title: tag.title,
-      description: `Blog posts tagged with ${tag.title}`,
+      description: `Browse all blog posts tagged with "${tag.title}". Find articles, guides, and tutorials on ${tag.title}.`,
       url: `${SiteConfig.baseUrl}${Routes.blogTags}/${urlSlug}`,
       type: "website",
+      keywords: [tag.title, tag.slug],
     });
   } catch (error) {
     console.error("Error generating metadata:", error);

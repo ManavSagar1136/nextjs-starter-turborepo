@@ -206,6 +206,7 @@ export function AdvancedBlogCard({
               <button
                 className="h-8 w-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-colors bg-white dark:bg-dark-surface border border-slate-200 dark:border-slate-800"
                 onClick={handleShare}
+                aria-label={`Share "${data.title}"`}
               >
                 <Share2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
               </button>

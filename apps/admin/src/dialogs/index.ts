@@ -18,3 +18,13 @@ export type { AdminAppDialogs } from "./setup";
 // Re-export common dialog keys and types from dialog-manager for convenience
 export { COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 export type { CommonDialogKey } from "@buildbase/dialog-manager";
+
+// Typed props helper for admin-specific dialogs
+import type { AdminAppDialogs } from "./setup";
+export type AdminDialogProps<K extends keyof AdminAppDialogs> = Omit<
+  React.ComponentProps<AdminAppDialogs[K]>,
+  "open" | "onOpenChange"
+>;
+
+// Typed dialog manager hook for admin app (includes both common + admin dialog types)
+export { useAdminDialogManager } from "./hooks";

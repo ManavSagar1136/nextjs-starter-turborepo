@@ -1,0 +1,53 @@
+// Doc content models
+
+model DocFolder {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String
+  path           String? // Computed hierarchy e.g. "getting-started/installation"
+  parentFolderId String? @db.ObjectId
+  deleted        Boolean @default(false)
+
+  parent   DocFolder?  @relation("DocFolderHierarchy", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children DocFolder[] @relation("DocFolderHierarchy")
+  posts    DocPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentFolderId])
+  @@index([slug])
+  @@index([path])
+  @@map("doc_folders")
+}
+
+model DocPost {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  slug           String
+  subtitle       String?
+  description    String?
+  content        String
+  order          Int?
+  published      Boolean   @default(false)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]
+  deleted        Boolean   @default(false)
+
+  folderId String?    @db.ObjectId
+  folder   DocFolder? @relation(fields: [folderId], references: [id])
+
+  updatedById String? @db.ObjectId
+  updatedBy   User?   @relation("DocPostUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([published])
+  @@index([folderId])
+  @@index([order])
+  @@map("doc_posts")
+}

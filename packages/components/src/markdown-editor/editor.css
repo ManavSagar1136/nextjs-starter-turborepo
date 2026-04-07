@@ -1,0 +1,172 @@
+/* Default styles for MDX editor content */
+.mdx-editor-container ul {
+  list-style-type: disc;
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+  margin-bottom: 1em;
+}
+
+.mdx-editor-container ol {
+  list-style-type: decimal;
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+  margin-bottom: 1em;
+}
+
+.mdx-editor-container ul ul,
+.mdx-editor-container ol ul {
+  list-style-type: circle;
+  list-style-position: inside;
+  margin-left: 1em;
+}
+
+.mdx-editor-container ol ol,
+.mdx-editor-container ul ol {
+  list-style-type: lower-latin;
+  list-style-position: inside;
+  margin-left: 1em;
+}
+
+.mdx-editor-container ul ul ul,
+.mdx-editor-container ul ol ul,
+.mdx-editor-container ol ul ul,
+.mdx-editor-container ol ol ul {
+  list-style-type: square;
+  list-style-position: inside;
+  margin-left: 1em;
+}
+
+.mdx-editor-container ul li {
+  margin: 0;
+  padding: 0;
+  margin-bottom: 0.5em;
+}
+
+.mdx-editor-container ol li {
+  margin: 0;
+  padding: 0;
+  margin-bottom: 0.5em;
+}
+
+/* checkbox list items */
+.mdx-editor-container ul li[role="checkbox"],
+.mdx-editor-container ol li[role="checkbox"] {
+  padding-left: 1.5rem;
+}
+
+.mdx-editor-container ul li ul,
+.mdx-editor-container ul li ol,
+.mdx-editor-container ol li ul,
+.mdx-editor-container ol li ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.mdx-editor-container li p {
+  margin: 0;
+  padding: 0;
+  margin-bottom: 0.5em;
+}
+
+.mdx-editor-container li li {
+  margin-bottom: 0.5em;
+}
+
+.mdx-editor-container h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.mdx-editor-container h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.mdx-editor-container h3 {
+  font-size: 1.17em;
+  font-weight: 600;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.mdx-editor-container h4 {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.mdx-editor-container h5 {
+  font-size: 0.83em;
+  font-weight: 600;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.mdx-editor-container h6 {
+  font-size: 0.67em;
+  font-weight: 600;
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+.mdx-editor-container p {
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+/* Blockquote with left border */
+.mdx-editor-container blockquote::before {
+  content: "";
+  display: block;
+  width: 0.25em;
+  height: 100%;
+  background-color: currentColor;
+  opacity: 0.4;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.mdx-editor-container blockquote {
+  position: relative;
+  margin: 0;
+  padding: 0.5em 0 0.5em 1em;
+}
+
+.mdx-editor-container blockquote p {
+  margin: 0 0 0.5em;
+  padding: 0;
+}
+
+/* Links */
+.mdx-editor-container a {
+  color: hsl(221, 83%, 53%);
+  text-decoration: none;
+}
+
+.mdx-editor-container a:hover {
+  text-decoration: underline;
+}
+
+/* Fix popover z-index (link/image dialogs) */
+.mdxeditor-popup-container {
+  z-index: 1000 !important;
+}
+
+/* Ensure editor fills its container height */
+.mdx-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mdx-editor-container ._contentEditable_uazmk_379 {
+  flex: 1;
+}

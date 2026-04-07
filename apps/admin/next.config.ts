@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
     "@buildbase/email",
     "@buildbase/logger",
     "@buildbase/database",
+    "@mdxeditor/editor",
   ],
   // Required for Prisma in monorepo - tells Next.js where to find files in packages/
   outputFileTracingRoot: resolve(__dirname, "../.."),

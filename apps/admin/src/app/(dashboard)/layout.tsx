@@ -69,6 +69,59 @@ const menuItemsConfig = [
       },
     ],
   },
+  {
+    title: "Blog Management",
+    url: "#",
+    items: [
+      {
+        title: "Blog Posts",
+        url: Routes.blogs.posts,
+        iconName: "FileText",
+      },
+      {
+        title: "Blog Folders",
+        url: Routes.blogs.folders,
+        iconName: "FolderOpen",
+      },
+      {
+        title: "Blog Tags",
+        url: Routes.blogs.tags,
+        iconName: "Tag",
+      },
+      {
+        title: "Blog Authors",
+        url: Routes.blogs.authors,
+        iconName: "Users",
+      },
+    ],
+  },
+  {
+    title: "Docs Management",
+    url: "#",
+    items: [
+      {
+        title: "Doc Posts",
+        url: Routes.docs.posts,
+        iconName: "BookOpen",
+      },
+      {
+        title: "Doc Folders",
+        url: Routes.docs.folders,
+        iconName: "FolderOpen",
+      },
+    ],
+  },
+  {
+    title: "Changelog Management",
+    url: "#",
+    items: [
+      {
+        title: "Changelogs",
+        url: Routes.changelogs.posts,
+        iconName: "History",
+      },
+    ],
+  },
 ];
 
 async function ProtectedLayout({ children }: { children: React.ReactNode }) {

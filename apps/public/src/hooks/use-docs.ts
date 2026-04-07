@@ -90,13 +90,13 @@ export const useDocPosts = (
         sorting,
       });
       // Handle both IDocListResponse and PaginationResponse formats
-      if (result && "docs" in result) {
+      if (result && ("data" in result || "docs" in result)) {
         return {
-          data: result.docs || [],
-          total: result.totalDocs || 0,
-          limit: result.limit || 20,
-          offset: result.page ? (result.page - 1) * (result.limit || 20) : 0,
-          hasMore: result.hasNextPage || false,
+          data: (result as any).data || (result as any).docs || [],
+          total: (result as any).total || (result as any).totalDocs || 0,
+          limit: (result as any).limit || 20,
+          offset: (result as any).page ? ((result as any).page - 1) * ((result as any).limit || 20) : 0,
+          hasMore: (result as any).hasNextPage || false,
         };
       }
       return result;

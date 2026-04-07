@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DUMMY_BLOG_POSTS, DUMMY_BLOG_AUTHORS } from "@/data/dummy/blogs";
+import { prisma, getBlogAuthorByUsername, listBlogPosts } from "@buildbase/database";
 
 /**
  * GET /api/blogs/authors/by-username/[username]/posts
@@ -15,45 +15,34 @@ export async function GET(
     const $page = parseInt(searchParams.get("$page") || "1");
     const $limit = parseInt(searchParams.get("$limit") || "20");
 
-    // Find author by username
-    const author = DUMMY_BLOG_AUTHORS.find((a) => a.username === username);
+    const author = await getBlogAuthorByUsername(prisma, username);
 
     if (!author) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Author not found",
-        },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, message: "Author not found" }, { status: 404 });
     }
 
-    // Filter posts by author
-    let filteredPosts = DUMMY_BLOG_POSTS.filter(
-      (post) =>
-        post.published &&
-        post.authors?.some((a) => a.id === author.id || a.username === username),
-    );
+    const result = await listBlogPosts(prisma, {
+      published: true,
+      authorId: author.id,
+      page: $page,
+      limit: $limit,
+    });
 
-    // Sort by publishedAt desc
-    filteredPosts.sort(
-      (a, b) =>
-        new Date(b.publishedAt || 0).getTime() -
-        new Date(a.publishedAt || 0).getTime(),
-    );
+    const { computePostUrl } = await import("@/lib/blogs/blog-url.service");
+    const postsWithUrl = result.data.map((post: any) => ({
+      ...post,
+      url: computePostUrl(post),
+    }));
 
-    // Apply pagination
-    const total = filteredPosts.length;
+    const totalPages = result.totalPages;
     const offset = ($page - 1) * $limit;
-    const paginatedPosts = filteredPosts.slice(offset, offset + $limit);
-    const totalPages = Math.ceil(total / $limit);
 
     return NextResponse.json({
       author,
-      data: paginatedPosts,
-      docs: paginatedPosts,
-      total,
-      totalDocs: total,
+      data: postsWithUrl,
+      docs: postsWithUrl,
+      total: result.total,
+      totalDocs: result.total,
       limit: $limit,
       page: $page,
       offset,
@@ -63,11 +52,7 @@ export async function GET(
   } catch (error) {
     console.error("[Blog Posts By Author API] Error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to fetch blog posts by author",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
+      { success: false, message: "Failed to fetch blog posts by author", error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 },
     );
   }

@@ -1,0 +1,141 @@
+// Blog content models
+
+model BlogFolder {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String
+  path           String? // Computed hierarchy e.g. "tech/react"
+  parentFolderId String? @db.ObjectId
+  deleted        Boolean @default(false)
+
+  parent   BlogFolder?  @relation("BlogFolderHierarchy", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children BlogFolder[] @relation("BlogFolderHierarchy")
+  posts    BlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentFolderId])
+  @@index([slug])
+  @@index([path])
+  @@map("blog_folders")
+}
+
+model BlogTag {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  title    String
+  slug     String  @unique
+  isPublic Boolean @default(true)
+  deleted  Boolean @default(false)
+
+  postTags BlogPostTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_tags")
+}
+
+model BlogAuthor {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  username String  @unique
+  image    String?
+  links    Json? // e.g. { "twitter": "...", "github": "..." }
+  deleted  Boolean @default(false)
+
+  postAuthors BlogPostAuthor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_authors")
+}
+
+model BlogPost {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  slug           String
+  description    String
+  excerpt        String?
+  content        String
+  image          String?
+  imageTitle     String?
+  assetFileId    String?   @db.ObjectId
+  assetFile      Asset?    @relation("BlogPostImage", fields: [assetFileId], references: [id], onDelete: SetNull)
+  featured       Boolean   @default(false)
+  featuredAt     DateTime?
+  published      Boolean   @default(false)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]
+  deleted        Boolean   @default(false)
+
+  folderId String?     @db.ObjectId
+  folder   BlogFolder? @relation(fields: [folderId], references: [id])
+
+  creatorId   String? @db.ObjectId
+  creator     User?   @relation("BlogPostCreatedBy", fields: [creatorId], references: [id])
+  updatedById String? @db.ObjectId
+  updatedBy   User?   @relation("BlogPostUpdatedBy", fields: [updatedById], references: [id])
+
+  authors        BlogPostAuthor[]
+  tags           BlogPostTag[]
+  suggestedPosts BlogPostSuggested[] @relation("BlogPostSuggestions")
+  suggestedIn    BlogPostSuggested[] @relation("BlogPostSuggestedIn")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([published])
+  @@index([publishedAt])
+  @@index([folderId])
+  @@index([featured])
+  @@index([assetFileId])
+  @@index([published, publishedAt])
+  @@index([featured, featuredAt])
+  @@map("blog_posts")
+}
+
+model BlogPostAuthor {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  postId   String @db.ObjectId
+  authorId String @db.ObjectId
+
+  post   BlogPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author BlogAuthor @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, authorId])
+  @@index([postId])
+  @@index([authorId])
+  @@map("blog_post_authors")
+}
+
+model BlogPostTag {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  postId String @db.ObjectId
+  tagId  String @db.ObjectId
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+  @@map("blog_post_tags")
+}
+
+model BlogPostSuggested {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  postId          String @db.ObjectId
+  suggestedPostId String @db.ObjectId
+
+  post          BlogPost @relation("BlogPostSuggestions", fields: [postId], references: [id], onDelete: Cascade)
+  suggestedPost BlogPost @relation("BlogPostSuggestedIn", fields: [suggestedPostId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, suggestedPostId])
+  @@index([postId])
+  @@map("blog_post_suggested")
+}

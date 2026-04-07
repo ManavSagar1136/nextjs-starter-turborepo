@@ -44,3 +44,16 @@ export * from "./newsletter-subscriber";
 
 // Export contact submission service functions
 export * from "./contact-submission";
+
+// Export blog service functions
+export * from "./blog-folder";
+export * from "./blog-tag";
+export * from "./blog-author";
+export * from "./blog-post";
+
+// Export doc service functions
+export * from "./doc-folder";
+export * from "./doc-post";
+
+// Export changelog service functions
+export * from "./changelog-post";
