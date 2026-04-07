@@ -5,6 +5,7 @@ import { Save, Image, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@buildbase/ui/components/ui/dialog";
 import { Button } from "@buildbase/ui/components/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
+import { Switch } from "@buildbase/ui/components/ui/ui-switch";
 import { API } from "@/services";
 import type { BlogFolder, BlogTag, BlogAuthor } from "@/services/blogs";
 import { AssetPickerDialog } from "@/components/assets/AssetPickerDialog";
@@ -83,7 +84,6 @@ export function BlogPostDialog({
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
 
-  // On open: fetch dependencies + post data in edit mode
   useEffect(() => {
     if (!open) return;
 
@@ -243,7 +243,8 @@ export function BlogPostDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex h-[90vh] w-full max-w-4xl flex-col overflow-hidden p-0">
+        <DialogContent className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden p-0">
+          {/* Header */}
           <DialogHeader className="shrink-0 border-b px-6 py-4">
             <div className="flex items-center gap-3">
               <DialogTitle>{mode === "edit" ? "Edit Blog Post" : "New Blog Post"}</DialogTitle>
@@ -256,11 +257,10 @@ export function BlogPostDialog({
             <div className="text-muted-foreground flex flex-1 items-center justify-center">Loading post...</div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-              <div className="flex-1 space-y-6 overflow-y-auto px-6 py-4">
-                {/* Content */}
-                <div className="space-y-4 rounded-lg border p-4">
-                  <h3 className="font-semibold">Content</h3>
-
+              {/* Two-column body */}
+              <div className="flex flex-1 overflow-hidden">
+                {/* ── Left: main content ── */}
+                <div className="flex flex-1 flex-col space-y-4 overflow-y-auto border-r px-6 py-5">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Title *</label>
                     <input
@@ -297,7 +297,7 @@ export function BlogPostDialog({
                       rows={2}
                       value={form.description}
                       onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                      placeholder="Short description"
+                      placeholder="Short description shown in post cards and meta tags"
                       required
                     />
                   </div>
@@ -314,11 +314,11 @@ export function BlogPostDialog({
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium">Content (Markdown) *</label>
                     <textarea
-                      className="focus:ring-ring w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
-                      rows={14}
+                      className="focus:ring-ring w-full flex-1 rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
+                      style={{ minHeight: "320px", resize: "vertical" }}
                       value={form.content}
                       onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
                       placeholder="Write your post content in Markdown..."
@@ -327,81 +327,40 @@ export function BlogPostDialog({
                   </div>
                 </div>
 
-                {/* Featured Image */}
-                <div className="space-y-4 rounded-lg border p-4">
-                  <h3 className="font-semibold">Featured Image</h3>
-
-                  {form.image ? (
-                    <div className="space-y-3">
-                      <div className="bg-muted relative overflow-hidden rounded-lg border">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={form.image}
-                          alt={form.imageTitle || "Featured image"}
-                          className="max-h-48 w-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setForm(f => ({ ...f, image: "", imageTitle: "", assetFileId: "" }))}
-                          className="bg-destructive absolute right-2 top-2 rounded-full p-1 text-white shadow"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Image Alt Text</label>
-                        <input
-                          className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                          value={form.imageTitle}
-                          onChange={e => setForm(f => ({ ...f, imageTitle: e.target.value }))}
-                          placeholder="Describe the image for accessibility"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => setIsAssetPickerOpen(true)}
-                      >
-                        <Image className="mr-2 h-4 w-4" />
-                        Change Image
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="bg-muted/40 flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-8">
-                        <Image className="text-muted-foreground/50 mb-3 h-8 w-8" />
-                        <p className="text-muted-foreground mb-3 text-sm">No image selected</p>
-                        <Button type="button" onClick={() => setIsAssetPickerOpen(true)}>
-                          <Image className="mr-2 h-4 w-4" />
-                          Pick from Library
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Or paste image URL</label>
-                        <input
-                          className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                          value={form.image}
-                          onChange={e => setForm(f => ({ ...f, image: e.target.value, assetFileId: "" }))}
-                          placeholder="https://example.com/image.jpg"
-                          type="url"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Settings */}
-                <div className="space-y-4 rounded-lg border p-4">
-                  <h3 className="font-semibold">Settings</h3>
-
+                {/* ── Right: metadata sidebar ── */}
+                <div className="w-80 shrink-0 space-y-5 overflow-y-auto px-5 py-5">
+                  {/* Publish controls */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">
+                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">Visibility</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
+                        <div>
+                          <p className="text-sm font-medium">Published</p>
+                          <p className="text-muted-foreground text-xs">Visible on the public site</p>
+                        </div>
+                        <Switch
+                          checked={form.published}
+                          onCheckedChange={v => setForm(f => ({ ...f, published: v }))}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
+                        <div>
+                          <p className="text-sm font-medium">Featured</p>
+                          <p className="text-muted-foreground text-xs">Highlight in featured sections</p>
+                        </div>
+                        <Switch checked={form.featured} onCheckedChange={v => setForm(f => ({ ...f, featured: v }))} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Folder */}
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
                       Folder{" "}
                       {isPublished && (
-                        <span className="text-muted-foreground text-xs">(locked — post is published)</span>
+                        <span className="text-muted-foreground text-xs font-normal normal-case">(locked)</span>
                       )}
-                    </label>
+                    </p>
                     <select
                       className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-50"
                       value={form.folderId}
@@ -417,118 +376,153 @@ export function BlogPostDialog({
                     </select>
                   </div>
 
-                  <div className="flex items-center gap-6">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                      <input
-                        type="checkbox"
-                        checked={form.published}
-                        onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
-                        className="h-4 w-4"
-                      />
-                      Published
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                      <input
-                        type="checkbox"
-                        checked={form.featured}
-                        onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))}
-                        className="h-4 w-4"
-                      />
-                      Featured
-                    </label>
-                  </div>
-                </div>
-
-                {/* Authors */}
-                {authors.length > 0 && (
-                  <div className="space-y-3 rounded-lg border p-4">
-                    <h3 className="font-semibold">Authors</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {authors.map(author => (
-                        <button
-                          key={author.id}
+                  {/* Featured Image */}
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                      Featured Image
+                    </p>
+                    {form.image ? (
+                      <div className="space-y-2">
+                        <div className="bg-muted relative overflow-hidden rounded-lg border">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={form.image}
+                            alt={form.imageTitle || "Featured image"}
+                            className="max-h-36 w-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, image: "", imageTitle: "", assetFileId: "" }))}
+                            className="bg-destructive absolute right-2 top-2 rounded-full p-1 text-white shadow"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                        <input
+                          className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                          value={form.imageTitle}
+                          onChange={e => setForm(f => ({ ...f, imageTitle: e.target.value }))}
+                          placeholder="Alt text for accessibility"
+                        />
+                        <Button
                           type="button"
-                          onClick={() => toggleAuthor(author.id)}
-                          className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
-                            selectedAuthorIds.includes(author.id)
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border hover:border-primary/50"
-                          }`}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => setIsAssetPickerOpen(true)}
                         >
-                          {selectedAuthorIds.includes(author.id) && <X className="h-3 w-3" />}
-                          {author.name}
-                        </button>
-                      ))}
-                    </div>
-                    {selectedAuthorIds.length > 0 && (
-                      <p className="text-muted-foreground text-xs">{selectedAuthorIds.length} author(s) selected</p>
+                          <Image className="mr-2 h-3.5 w-3.5" />
+                          Change Image
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div
+                          className="bg-muted/40 hover:bg-muted/60 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 transition-colors"
+                          onClick={() => setIsAssetPickerOpen(true)}
+                        >
+                          <Image className="text-muted-foreground/50 mb-2 h-7 w-7" />
+                          <p className="text-muted-foreground text-xs">Click to pick from library</p>
+                        </div>
+                        <input
+                          className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                          value={form.image}
+                          onChange={e => setForm(f => ({ ...f, image: e.target.value, assetFileId: "" }))}
+                          placeholder="Or paste image URL…"
+                          type="url"
+                        />
+                      </div>
                     )}
                   </div>
-                )}
 
-                {/* Tags */}
-                {tags.length > 0 && (
-                  <div className="space-y-3 rounded-lg border p-4">
-                    <h3 className="font-semibold">Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map(tag => (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          onClick={() => toggleTag(tag.id)}
-                          className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
-                            selectedTagIds.includes(tag.id)
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border hover:border-primary/50"
-                          }`}
-                        >
-                          {selectedTagIds.includes(tag.id) && <X className="h-3 w-3" />}
-                          {tag.title}
-                        </button>
-                      ))}
+                  {/* Authors */}
+                  {authors.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                        Authors{selectedAuthorIds.length > 0 && ` · ${selectedAuthorIds.length} selected`}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {authors.map(author => (
+                          <button
+                            key={author.id}
+                            type="button"
+                            onClick={() => toggleAuthor(author.id)}
+                            className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                              selectedAuthorIds.includes(author.id)
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            {selectedAuthorIds.includes(author.id) && <X className="h-2.5 w-2.5" />}
+                            {author.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    {selectedTagIds.length > 0 && (
-                      <p className="text-muted-foreground text-xs">{selectedTagIds.length} tag(s) selected</p>
-                    )}
-                  </div>
-                )}
+                  )}
 
-                {/* SEO */}
-                <div className="space-y-4 rounded-lg border p-4">
-                  <h3 className="font-semibold">SEO</h3>
+                  {/* Tags */}
+                  {tags.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                        Tags{selectedTagIds.length > 0 && ` · ${selectedTagIds.length} selected`}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {tags.map(tag => (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => toggleTag(tag.id)}
+                            className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                              selectedTagIds.includes(tag.id)
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            {selectedTagIds.includes(tag.id) && <X className="h-2.5 w-2.5" />}
+                            {tag.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">SEO Title</label>
-                    <input
-                      className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                      value={form.seoTitle}
-                      onChange={e => setForm(f => ({ ...f, seoTitle: e.target.value }))}
-                      placeholder="Defaults to post title"
-                      maxLength={200}
-                    />
-                  </div>
+                  {/* SEO */}
+                  <div className="space-y-3">
+                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">SEO</p>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">SEO Description</label>
-                    <textarea
-                      className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                      rows={2}
-                      value={form.seoDescription}
-                      onChange={e => setForm(f => ({ ...f, seoDescription: e.target.value }))}
-                      placeholder="SEO meta description"
-                      maxLength={500}
-                    />
-                  </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium">Title</label>
+                      <input
+                        className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                        value={form.seoTitle}
+                        onChange={e => setForm(f => ({ ...f, seoTitle: e.target.value }))}
+                        placeholder="Defaults to post title"
+                        maxLength={200}
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">SEO Keywords</label>
-                    <input
-                      className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                      value={form.seoKeywords}
-                      onChange={e => setForm(f => ({ ...f, seoKeywords: e.target.value }))}
-                      placeholder="keyword1, keyword2, keyword3"
-                    />
-                    <p className="text-muted-foreground text-xs">Comma-separated keywords</p>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium">Description</label>
+                      <textarea
+                        className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                        rows={2}
+                        value={form.seoDescription}
+                        onChange={e => setForm(f => ({ ...f, seoDescription: e.target.value }))}
+                        placeholder="Meta description"
+                        maxLength={500}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium">Keywords</label>
+                      <input
+                        className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                        value={form.seoKeywords}
+                        onChange={e => setForm(f => ({ ...f, seoKeywords: e.target.value }))}
+                        placeholder="keyword1, keyword2"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

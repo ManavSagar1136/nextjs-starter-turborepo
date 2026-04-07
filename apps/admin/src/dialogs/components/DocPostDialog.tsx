@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@buildbase/ui/components/ui/dialog";
 import { Button } from "@buildbase/ui/components/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
+import { Switch } from "@buildbase/ui/components/ui/ui-switch";
 import { API } from "@/services";
 import type { DocFolder } from "@/services/docs";
 import type { DialogOrSheetBaseProps } from "@buildbase/dialog-manager";
@@ -154,7 +155,8 @@ export function DocPostDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90vh] w-full max-w-4xl flex-col overflow-hidden p-0">
+      <DialogContent className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden p-0">
+        {/* Header */}
         <DialogHeader className="shrink-0 border-b px-6 py-4">
           <div className="flex items-center gap-3">
             <DialogTitle>{mode === "edit" ? "Edit Doc" : "New Doc"}</DialogTitle>
@@ -166,11 +168,10 @@ export function DocPostDialog({
           <div className="text-muted-foreground flex flex-1 items-center justify-center">Loading doc...</div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-4">
-              {/* Content */}
-              <div className="space-y-4 rounded-lg border p-4">
-                <h3 className="font-semibold">Content</h3>
-
+            {/* Two-column body */}
+            <div className="flex flex-1 overflow-hidden">
+              {/* ── Left: main content ── */}
+              <div className="flex flex-1 flex-col space-y-4 overflow-y-auto border-r px-6 py-5">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Title *</label>
                   <input
@@ -221,11 +222,11 @@ export function DocPostDialog({
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="flex flex-1 flex-col space-y-2">
                   <label className="text-sm font-medium">Content (Markdown) *</label>
                   <textarea
-                    className="focus:ring-ring w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
-                    rows={14}
+                    className="focus:ring-ring w-full flex-1 rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
+                    style={{ minHeight: "320px", resize: "vertical" }}
                     value={form.content}
                     onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
                     placeholder="Write your doc in Markdown..."
@@ -234,15 +235,28 @@ export function DocPostDialog({
                 </div>
               </div>
 
-              {/* Settings */}
-              <div className="space-y-4 rounded-lg border p-4">
-                <h3 className="font-semibold">Settings</h3>
-
+              {/* ── Right: metadata sidebar ── */}
+              <div className="w-80 shrink-0 space-y-5 overflow-y-auto px-5 py-5">
+                {/* Publish control */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
+                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">Visibility</p>
+                  <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
+                    <div>
+                      <p className="text-sm font-medium">Published</p>
+                      <p className="text-muted-foreground text-xs">Visible on the public site</p>
+                    </div>
+                    <Switch checked={form.published} onCheckedChange={v => setForm(f => ({ ...f, published: v }))} />
+                  </div>
+                </div>
+
+                {/* Folder */}
+                <div className="space-y-2">
+                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
                     Folder{" "}
-                    {isPublished && <span className="text-muted-foreground text-xs">(locked — doc is published)</span>}
-                  </label>
+                    {isPublished && (
+                      <span className="text-muted-foreground text-xs font-normal normal-case">(locked)</span>
+                    )}
+                  </p>
                   <select
                     className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-50"
                     value={form.folderId}
@@ -258,64 +272,54 @@ export function DocPostDialog({
                   </select>
                 </div>
 
+                {/* Sort order */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Order</label>
+                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">Sort Order</p>
                   <input
                     type="number"
                     className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
                     value={form.order}
                     onChange={e => setForm(f => ({ ...f, order: e.target.value }))}
-                    placeholder="Sort order (optional)"
+                    placeholder="Optional (lower = first)"
                   />
                 </div>
 
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                  <input
-                    type="checkbox"
-                    checked={form.published}
-                    onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
-                    className="h-4 w-4"
-                  />
-                  Published
-                </label>
-              </div>
+                {/* SEO */}
+                <div className="space-y-3">
+                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">SEO</p>
 
-              {/* SEO */}
-              <div className="space-y-4 rounded-lg border p-4">
-                <h3 className="font-semibold">SEO</h3>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium">Title</label>
+                    <input
+                      className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                      value={form.seoTitle}
+                      onChange={e => setForm(f => ({ ...f, seoTitle: e.target.value }))}
+                      placeholder="Defaults to doc title"
+                      maxLength={200}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">SEO Title</label>
-                  <input
-                    className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                    value={form.seoTitle}
-                    onChange={e => setForm(f => ({ ...f, seoTitle: e.target.value }))}
-                    placeholder="Defaults to doc title"
-                    maxLength={200}
-                  />
-                </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium">Description</label>
+                    <textarea
+                      className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                      rows={2}
+                      value={form.seoDescription}
+                      onChange={e => setForm(f => ({ ...f, seoDescription: e.target.value }))}
+                      placeholder="Meta description"
+                      maxLength={500}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">SEO Description</label>
-                  <textarea
-                    className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                    rows={2}
-                    value={form.seoDescription}
-                    onChange={e => setForm(f => ({ ...f, seoDescription: e.target.value }))}
-                    placeholder="SEO meta description"
-                    maxLength={500}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">SEO Keywords</label>
-                  <input
-                    className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                    value={form.seoKeywords}
-                    onChange={e => setForm(f => ({ ...f, seoKeywords: e.target.value }))}
-                    placeholder="keyword1, keyword2, keyword3"
-                  />
-                  <p className="text-muted-foreground text-xs">Comma-separated keywords</p>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium">Keywords</label>
+                    <input
+                      className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                      value={form.seoKeywords}
+                      onChange={e => setForm(f => ({ ...f, seoKeywords: e.target.value }))}
+                      placeholder="keyword1, keyword2"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
