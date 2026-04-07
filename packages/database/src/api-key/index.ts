@@ -4,6 +4,7 @@ export {
   listApiKeys,
   revokeApiKey,
   deleteApiKey,
+  ApiKeyNameConflictError,
   type CreateApiKeyInput,
   type CreateApiKeyResult,
 } from "./api-key.service";

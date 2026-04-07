@@ -144,6 +144,7 @@ export function withPermissionCheck<T extends any[]>(
       if (allowWorkspaceAdmin && workspaceRole === WORKSPACE_ROLES.ADMIN) {
         (request as any).authenticatedUser = user;
         (request as any).workspaceRole = membership.role;
+        (request as any).dbWorkspaceId = workspace.id;
         return handler(request, ...args);
       }
 
@@ -160,10 +161,12 @@ export function withPermissionCheck<T extends any[]>(
         );
       }
 
-      // Attach authenticated user and workspace role to request
-      // workspaceRole comes from database, not from JWT token
+      // Attach authenticated user, workspace role, and DB workspace ID to request.
+      // dbWorkspaceId is the MongoDB ObjectId — use this (not user.workspaceId which is the SDK UUID)
+      // for any database queries that reference workspace foreign keys.
       (request as any).authenticatedUser = user;
       (request as any).workspaceRole = workspaceRole;
+      (request as any).dbWorkspaceId = workspace.id;
 
       return handler(request, ...args);
     } catch (error) {

@@ -11,6 +11,7 @@ import { Button } from "@buildbase/ui/components/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
 import { API_KEY_DIALOG_KEYS } from "@/dialogs/setup";
 import type { CreatedApiKey } from "@/dialogs/api-keys/CreateApiKeyDialog";
+import { useWorkspaceId } from "@/store/hooks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,6 +48,7 @@ function formatDate(iso: string) {
 
 export default function ApiKeysPage() {
   const { openDialog } = useDialogManager();
+  const workspaceId = useWorkspaceId();
 
   const {
     data: keys = [],
@@ -54,13 +56,14 @@ export default function ApiKeysPage() {
     isError,
     refetch,
   } = useTanstackQuery<ApiKey[]>({
-    queryKey: ["api-keys"],
+    queryKey: ["api-keys", workspaceId],
     queryFn: fetchApiKeys,
+    enabled: !!workspaceId,
   });
 
   const revokeMutation = useTanstackMutation<void, Error, string>({
     mutationFn: (id: string) => revokeApiKey(id),
-    invalidateQueries: [["api-keys"]],
+    invalidateQueries: [["api-keys", workspaceId]],
     toast: true,
     toastProps: {
       success: { title: "API key revoked" },

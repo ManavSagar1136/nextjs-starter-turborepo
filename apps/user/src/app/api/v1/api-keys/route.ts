@@ -11,23 +11,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPermissionCheck } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
-import { createApiKey, listApiKeys, revokeApiKey } from "@buildbase/database";
+import { createApiKey, listApiKeys, revokeApiKey, ApiKeyNameConflictError } from "@buildbase/database";
 
 const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
 const NAME_MAX_LENGTH = 100;
 const RATE_LIMIT_MIN = 1;
 const RATE_LIMIT_MAX = 10_000;
 
-type AuthedRequest = NextRequest & { authenticatedUser?: { workspaceId?: string; userId?: string } };
+type AuthedRequest = NextRequest & {
+  authenticatedUser?: { workspaceId?: string; userId?: string };
+};
 
 async function handleGET(request: NextRequest): Promise<NextResponse> {
-  const user = (request as AuthedRequest).authenticatedUser;
-  if (!user?.workspaceId) {
+  const { workspaceId } = (request as AuthedRequest).authenticatedUser ?? {};
+  if (!workspaceId) {
     return NextResponse.json({ error: "No workspace selected" }, { status: 400 });
   }
 
   try {
-    const keys = await listApiKeys(user.workspaceId);
+    const keys = await listApiKeys(workspaceId);
     return NextResponse.json({ data: keys });
   } catch {
     return NextResponse.json({ error: "Failed to fetch API keys" }, { status: 500 });
@@ -36,7 +38,8 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
 
 async function handlePOST(request: NextRequest): Promise<NextResponse> {
   const user = (request as AuthedRequest).authenticatedUser;
-  if (!user?.workspaceId) {
+  const workspaceId = user?.workspaceId;
+  if (!workspaceId) {
     return NextResponse.json({ error: "No workspace selected" }, { status: 400 });
   }
 
@@ -77,8 +80,8 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
     const result = await createApiKey({
       name: trimmedName,
-      workspaceId: user.workspaceId,
-      createdById: user.userId,
+      workspaceId: workspaceId,
+      createdById: user?.userId,
       scopes: Array.isArray(scopes) ? (scopes as string[]) : undefined,
       rateLimitPerMinute: rateLimitPerMinute !== undefined ? Number(rateLimitPerMinute) : undefined,
     });
@@ -90,14 +93,17 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
       },
       { status: 201 }
     );
-  } catch {
+  } catch (err) {
+    if (err instanceof ApiKeyNameConflictError) {
+      return NextResponse.json({ error: "A key with this name already exists" }, { status: 409 });
+    }
     return NextResponse.json({ error: "Failed to create API key" }, { status: 500 });
   }
 }
 
 async function handleDELETE(request: NextRequest): Promise<NextResponse> {
-  const user = (request as AuthedRequest).authenticatedUser;
-  if (!user?.workspaceId) {
+  const { workspaceId } = (request as AuthedRequest).authenticatedUser ?? {};
+  if (!workspaceId) {
     return NextResponse.json({ error: "No workspace selected" }, { status: 400 });
   }
 
@@ -112,7 +118,7 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const { count } = await revokeApiKey(id, user.workspaceId);
+    const { count } = await revokeApiKey(id, workspaceId);
     if (count === 0) {
       return NextResponse.json({ error: "API key not found" }, { status: 404 });
     }

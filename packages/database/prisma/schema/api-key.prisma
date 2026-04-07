@@ -33,6 +33,7 @@ model ApiKey {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@unique([workspaceId, name])
   @@index([workspaceId])
   @@index([isActive])
   @@map("api_keys")

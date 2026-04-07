@@ -7,7 +7,15 @@
  */
 
 import { randomBytes, createHash } from "crypto";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../index";
+
+export class ApiKeyNameConflictError extends Error {
+  constructor() {
+    super("An API key with this name already exists in the workspace");
+    this.name = "ApiKeyNameConflictError";
+  }
+}
 
 // ─── Key generation ───────────────────────────────────────────────────────────
 
@@ -55,17 +63,25 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreateApiK
   const keyHash = hashKey(rawKey);
   const prefix = getPrefix(rawKey);
 
-  const apiKey = await prisma.apiKey.create({
-    data: {
-      name: input.name,
-      prefix,
-      keyHash,
-      workspaceId: input.workspaceId,
-      createdById: input.createdById,
-      scopes: input.scopes ?? [],
-      rateLimitPerMinute: input.rateLimitPerMinute ?? 60,
-    },
-  });
+  let apiKey;
+  try {
+    apiKey = await prisma.apiKey.create({
+      data: {
+        name: input.name,
+        prefix,
+        keyHash,
+        workspaceId: input.workspaceId,
+        createdById: input.createdById,
+        scopes: input.scopes ?? [],
+        rateLimitPerMinute: input.rateLimitPerMinute ?? 60,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      throw new ApiKeyNameConflictError();
+    }
+    throw err;
+  }
 
   return {
     id: apiKey.id,
@@ -122,7 +138,7 @@ export async function verifyApiKey(rawKey: string) {
  */
 export async function listApiKeys(workspaceId: string) {
   return prisma.apiKey.findMany({
-    where: { workspaceId, isActive: true, revokedAt: null },
+    where: { workspaceId, isActive: true },
     select: {
       id: true,
       name: true,
