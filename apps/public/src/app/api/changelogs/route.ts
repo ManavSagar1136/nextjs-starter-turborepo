@@ -27,12 +27,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data: changelogsWithUrl,
-      docs: changelogsWithUrl,
       total: result.total,
-      totalDocs: result.total,
       limit: $limit,
       page: $page,
       offset,
+      totalPages: result.totalPages,
       hasNextPage: $page < result.totalPages,
       hasPrevPage: $page > 1,
     });

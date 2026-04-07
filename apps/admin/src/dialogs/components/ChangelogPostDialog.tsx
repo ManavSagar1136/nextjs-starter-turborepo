@@ -20,7 +20,7 @@ function generateSlugFromVersion(version: string): string {
     .replace(/\.+/g, ".")
     .replace(/^-|-$/g, "")
     .replace(/^\.|\.$/g, "");
-  return `v${normalized.toLowerCase()}`;
+  return normalized ? `v${normalized.toLowerCase()}` : "";
 }
 
 export interface ChangelogPostDialogProps extends DialogOrSheetBaseProps {
@@ -104,13 +104,20 @@ export function ChangelogPostDialog({
       alert("Title, version, and content are required.");
       return;
     }
+    const resolvedSlug = form.slug || generateSlugFromVersion(form.version);
+    if (!resolvedSlug || resolvedSlug === "v") {
+      alert(
+        `Cannot generate a valid slug from version "${form.version}". Use alphanumeric characters, dots, or hyphens (e.g. 1.0.0).`
+      );
+      return;
+    }
     try {
       setIsSaving(true);
       await onSavePost(
         {
           title: form.title,
           version: form.version,
-          slug: form.slug || generateSlugFromVersion(form.version),
+          slug: resolvedSlug,
           description: form.description || undefined,
           content: form.content,
           releaseDate: form.releaseDate || undefined,

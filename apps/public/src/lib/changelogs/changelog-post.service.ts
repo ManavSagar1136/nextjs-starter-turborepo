@@ -2,8 +2,31 @@
  * ChangelogPostService - Database-direct implementation for server-side use.
  */
 
-import { prisma, listChangelogPosts as dbListChangelogPosts, getChangelogPostBySlug as dbGetBySlug } from "@buildbase/database";
+import {
+  prisma,
+  listChangelogPosts as dbListChangelogPosts,
+  getChangelogPostBySlug as dbGetBySlug,
+} from "@buildbase/database";
 import { computeChangelogUrl } from "./changelog-url.service";
+
+export interface ChangelogPostRecord {
+  id: string;
+  title: string;
+  slug: string;
+  version: string;
+  description: string | null;
+  content: string;
+  published: boolean;
+  publishedAt: Date | null;
+  releaseDate: Date | null;
+  deleted: boolean;
+  seoTitle: string;
+  seoDescription: string | null;
+  seoKeywords: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  url: string;
+}
 
 export interface ListChangelogPostsOptions {
   published?: boolean;
@@ -13,13 +36,17 @@ export interface ListChangelogPostsOptions {
 }
 
 export interface ListChangelogPostsResult {
-  posts: any[];
+  posts: ChangelogPostRecord[];
   total: number;
+}
+
+function attachUrl(post: any): ChangelogPostRecord {
+  return { ...post, url: computeChangelogUrl(post) };
 }
 
 export class ChangelogPostService {
   /**
-   * List changelog posts
+   * List changelog posts (server-side, DB-direct).
    */
   static async listChangelogPosts(
     options: ListChangelogPostsOptions = {},
@@ -32,34 +59,31 @@ export class ChangelogPostService {
         page: options.page || 1,
       });
 
-      const posts = result.data.map((post: any) => ({
-        ...post,
-        url: computeChangelogUrl(post),
-      }));
-
-      return { posts, total: result.total };
+      return {
+        posts: result.data.map(attachUrl),
+        total: result.total,
+      };
     } catch (error) {
-      console.error("Error listing changelog posts:", error);
+      // Only swallow connection errors at build time
+      const code = (error as any)?.code || (error as any)?.cause?.code;
+      if (code !== "ECONNREFUSED") {
+        console.error("[ChangelogPostService] listChangelogPosts error:", error);
+      }
       return { posts: [], total: 0 };
     }
   }
 
   /**
-   * Get a single published changelog post by slug
+   * Get a single changelog post by slug.
    */
-  static async getChangelogPostBySlug(slug: string): Promise<any | null> {
-    try {
-      const post = await dbGetBySlug(prisma, slug);
-      if (!post || post.deleted) return null;
-      return { ...post, url: computeChangelogUrl(post) };
-    } catch (error) {
-      console.error("Error getting changelog post by slug:", error);
-      return null;
-    }
+  static async getChangelogPostBySlug(slug: string): Promise<ChangelogPostRecord | null> {
+    const post = await dbGetBySlug(prisma, slug);
+    if (!post || post.deleted) return null;
+    return attachUrl(post);
   }
 
   /**
-   * Get all published posts for SSG (generateStaticParams)
+   * Get all published slugs for SSG (generateStaticParams).
    */
   static async getAllPublishedForSSG(): Promise<{ id: string; slug: string }[]> {
     try {
@@ -69,7 +93,11 @@ export class ChangelogPostService {
         limit: 10000,
       });
       return result.data.map((post: any) => ({ id: post.id, slug: post.slug }));
-    } catch {
+    } catch (error) {
+      const code = (error as any)?.code || (error as any)?.cause?.code;
+      if (code !== "ECONNREFUSED") {
+        console.error("[ChangelogPostService] getAllPublishedForSSG error:", error);
+      }
       return [];
     }
   }

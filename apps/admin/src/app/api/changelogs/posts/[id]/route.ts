@@ -8,7 +8,12 @@ import { getChangelogPostById, updateChangelogPost, deleteChangelogPost } from "
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   version: z.string().min(1).max(50).optional(),
-  slug: z.string().min(1).max(200).optional(),
+  slug: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^v[a-z0-9][a-z0-9.\-]*$/, "Slug must start with 'v' followed by alphanumeric characters, dots, or hyphens")
+    .optional(),
   description: z.string().optional().nullable(),
   content: z.string().min(1).optional(),
   published: z.boolean().optional(),
@@ -31,7 +36,7 @@ async function handleGET(_request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(post);
   } catch (error) {
-    console.error("[API] Failed to get changelog post:", error);
+    console.error("[Changelogs API] Failed to get post:", error);
     return NextResponse.json({ error: "Failed to fetch changelog post" }, { status: 500 });
   }
 }
@@ -54,7 +59,44 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
 
     const data = parsed.data;
 
-    // Auto-set publishedAt when publishing
+    // Block version/slug changes on published changelogs
+    if (existing.published) {
+      if (data.version && data.version !== existing.version) {
+        return NextResponse.json(
+          { error: "Cannot change the version of a published changelog. Unpublish it first." },
+          { status: 422 }
+        );
+      }
+      if (data.slug && data.slug !== existing.slug) {
+        return NextResponse.json(
+          { error: "Cannot change the slug of a published changelog. Unpublish it first." },
+          { status: 422 }
+        );
+      }
+    }
+
+    // Check uniqueness for version/slug changes
+    if (data.version && data.version !== existing.version) {
+      const conflict = await prisma.changelogPost.findFirst({
+        where: { version: data.version, deleted: false, NOT: { id } },
+      });
+      if (conflict) {
+        return NextResponse.json(
+          { error: `A changelog for version "${data.version}" already exists.` },
+          { status: 409 }
+        );
+      }
+    }
+    if (data.slug && data.slug !== existing.slug) {
+      const conflict = await prisma.changelogPost.findFirst({
+        where: { slug: data.slug, deleted: false, NOT: { id } },
+      });
+      if (conflict) {
+        return NextResponse.json({ error: `A changelog with slug "${data.slug}" already exists.` }, { status: 409 });
+      }
+    }
+
+    // Auto-set publishedAt when toggling published
     let publishedAt: Date | null | undefined = undefined;
     if (data.published === true && !existing.published) {
       publishedAt = new Date();
@@ -71,7 +113,11 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(post);
   } catch (error) {
-    console.error("[API] Failed to update changelog post:", error);
+    console.error("[Changelogs API] Failed to update post:", error);
+    if ((error as any)?.code === "P2002") {
+      const field = (error as any)?.meta?.target?.[0] ?? "field";
+      return NextResponse.json({ error: `A changelog with this ${field} already exists.` }, { status: 409 });
+    }
     return NextResponse.json({ error: "Failed to update changelog post" }, { status: 500 });
   }
 }
@@ -93,7 +139,7 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     await deleteChangelogPost(prisma, id, user?.userId);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[API] Failed to delete changelog post:", error);
+    console.error("[Changelogs API] Failed to delete post:", error);
     return NextResponse.json({ error: "Failed to delete changelog post" }, { status: 500 });
   }
 }

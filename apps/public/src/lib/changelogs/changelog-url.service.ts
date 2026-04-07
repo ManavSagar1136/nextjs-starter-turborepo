@@ -22,6 +22,10 @@ export function generateSlugFromVersion(version: string): string {
     .replace(/^-|-$/g, "")
     .replace(/^\.|\.$/g, "");
 
+  if (!normalized) {
+    throw new Error(`Cannot generate a valid slug from version "${version}". Use alphanumeric characters, dots, or hyphens (e.g. 1.0.0).`);
+  }
+
   return `v${normalized.toLowerCase()}`;
 }
 
