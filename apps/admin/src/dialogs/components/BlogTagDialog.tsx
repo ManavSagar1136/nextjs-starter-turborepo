@@ -48,7 +48,7 @@ export function BlogTagDialog({
   }, [open, initialData]);
 
   const handleSave = async () => {
-    if (!form.title) {
+    if (!form.title.trim()) {
       alert("Title is required.");
       return;
     }
@@ -57,9 +57,11 @@ export function BlogTagDialog({
       await onSaveTag({ title: form.title, slug: form.slug || undefined, isPublic: form.isPublic }, mode, tagId);
       onSuccess?.();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save tag:", error);
-      alert("Failed to save tag.");
+      const msg = error?.response?.data?.error || error?.message || "Failed to save tag.";
+      const details = error?.response?.data?.details;
+      alert(details ? `${msg}\n\n${details.map((d: any) => d.message).join("\n")}` : msg);
     } finally {
       setIsSaving(false);
     }
@@ -81,6 +83,8 @@ export function BlogTagDialog({
                 setForm(f => ({ ...f, title: e.target.value, slug: f.slug || generateSlug(e.target.value) }))
               }
               placeholder="Tag title"
+              maxLength={100}
+              required
             />
           </div>
           <div className="space-y-2">
@@ -90,6 +94,7 @@ export function BlogTagDialog({
               value={form.slug}
               onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
               placeholder="auto-generated"
+              maxLength={100}
             />
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">

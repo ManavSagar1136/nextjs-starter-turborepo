@@ -6,6 +6,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@buildbase/ui/comp
 import { Button } from "@buildbase/ui/components/ui/button";
 import type { DialogOrSheetBaseProps } from "@buildbase/dialog-manager";
 
+const USERNAME_REGEX = /^[a-z0-9_-]+$/;
+
 export interface BlogAuthorDialogProps extends DialogOrSheetBaseProps {
   mode: "create" | "edit";
   authorId?: string;
@@ -46,8 +48,12 @@ export function BlogAuthorDialog({
   }, [open, initialData]);
 
   const handleSave = async () => {
-    if (!form.name || !form.username) {
+    if (!form.name.trim() || !form.username.trim()) {
       alert("Name and username are required.");
+      return;
+    }
+    if (!USERNAME_REGEX.test(form.username)) {
+      alert("Username can only contain lowercase letters, numbers, hyphens (-), and underscores (_).");
       return;
     }
     let links: Record<string, string> | undefined;
@@ -68,9 +74,11 @@ export function BlogAuthorDialog({
       );
       onSuccess?.();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save author:", error);
-      alert("Failed to save author.");
+      const msg = error?.response?.data?.error || error?.message || "Failed to save author.";
+      const details = error?.response?.data?.details;
+      alert(details ? `${msg}\n\n${details.map((d: any) => d.message).join("\n")}` : msg);
     } finally {
       setIsSaving(false);
     }
@@ -90,6 +98,8 @@ export function BlogAuthorDialog({
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="Author name"
+              maxLength={100}
+              required
             />
           </div>
           <div className="space-y-2">
@@ -97,14 +107,20 @@ export function BlogAuthorDialog({
             <input
               className="focus:ring-ring w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
               value={form.username}
-              onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, username: e.target.value.toLowerCase() }))}
               placeholder="username"
+              maxLength={50}
+              pattern="[a-z0-9_-]+"
+              title="Only lowercase letters, numbers, hyphens (-), and underscores (_)"
+              required
             />
+            <p className="text-muted-foreground text-xs">Lowercase letters, numbers, hyphens and underscores only</p>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Image URL</label>
             <input
               className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+              type="url"
               value={form.image}
               onChange={e => setForm(f => ({ ...f, image: e.target.value }))}
               placeholder="https://..."
@@ -119,6 +135,7 @@ export function BlogAuthorDialog({
               onChange={e => setForm(f => ({ ...f, links: e.target.value }))}
               placeholder={'{"twitter": "https://twitter.com/...", "github": "https://github.com/..."}'}
             />
+            <p className="text-muted-foreground text-xs">Optional. Valid JSON object mapping label → URL.</p>
           </div>
           <div className="flex gap-3 pt-4">
             <Button onClick={handleSave} disabled={isSaving} className="flex-1">

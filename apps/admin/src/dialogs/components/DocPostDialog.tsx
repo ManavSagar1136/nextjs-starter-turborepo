@@ -143,7 +143,8 @@ export function DocPostDialog({
     } catch (error: any) {
       console.error("Failed to save doc post:", error);
       const msg = error?.response?.data?.error || error?.message || "Failed to save doc.";
-      alert(msg);
+      const details = error?.response?.data?.details;
+      alert(details ? `${msg}\n\n${details.map((d: any) => d.message).join("\n")}` : msg);
     } finally {
       setIsSaving(false);
     }
@@ -179,6 +180,7 @@ export function DocPostDialog({
                       setForm(f => ({ ...f, title: e.target.value, slug: f.slug || generateSlug(e.target.value) }))
                     }
                     placeholder="Doc title"
+                    maxLength={200}
                     required
                   />
                 </div>
@@ -193,6 +195,7 @@ export function DocPostDialog({
                     value={form.slug}
                     onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
                     placeholder="auto-generated-from-title"
+                    maxLength={200}
                     disabled={isPublished}
                   />
                 </div>

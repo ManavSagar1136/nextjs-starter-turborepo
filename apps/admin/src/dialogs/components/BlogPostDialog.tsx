@@ -231,7 +231,8 @@ export function BlogPostDialog({
     } catch (error: any) {
       console.error("Failed to save blog post:", error);
       const msg = error?.response?.data?.error || error?.message || "Failed to save blog post.";
-      alert(msg);
+      const details = error?.response?.data?.details;
+      alert(details ? `${msg}\n\n${details.map((d: any) => d.message).join("\n")}` : msg);
     } finally {
       setIsSaving(false);
     }
@@ -267,6 +268,7 @@ export function BlogPostDialog({
                       value={form.title}
                       onChange={e => handleTitleChange(e.target.value)}
                       placeholder="Post title"
+                      maxLength={200}
                       required
                     />
                   </div>
@@ -283,6 +285,7 @@ export function BlogPostDialog({
                       value={form.slug}
                       onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
                       placeholder="auto-generated-from-title"
+                      maxLength={200}
                       disabled={isPublished}
                     />
                   </div>
@@ -307,6 +310,7 @@ export function BlogPostDialog({
                       value={form.excerpt}
                       onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
                       placeholder="Optional excerpt (appears in post cards)"
+                      maxLength={1000}
                     />
                   </div>
 

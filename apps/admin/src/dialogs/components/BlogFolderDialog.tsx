@@ -52,7 +52,7 @@ export function BlogFolderDialog({
   }, [open, initialData]);
 
   const handleSave = async () => {
-    if (!form.name) {
+    if (!form.name.trim()) {
       alert("Name is required.");
       return;
     }
@@ -69,9 +69,11 @@ export function BlogFolderDialog({
       );
       onSuccess?.();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save folder:", error);
-      alert("Failed to save folder.");
+      const msg = error?.response?.data?.error || error?.message || "Failed to save folder.";
+      const details = error?.response?.data?.details;
+      alert(details ? `${msg}\n\n${details.map((d: any) => d.message).join("\n")}` : msg);
     } finally {
       setIsSaving(false);
     }
@@ -93,6 +95,8 @@ export function BlogFolderDialog({
                 setForm(f => ({ ...f, name: e.target.value, slug: f.slug || generateSlug(e.target.value) }))
               }
               placeholder="Folder name"
+              maxLength={100}
+              required
             />
           </div>
           <div className="space-y-2">
@@ -102,6 +106,7 @@ export function BlogFolderDialog({
               value={form.slug}
               onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
               placeholder="auto-generated"
+              maxLength={100}
             />
           </div>
           <div className="space-y-2">
