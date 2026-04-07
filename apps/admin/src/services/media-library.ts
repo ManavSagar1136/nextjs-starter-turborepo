@@ -357,4 +357,20 @@ export class MediaLibraryService extends ApiController implements IMediaLibraryA
       folderId: options?.folderId,
     });
   }
+
+  /**
+   * Single-step upload via server-side route.
+   * Works for all storage providers including local (avoids signed-URL PUT).
+   * Preferred for in-app editor image uploads.
+   */
+  async uploadAssetDirect(file: File, options?: { folderId?: string | null; makePublic?: boolean }): Promise<IAsset> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("makePublic", options?.makePublic !== false ? "true" : "false");
+    if (options?.folderId) formData.append("folderId", options.folderId);
+
+    // isFile=true signals the http-client to send as multipart/form-data
+    const response = await this.post("/assets/upload/direct", {}, {}, formData, true);
+    return response.data.data;
+  }
 }

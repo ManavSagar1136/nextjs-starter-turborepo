@@ -37,6 +37,10 @@
     "./media-library": {
       "types": "./dist/media-library/index.d.ts",
       "default": "./dist/media-library/index.js"
+    },
+    "./markdown-editor": {
+      "types": "./dist/markdown-editor/index.d.ts",
+      "default": "./dist/markdown-editor/index.js"
     }
   },
   "license": "MIT",
@@ -49,36 +53,37 @@
     "test:watch": "vitest"
   },
   "peerDependencies": {
+    "next": "^15",
     "react": "^19",
-    "react-dom": "^19",
-    "next": "^15"
+    "react-dom": "^19"
   },
   "dependencies": {
+    "@buildbase/dialog-manager": "*",
+    "@buildbase/helpers": "*",
     "@buildbase/ui": "*",
     "@buildbase/utils": "*",
-    "@buildbase/helpers": "*",
-    "@buildbase/dialog-manager": "*",
+    "@mdxeditor/editor": "^3.52.3",
     "aos": "^2.3.4",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.469.0",
     "react-email-editor": "^1.7.11",
     "react-hook-form": "^7.54.0",
     "react-icons": "^5.0.0",
-    "react-window": "^1.8.11",
-    "react-virtualized-auto-sizer": "^1.0.25"
+    "react-virtualized-auto-sizer": "^1.0.25",
+    "react-window": "^1.8.11"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",
     "@buildbase/tailwind-config": "*",
-    "@buildbase/typescript-config": "*",
     "@buildbase/testing": "*",
-    "@testing-library/react": "^16.3.0",
+    "@buildbase/typescript-config": "*",
     "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/aos": "^3.0.7",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
-    "@types/react-window": "^1.8.8",
     "@types/react-virtualized-auto-sizer": "^1.0.4",
+    "@types/react-window": "^1.8.8",
     "eslint": "^9.39.1",
     "jsdom": "^26.1.0",
     "typescript": "5.9.2",

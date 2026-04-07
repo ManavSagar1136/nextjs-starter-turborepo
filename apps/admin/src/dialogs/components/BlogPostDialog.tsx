@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@buildbase/ui/
 import { Button } from "@buildbase/ui/components/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
 import { Switch } from "@buildbase/ui/components/ui/ui-switch";
+import { MarkdownEditor } from "@buildbase/components/markdown-editor";
 import { API } from "@/services";
 import type { BlogFolder, BlogTag, BlogAuthor } from "@/services/blogs";
 import { AssetPickerDialog } from "@/components/assets/AssetPickerDialog";
@@ -316,14 +317,18 @@ export function BlogPostDialog({
 
                   <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium">Content (Markdown) *</label>
-                    <textarea
-                      className="focus:ring-ring w-full flex-1 rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
-                      style={{ minHeight: "320px", resize: "vertical" }}
-                      value={form.content}
-                      onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-                      placeholder="Write your post content in Markdown..."
-                      required
-                    />
+                    <div className="flex-1" style={{ minHeight: "400px" }}>
+                      <MarkdownEditor
+                        markdown={form.content}
+                        onChange={content => setForm(f => ({ ...f, content }))}
+                        onImageUpload={async file => {
+                          const asset = await API.mediaLibrary.uploadAssetDirect(file, { makePublic: true });
+                          if (!asset?.url) throw new Error("Upload failed: no URL returned");
+                          return asset.url;
+                        }}
+                        className="h-full"
+                      />
+                    </div>
                   </div>
                 </div>
 
