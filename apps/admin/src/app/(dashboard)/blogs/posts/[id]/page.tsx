@@ -72,7 +72,7 @@ const EditBlogPostPage = () => {
         description: form.description,
         excerpt: form.excerpt || undefined,
         content: form.content,
-        folderId: form.folderId || null,
+        folderId: form.folderId || undefined,
         published: form.published,
         featured: form.featured,
         seoTitle: form.seoTitle || undefined,
