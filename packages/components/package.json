@@ -39,8 +39,8 @@
       "default": "./dist/media-library/index.js"
     },
     "./markdown-editor": {
-      "types": "./dist/markdown-editor/index.d.ts",
-      "default": "./dist/markdown-editor/index.js"
+      "types": "./src/markdown-editor/index.ts",
+      "default": "./src/markdown-editor/index.ts"
     }
   },
   "license": "MIT",
