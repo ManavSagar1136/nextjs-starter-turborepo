@@ -11,10 +11,13 @@ import { DocFolderService } from "@/lib/docs/doc-folder.service";
 import DynamicDocPage from "@/components/doc/DocPage";
 import DocRenderer from "@/components/doc/DocRenderer";
 import GroupRender from "@/components/doc/GroupRender";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 // Force static generation
 export const dynamic = "force-static";
 export const revalidate = 3600;
+// Unmatched slugs → 404, not 500
+export const dynamicParams = false;
 
 /**
  * Generates all possible static paths for documentation pages and folders.
@@ -89,6 +92,7 @@ export async function generateStaticParams() {
  */
 interface PostPageProps {
   params: Promise<{ slug: string[] }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 /**
@@ -165,6 +169,8 @@ export async function generateMetadata({
 const DocsPages = async (props: PostPageProps) => {
   // Await params until the actual slug array is available.
   const params = await props.params;
+  const searchParams = await props.searchParams;
+  const page = Math.max(1, parseInt(searchParams?.page || "1", 10));
   const slugArray = params.slug;
   const path = slugArray.join("/");
 
@@ -184,11 +190,42 @@ const DocsPages = async (props: PostPageProps) => {
         ? allDocsResult
         : allDocsResult?.data || allDocsResult?.docs || [];
 
+      const docUrl = `${SiteConfig.baseUrl}${Routes.docs}/${path}`;
+      const techArticleLd = {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        headline: post.seoTitle || post.title,
+        description: post.seoDescription || post.description || post.subtitle,
+        datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        url: docUrl,
+        publisher: {
+          "@type": "Organization",
+          name: SiteConfig.name,
+          url: SiteConfig.baseUrl,
+        },
+        keywords: (post.seoKeywords ?? []).join(", "),
+      };
+      const docBreadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
+          { "@type": "ListItem", position: 2, name: "Docs", item: `${SiteConfig.baseUrl}${Routes.docs}` },
+          ...(post.folder ? [{ "@type": "ListItem", position: 3, name: post.folder.name, item: `${SiteConfig.baseUrl}${Routes.docs}/${post.folder.path || post.folder.slug}` }] : []),
+          { "@type": "ListItem", position: post.folder ? 4 : 3, name: post.title, item: docUrl },
+        ],
+      };
+
       return (
-        <DocRenderer
-          data={post as unknown as IDocPost}
-          allDocs={allDocs as IDocPost[]}
-        />
+        <>
+          <JsonLd data={techArticleLd} />
+          <JsonLd data={docBreadcrumbLd} />
+          <DocRenderer
+            data={post as unknown as IDocPost}
+            allDocs={allDocs as IDocPost[]}
+          />
+        </>
       );
     }
 
@@ -196,8 +233,30 @@ const DocsPages = async (props: PostPageProps) => {
     const folder = await DocFolderService.getFolderByPath(path, false);
 
     if (folder) {
-      // Render a folder/group index page
-      return <GroupRender groupPath={path} />;
+      const folderUrl = `${SiteConfig.baseUrl}${Routes.docs}/${path}`;
+      const folderLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: `${folder.name} - Documentation`,
+        url: folderUrl,
+        publisher: { "@type": "Organization", name: SiteConfig.name, url: SiteConfig.baseUrl },
+      };
+      const folderBreadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
+          { "@type": "ListItem", position: 2, name: "Docs", item: `${SiteConfig.baseUrl}${Routes.docs}` },
+          { "@type": "ListItem", position: 3, name: folder.name, item: folderUrl },
+        ],
+      };
+      return (
+        <>
+          <JsonLd data={folderLd} />
+          <JsonLd data={folderBreadcrumbLd} />
+          <GroupRender groupPath={path} page={page} />
+        </>
+      );
     }
   } catch (error: any) {
     // Log error details for debugging

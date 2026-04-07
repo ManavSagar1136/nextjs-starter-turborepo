@@ -20,10 +20,13 @@ import BlogRenderer from "@/components/blog/BlogRenderer";
 import { BlogContentServer } from "@/components/blog/BlogContentServer";
 import BlogMarkdownContent from "@/components/blog/BlogMarkdownContent";
 import BlogsGroup from "@/components/blog/BlogsGroup";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 // Force static generation
 export const dynamic = "force-static";
 export const revalidate = 3600;
+// Unmatched slugs → 404, not 500
+export const dynamicParams = false;
 
 /**
  * Generates all possible static paths for blog posts and folders.
@@ -247,27 +250,63 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
       }
 
       const blogPost = adaptBlogPost(post);
+      const postUrl = `${SiteConfig.baseUrl}${Routes.blogs}/${path}`;
+
+      const blogPostingLd = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: post.seoTitle || post.title,
+        description: post.seoDescription || post.description,
+        image: post.image || `${SiteConfig.baseUrl}/og.jpg`,
+        datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        url: postUrl,
+        author: post.authors?.map((a: any) => ({
+          "@type": "Person",
+          name: (a.author || a)?.name,
+        })) ?? [],
+        publisher: {
+          "@type": "Organization",
+          name: SiteConfig.name,
+          url: SiteConfig.baseUrl,
+        },
+        keywords: (post.seoKeywords ?? []).join(", "),
+      };
+
+      const breadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${SiteConfig.baseUrl}${Routes.blogs}` },
+          { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
+        ],
+      };
 
       return (
-        <BlogRenderer
-          post={blogPost}
-          similarBlogs={relatedBlogs}
-          allTags={allTags}
-        >
-          <BlogContentServer post={blogPost} allTags={allTags} />
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-slate-400 dark:text-slate-600">Loading content...</div>
-              </div>
-            }
+        <>
+          <JsonLd data={blogPostingLd} />
+          <JsonLd data={breadcrumbLd} />
+          <BlogRenderer
+            post={blogPost}
+            similarBlogs={relatedBlogs}
+            allTags={allTags}
           >
-            <BlogMarkdownContent
-              content={blogPost.content || ""}
-              postTitle={blogPost.title}
-            />
-          </Suspense>
-        </BlogRenderer>
+            <BlogContentServer post={blogPost} allTags={allTags} />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-slate-400 dark:text-slate-600">Loading content...</div>
+                </div>
+              }
+            >
+              <BlogMarkdownContent
+                content={blogPost.content || ""}
+                postTitle={blogPost.title}
+              />
+            </Suspense>
+          </BlogRenderer>
+        </>
       );
     }
 
@@ -296,14 +335,36 @@ async function PostPage({ params }: { params: Promise<{ slug: string[] }> }) {
         })
         .map((p: any) => adaptBlogPost(p));
 
+      const folderUrl = `${SiteConfig.baseUrl}${Routes.blogs}/${path}`;
+      const collectionLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: `${folder.name} - Blog`,
+        url: folderUrl,
+        publisher: { "@type": "Organization", name: SiteConfig.name, url: SiteConfig.baseUrl },
+      };
+      const folderBreadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${SiteConfig.baseUrl}${Routes.blogs}` },
+          { "@type": "ListItem", position: 3, name: folder.name, item: folderUrl },
+        ],
+      };
+
       return (
-        <BlogsGroup
-          blogs={groupBlogs}
-          allTags={allTags}
-          groupName={folder.path || folder.slug}
-          subFolders={folder.subFolders ?? []}
-          folderName={folder.name}
-        />
+        <>
+          <JsonLd data={collectionLd} />
+          <JsonLd data={folderBreadcrumbLd} />
+          <BlogsGroup
+            blogs={groupBlogs}
+            allTags={allTags}
+            groupName={folder.path || folder.slug}
+            subFolders={folder.subFolders ?? []}
+            folderName={folder.name}
+          />
+        </>
       );
     }
   } catch (error: any) {

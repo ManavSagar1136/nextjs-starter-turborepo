@@ -25,20 +25,22 @@ export default function PageWithHeaderFooter({
       )}
     >
       <NavBar />
-      {noWrapper ? (
-        children
-      ) : (
-        <div
-          className={cn(
-            isContainer
-              ? "custom-container overflow-hidden"
-              : "w-full max-w-[1280px]",
-            className,
-          )}
-        >
-          {children}
-        </div>
-      )}
+      <main className="w-full flex-1 flex flex-col items-center">
+        {noWrapper ? (
+          children
+        ) : (
+          <div
+            className={cn(
+              isContainer
+                ? "custom-container overflow-hidden"
+                : "w-full max-w-[1280px]",
+              className,
+            )}
+          >
+            {children}
+          </div>
+        )}
+      </main>
       <Footer />
     </div>
   );

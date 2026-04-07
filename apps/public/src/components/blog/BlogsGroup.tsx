@@ -181,6 +181,7 @@ const BlogsGroup = ({
               <Link
                 key={folder.id}
                 href={Routes.blogGroup(folder.path ?? folder.slug)}
+                aria-label={`Browse ${folder.name} blog posts`}
                 className="group flex items-center gap-2.5 rounded-lg border bg-card px-4 py-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <Folder className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-accent-foreground" />

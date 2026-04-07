@@ -11,6 +11,9 @@ import { BreadcrumbItemConfig } from "@buildbase/ui/components/ui/app-breadcrumb
 
 import { DocFolderService } from "@/lib/docs/doc-folder.service";
 import { DocPostService } from "@/lib/docs/doc-post.service";
+import { DocsPagination } from "./DocsPagination";
+
+const ITEMS_PER_PAGE = 12;
 
 /**
  * Counts the total number of docs found within a given folder (recursively).
@@ -123,6 +126,7 @@ interface DocsListingProps {
   title?: string;
   description?: string;
   breadcrumbs?: BreadcrumbItemConfig[];
+  page?: number;
 }
 
 /**
@@ -140,6 +144,7 @@ const DocsListing = async ({
   title,
   description,
   breadcrumbs,
+  page = 1,
 }: DocsListingProps) => {
   // Fetch all published documents
   const allDocsResult = await DocPostService.listDocPosts({
@@ -185,6 +190,13 @@ const DocsListing = async ({
     allDocs as unknown as IDocPost[],
   );
 
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const currentPage = Math.min(Math.max(1, page), totalPages || 1);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
   /**
    * Get the display title and description.
    */
@@ -219,26 +231,42 @@ const DocsListing = async ({
             }
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item, index) => (
-              <div
-                key={
-                  item.type === "doc"
-                    ? item.doc?.id
-                    : `group-${item.groupPath}-${index}`
-                }
-              >
-                {item.type === "doc" ? (
-                  <DocCard data={item.doc} />
-                ) : (
-                  <GroupCard
-                    groupPath={item.groupPath!}
-                    docCount={item.docCount || 0}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          <>
+            {/* Results count */}
+            <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-600">
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+              {Math.min(currentPage * ITEMS_PER_PAGE, items.length)} of{" "}
+              {items.length} item{items.length !== 1 ? "s" : ""}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedItems.map((item, index) => (
+                <div
+                  key={
+                    item.type === "doc"
+                      ? item.doc?.id
+                      : `group-${item.groupPath}-${index}`
+                  }
+                >
+                  {item.type === "doc" ? (
+                    <DocCard data={item.doc} />
+                  ) : (
+                    <GroupCard
+                      groupPath={item.groupPath!}
+                      docCount={item.docCount || 0}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <DocsPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+              />
+            )}
+          </>
         )}
       </div>
     </DocLayout>

@@ -15,11 +15,18 @@ export async function generateMetadata() {
   });
 }
 
-const DocsPage = () => {
+const DocsPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) => {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page || "1", 10));
   return (
     <DocsListing
       title="Documentation"
       description="Complete guides and reference documentation for our platform"
+      page={page}
     />
   );
 };

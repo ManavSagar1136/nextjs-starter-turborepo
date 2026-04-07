@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Routes } from "@/data/routes";
 import { AnimatePresence, motion } from "framer-motion";
@@ -29,9 +29,12 @@ import {
 
 import { filterBlogPosts } from "@/lib/blogs/blog-utils";
 import { cn } from "@buildbase/ui/lib/utils";
+import PaginationControls from "@buildbase/ui/components/ui/pagination-controls";
 
 import { AdvancedBlogCard } from "./AdvancedBlogCard";
 import { BLOG_VIEW_MODE, type IBlogViewMode } from "./constants";
+
+const ITEMS_PER_PAGE = 12;
 
 interface BlogLayoutProps {
   posts: IBlogPost[];
@@ -44,6 +47,7 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
   const [viewMode, setViewMode] = useState<IBlogViewMode>(BLOG_VIEW_MODE.GRID);
   const [sortBy, setSortBy] = useState("latest");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter posts based on search and tags
   const filteredPosts = useMemo(() => {
@@ -82,6 +86,17 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
         return sorted;
     }
   }, [filteredPosts, sortBy]);
+
+  // Reset to page 1 whenever filters/sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedTags, sortBy]);
+
+  const totalPages = Math.ceil(sortedPosts.length / ITEMS_PER_PAGE);
+  const paginatedPosts = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedPosts.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedPosts, currentPage]);
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) =>
@@ -328,21 +343,34 @@ export function BlogLayout({ posts, className, allTags }: BlogLayoutProps) {
                 transition={{ duration: 0.3 }}
                 className={cn(
                   viewMode === BLOG_VIEW_MODE.GRID
-                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                    ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
                     : "flex flex-col gap-6 w-full",
                 )}
               >
-                {sortedPosts.map((post, index) => (
+                {paginatedPosts.map((post, index) => (
                   <AdvancedBlogCard
                     key={post.id}
                     data={post}
-                    featured={index < 2 && viewMode === BLOG_VIEW_MODE.GRID}
+                    featured={index < 2 && currentPage === 1 && viewMode === BLOG_VIEW_MODE.GRID}
                     allTags={allTags}
                     viewMode={viewMode}
                   />
                 ))}
               </motion.div>
             </AnimatePresence>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  scrollToTop={true}
+                  maxVisible={5}
+                />
+              </div>
+            )}
 
             {/* No Results */}
             {sortedPosts.length === 0 && (

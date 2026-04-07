@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Routes } from "@/data/routes";
 
 import { IDocPost } from "@/services/docs";
@@ -44,7 +45,21 @@ const DocRenderer = ({ data, allDocs }: DocRendererProps) => {
       <article className="prose max-w-none">
         {/* The rendered markdown content for the documentation page */}
         <div className="mdx-content">
-          <MarkdownView content={content} />
+          <Suspense
+            fallback={
+              <div className="animate-pulse space-y-4 py-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-4 rounded bg-slate-200 dark:bg-slate-800"
+                    style={{ width: `${85 - i * 5}%` }}
+                  />
+                ))}
+              </div>
+            }
+          >
+            <MarkdownView content={content} />
+          </Suspense>
         </div>
       </article>
     </DocLayout>

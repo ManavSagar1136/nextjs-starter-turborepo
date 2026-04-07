@@ -9,9 +9,11 @@ import DocsListing from "./DocsListing";
 /**
  * Props for GroupRender component.
  * @property groupPath - The path to the documentation group, e.g., "api/auth".
+ * @property page - Current pagination page (default 1).
  */
 interface GroupRenderProps {
   groupPath: string;
+  page?: number;
 }
 
 /**
@@ -62,12 +64,12 @@ const buildBreadcrumbs = (
  * @param props - GroupRenderProps containing the target `groupPath`
  * @returns The rendered DocsListing component with breadcrumbs
  */
-const GroupRender = ({ groupPath }: GroupRenderProps) => {
+const GroupRender = ({ groupPath, page = 1 }: GroupRenderProps) => {
   // Compute breadcrumbs based on the provided groupPath
   const breadcrumbs = buildBreadcrumbs(groupPath);
 
   // Render a DocsListing page with breadcrumbs for the given group
-  return <DocsListing groupPath={groupPath} breadcrumbs={breadcrumbs} />;
+  return <DocsListing groupPath={groupPath} breadcrumbs={breadcrumbs} page={page} />;
 };
 
 export default GroupRender;
