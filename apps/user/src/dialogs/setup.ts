@@ -6,6 +6,7 @@
  */
 
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
+import { ConfirmationDialog, AlertDialog, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import type { DialogComponentMap } from "@buildbase/dialog-manager";
 
 // Media Library Dialogs
@@ -32,6 +33,9 @@ export const API_KEY_DIALOG_KEYS = {
 } as const;
 
 export type UserAppDialogs = {
+  // Common dialogs
+  [COMMON_DIALOG_KEYS.CONFIRMATION]: typeof ConfirmationDialog;
+  [COMMON_DIALOG_KEYS.ALERT]: typeof AlertDialog;
   // Media library dialogs
   [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: typeof CreateFolderDialog;
   [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: typeof EditFolderDialog;
