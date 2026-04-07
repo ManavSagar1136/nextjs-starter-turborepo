@@ -44,6 +44,24 @@ export const Routes = {
   assets: "/assets",
 
   /**
+   * Blog management routes
+   */
+  blogs: {
+    posts: "/blogs/posts",
+    folders: "/blogs/folders",
+    tags: "/blogs/tags",
+    authors: "/blogs/authors",
+  },
+
+  /**
+   * Docs management routes
+   */
+  docs: {
+    posts: "/docs/posts",
+    folders: "/docs/folders",
+  },
+
+  /**
    * API routes
    */
   api: {
