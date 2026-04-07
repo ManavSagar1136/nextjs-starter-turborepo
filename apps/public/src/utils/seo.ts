@@ -19,6 +19,12 @@ interface SEOProps {
   url?: string;
   type?: OpenGraphType;
   excludeTitleSegments?: string[];
+  // Article-specific OG fields (used when type === "article")
+  publishedTime?: string;
+  modifiedTime?: string;
+  authors?: string[];
+  section?: string;
+  articleTags?: string[];
 }
 
 const generateSEOTitle = (
@@ -69,6 +75,11 @@ export function generateSEOMetadata({
   url = SiteConfig.baseUrl,
   type = "website",
   excludeTitleSegments = [],
+  publishedTime,
+  modifiedTime,
+  authors,
+  section,
+  articleTags,
 }: SEOProps): Metadata {
   const fullTitle = generateSEOTitle(
     url,
@@ -101,6 +112,13 @@ export function generateSEOMetadata({
           height: 630,
         },
       ],
+      ...(type === "article" && {
+        publishedTime,
+        modifiedTime,
+        authors,
+        section,
+        tags: articleTags,
+      }),
     },
     twitter: {
       card: "summary_large_image",

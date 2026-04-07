@@ -113,14 +113,23 @@ export async function generateMetadata({
     const post = await API.blogs.getByPath(path);
 
     if (post && post.published) {
-      // Return SEO metadata for an individual blog post
+      const authorNames = post.authors?.map((a: any) => (a.author || a)?.name).filter(Boolean) as string[] | undefined;
+      const tagTitles = post.tags?.map((t: any) => (t.tag || t)?.title).filter(Boolean) as string[] | undefined;
       return generateSEOMetadata({
         title: post.seoTitle || post.title,
         description: post.seoDescription || post.description,
         url: `${SiteConfig.baseUrl}${Routes.blogs}/${path}`,
         type: "article",
         image: post.image || `${SiteConfig.baseUrl}/og.jpg`,
-        keywords: post.seoKeywords || [],
+        keywords: [
+          ...(post.seoKeywords || []),
+          ...(tagTitles || []),
+        ],
+        publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        authors: authorNames,
+        section: post.folder?.name,
+        articleTags: tagTitles,
       });
     }
 
@@ -135,6 +144,7 @@ export async function generateMetadata({
         description: `Explore blog posts about ${folderName.toLowerCase()}. Comprehensive articles and tutorials to help you master the topic.`,
         url: folderUrl,
         type: "website",
+        keywords: [folderName],
       });
     }
   } catch (error) {

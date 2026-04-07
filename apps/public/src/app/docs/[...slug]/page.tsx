@@ -110,13 +110,15 @@ export async function generateMetadata({
 
     if (post && post.published) {
       const seoTitle = post.seoTitle || post.title;
-      // Return SEO metadata for an individual document
       return generateSEOMetadata({
         title: seoTitle,
         description: post.seoDescription || post.description || "",
         url: `${SiteConfig.baseUrl}${Routes.docs}/${path}`,
         type: "article",
         keywords: post.seoKeywords || [],
+        publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        section: post.folder?.name,
       });
     }
 
@@ -132,6 +134,7 @@ export async function generateMetadata({
         description: `Explore documentations for ${folderName.toLowerCase()}. Comprehensive resources and tutorials to help you master the topic.`,
         url: folderUrl,
         type: "website",
+        keywords: [folderName],
       });
     }
   } catch (error: any) {
