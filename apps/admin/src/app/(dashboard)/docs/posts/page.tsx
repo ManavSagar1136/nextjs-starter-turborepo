@@ -131,7 +131,8 @@ const DocPostsPage = () => {
                           size="sm"
                           onClick={() => handleDelete(post.id)}
                           className="text-destructive hover:text-destructive"
-                          title="Delete"
+                          title={post.published ? "Unpublish before deleting" : "Delete"}
+                          disabled={post.published}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

@@ -15,12 +15,12 @@ function generateSlug(name: string): string {
 export async function createBlogPost(prisma: PrismaClient, data: CreateBlogPostInput, creatorId?: string) {
   let slug = data.slug || generateSlug(data.title);
 
-  // Deduplicate slug: if already taken in the same folder, append timestamp
+  // Deduplicate slug: if already taken in the same folder, append a random suffix
   const existing = await prisma.blogPost.findFirst({
     where: { slug, folderId: data.folderId ?? null, deleted: false },
   });
   if (existing) {
-    slug = `${slug}-${Date.now()}`;
+    slug = `${slug}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   return prisma.blogPost.create({

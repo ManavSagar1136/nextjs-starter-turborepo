@@ -68,6 +68,7 @@ async function handlePOST(request: NextRequest) {
       prisma,
       {
         ...parsed.data,
+        seoTitle: parsed.data.seoTitle || parsed.data.title,
         folderId: parsed.data.folderId ?? undefined,
         assetFileId: parsed.data.assetFileId ?? undefined,
       },

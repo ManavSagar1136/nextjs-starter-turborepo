@@ -9,6 +9,16 @@ export async function updateDocPost(prisma: PrismaClient, id: string, data: Upda
   const existing = await prisma.docPost.findUnique({ where: { id } });
   if (!existing) throw new Error(`Doc post with id "${id}" not found`);
 
+  // Protect slug and folder changes on published docs
+  if (existing.published) {
+    if (data.slug !== undefined && data.slug !== existing.slug) {
+      throw new Error("Cannot change slug of a published doc. Unpublish it first.");
+    }
+    if (data.folderId !== undefined && data.folderId !== existing.folderId) {
+      throw new Error("Cannot change folder of a published doc. Unpublish it first.");
+    }
+  }
+
   let publishedAt = existing.publishedAt;
   if (data.published === true && !existing.publishedAt) {
     publishedAt = new Date();

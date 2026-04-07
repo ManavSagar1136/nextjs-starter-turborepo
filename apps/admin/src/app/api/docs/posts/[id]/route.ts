@@ -55,6 +55,9 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     if (error instanceof Error && error.message.includes("not found")) {
       return NextResponse.json({ error: "Doc post not found" }, { status: 404 });
     }
+    if (error instanceof Error && error.message.includes("Cannot change")) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
+    }
     return NextResponse.json({ error: "Failed to update doc post" }, { status: 500 });
   }
 }
@@ -62,6 +65,13 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
 async function handleDELETE(_request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
+    const existing = await getDocPostById(prisma, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Doc post not found" }, { status: 404 });
+    }
+    if (existing.published) {
+      return NextResponse.json({ error: "Cannot delete a published doc. Unpublish it first." }, { status: 422 });
+    }
     await deleteDocPost(prisma, id);
     return NextResponse.json({ success: true });
   } catch (error) {

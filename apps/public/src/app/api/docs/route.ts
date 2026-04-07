@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       data: docsWithUrl,
       docs: docsWithUrl,
-      posts: docsWithUrl,
       total: result.total,
       totalDocs: result.total,
       limit: $limit,

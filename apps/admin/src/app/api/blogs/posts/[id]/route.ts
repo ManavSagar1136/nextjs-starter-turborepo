@@ -68,6 +68,13 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
 async function handleDELETE(_request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
+    const existing = await getBlogPostById(prisma, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Blog post not found" }, { status: 404 });
+    }
+    if (existing.published) {
+      return NextResponse.json({ error: "Cannot delete a published blog post. Unpublish it first." }, { status: 422 });
+    }
     await deleteBlogPost(prisma, id);
     return NextResponse.json({ success: true });
   } catch (error) {
