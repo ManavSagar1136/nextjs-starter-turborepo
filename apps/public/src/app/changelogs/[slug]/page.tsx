@@ -30,14 +30,28 @@ export async function generateMetadata({ params }: IPageProps): Promise<Metadata
   const post = await ChangelogPostService.getChangelogPostBySlug(slug);
   if (!post || !post.published) return notFound();
 
+  const versionLabel = `v${post.version.replace(/^v/i, "")}`;
+  const changelogUrl = `${SiteConfig.baseUrl}${post.url || `${Routes.changelogs}/${post.slug}`}`;
+
   return generateSEOMetadata({
-    title: `${post.seoTitle || post.title} - Changelogs`,
-    description: post.seoDescription || post.description || undefined,
-    url: `${SiteConfig.baseUrl}${post.url || `${Routes.changelogs}/${post.slug}`}`,
+    title: `${post.seoTitle || post.title} (${versionLabel})`,
+    description:
+      post.seoDescription ||
+      post.description ||
+      `Release notes for ${SiteConfig.name} ${versionLabel}. See what's new, improved, and fixed in this release.`,
+    url: changelogUrl,
     type: "article",
-    keywords: post.seoKeywords || [],
+    keywords: [
+      ...(post.seoKeywords || []),
+      "changelog",
+      "release notes",
+      versionLabel,
+      SiteConfig.name,
+    ],
     publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
     modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+    section: "Changelog",
+    articleTags: post.seoKeywords?.length ? post.seoKeywords : ["changelog", versionLabel],
   });
 }
 
@@ -49,16 +63,22 @@ const ChangelogDetailPage = async (props: IPageProps) => {
     return notFound();
   }
 
+  const versionLabel = `v${post.version.replace(/^v/i, "")}`;
   const changelogUrl = `${SiteConfig.baseUrl}${post.url || `${Routes.changelogs}/${post.slug}`}`;
 
   const articleLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "TechArticle",
     headline: post.seoTitle || post.title,
-    description: post.seoDescription || post.description,
+    description:
+      post.seoDescription ||
+      post.description ||
+      `Release notes for ${SiteConfig.name} ${versionLabel}`,
     datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
     dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
     url: changelogUrl,
+    keywords: (post.seoKeywords ?? []).join(", "),
+    articleSection: "Changelog",
     publisher: {
       "@type": "Organization",
       name: SiteConfig.name,
@@ -71,8 +91,8 @@ const ChangelogDetailPage = async (props: IPageProps) => {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SiteConfig.baseUrl },
-      { "@type": "ListItem", position: 2, name: "Changelogs", item: `${SiteConfig.baseUrl}${Routes.changelogs}` },
-      { "@type": "ListItem", position: 3, name: post.title, item: changelogUrl },
+      { "@type": "ListItem", position: 2, name: "Changelog", item: `${SiteConfig.baseUrl}${Routes.changelogs}` },
+      { "@type": "ListItem", position: 3, name: `${post.title} (${versionLabel})`, item: changelogUrl },
     ],
   };
 

@@ -107,7 +107,7 @@ const ChangelogPostsPage = () => {
                     <TableCell className="max-w-xs truncate font-medium">{post.title}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="font-mono">
-                        v{post.version}
+                        v{post.version.replace(/^v/i, "")}
                       </Badge>
                     </TableCell>
                     <TableCell>

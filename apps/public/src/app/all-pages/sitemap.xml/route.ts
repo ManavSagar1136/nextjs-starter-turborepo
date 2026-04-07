@@ -14,6 +14,7 @@ export async function GET() {
     { loc: `${siteUrl}${Routes.blogGroups}`, changefreq: "weekly", priority: 0.7 },
     { loc: `${siteUrl}${Routes.blogTags}`, changefreq: "weekly", priority: 0.7 },
     { loc: `${siteUrl}${Routes.docs}`, changefreq: "weekly", priority: 0.9 },
+    { loc: `${siteUrl}${Routes.changelogs}`, changefreq: "weekly", priority: 0.8 },
     { loc: `${siteUrl}${Routes.pricing}`, changefreq: "monthly", priority: 0.8 },
     { loc: `${siteUrl}${Routes.faqs}`, changefreq: "monthly", priority: 0.6 },
     { loc: `${siteUrl}${Routes.testimonials}`, changefreq: "monthly", priority: 0.6 },
