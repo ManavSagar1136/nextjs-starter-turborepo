@@ -7,14 +7,14 @@ import type { BlogAuthor } from "@prisma/client";
 export interface CreateBlogAuthorInput {
   name: string;
   username: string;
-  image?: string;
-  links?: Record<string, string>;
+  image?: string | null;
+  links?: Record<string, string> | null;
 }
 
 export interface UpdateBlogAuthorInput {
   name?: string;
   username?: string;
-  image?: string;
+  image?: string | null;
   links?: Record<string, string> | null;
 }
 

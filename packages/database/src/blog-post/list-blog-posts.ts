@@ -38,6 +38,7 @@ export async function listBlogPosts(
       where,
       include: {
         folder: true,
+        assetFile: true,
         authors: { include: { author: true } },
         tags: { include: { tag: true } },
       },

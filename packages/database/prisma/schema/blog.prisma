@@ -61,6 +61,8 @@ model BlogPost {
   content        String
   image          String?
   imageTitle     String?
+  assetFileId    String?   @db.ObjectId
+  assetFile      Asset?    @relation("BlogPostImage", fields: [assetFileId], references: [id], onDelete: SetNull)
   featured       Boolean   @default(false)
   featuredAt     DateTime?
   published      Boolean   @default(false)
@@ -88,8 +90,12 @@ model BlogPost {
 
   @@index([slug])
   @@index([published])
+  @@index([publishedAt])
   @@index([folderId])
   @@index([featured])
+  @@index([assetFileId])
+  @@index([published, publishedAt])
+  @@index([featured, featuredAt])
   @@map("blog_posts")
 }
 

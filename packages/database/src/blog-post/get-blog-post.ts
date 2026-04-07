@@ -6,6 +6,7 @@ import type { PrismaClient } from "@prisma/client";
 
 const blogPostInclude = {
   folder: true,
+  assetFile: true,
   authors: { include: { author: true } },
   tags: { include: { tag: true } },
   suggestedPosts: { include: { suggestedPost: { include: { folder: true } } } },

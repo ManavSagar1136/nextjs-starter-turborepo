@@ -13,7 +13,15 @@ function generateSlug(name: string): string {
 }
 
 export async function createBlogPost(prisma: PrismaClient, data: CreateBlogPostInput, creatorId?: string) {
-  const slug = data.slug || generateSlug(data.title);
+  let slug = data.slug || generateSlug(data.title);
+
+  // Deduplicate slug: if already taken in the same folder, append timestamp
+  const existing = await prisma.blogPost.findFirst({
+    where: { slug, folderId: data.folderId ?? null, deleted: false },
+  });
+  if (existing) {
+    slug = `${slug}-${Date.now()}`;
+  }
 
   return prisma.blogPost.create({
     data: {
@@ -24,6 +32,7 @@ export async function createBlogPost(prisma: PrismaClient, data: CreateBlogPostI
       content: data.content,
       image: data.image ?? null,
       imageTitle: data.imageTitle ?? null,
+      assetFileId: data.assetFileId ?? null,
       featured: data.featured ?? false,
       published: data.published ?? false,
       publishedAt: data.published ? new Date() : null,
@@ -36,6 +45,7 @@ export async function createBlogPost(prisma: PrismaClient, data: CreateBlogPostI
     },
     include: {
       folder: true,
+      assetFile: true,
       authors: { include: { author: true } },
       tags: { include: { tag: true } },
     },

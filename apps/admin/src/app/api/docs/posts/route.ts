@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { createDocPost, listDocPosts } from "@buildbase/database";
+
+const createDocPostSchema = z.object({
+  title: z.string().min(1).max(200),
+  slug: z.string().max(200).optional(),
+  subtitle: z.string().optional(),
+  description: z.string().optional(),
+  content: z.string().min(1),
+  order: z.number().int().optional().nullable(),
+  folderId: z.string().optional().nullable(),
+  published: z.boolean().default(false),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).default([]),
+});
 
 async function handleGET(request: NextRequest) {
   try {
@@ -39,11 +54,20 @@ async function handlePOST(request: NextRequest) {
     const body = await request.json();
     const user = (request as any).authenticatedUser;
 
-    if (!body.title || !body.content) {
-      return NextResponse.json({ error: "Missing required fields: title, content" }, { status: 400 });
+    const parsed = createDocPostSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 });
     }
 
-    const post = await createDocPost(prisma, body, user?.userId);
+    const post = await createDocPost(
+      prisma,
+      {
+        ...parsed.data,
+        folderId: parsed.data.folderId ?? undefined,
+        order: parsed.data.order ?? undefined,
+      },
+      user?.userId
+    );
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error("[API] Failed to create doc post:", error);

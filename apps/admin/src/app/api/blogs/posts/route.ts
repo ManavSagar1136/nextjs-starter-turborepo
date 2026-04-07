@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { createBlogPost, listBlogPosts } from "@buildbase/database";
+
+const createBlogPostSchema = z.object({
+  title: z.string().min(1).max(200),
+  slug: z.string().max(200).optional(),
+  description: z.string().min(1),
+  excerpt: z.string().max(1000).optional(),
+  content: z.string().min(1),
+  image: z.string().url().optional().nullable(),
+  imageTitle: z.string().optional().nullable(),
+  assetFileId: z.string().optional().nullable(),
+  folderId: z.string().optional().nullable(),
+  published: z.boolean().default(false),
+  featured: z.boolean().default(false),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).default([]),
+});
 
 async function handleGET(request: NextRequest) {
   try {
@@ -41,11 +59,20 @@ async function handlePOST(request: NextRequest) {
     const body = await request.json();
     const user = (request as any).authenticatedUser;
 
-    if (!body.title || !body.description || !body.content) {
-      return NextResponse.json({ error: "Missing required fields: title, description, content" }, { status: 400 });
+    const parsed = createBlogPostSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 });
     }
 
-    const post = await createBlogPost(prisma, body, user?.userId);
+    const post = await createBlogPost(
+      prisma,
+      {
+        ...parsed.data,
+        folderId: parsed.data.folderId ?? undefined,
+        assetFileId: parsed.data.assetFileId ?? undefined,
+      },
+      user?.userId
+    );
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error("[API] Failed to create blog post:", error);

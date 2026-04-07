@@ -6,10 +6,11 @@ export interface CreateBlogPostInput {
   title: string;
   slug?: string;
   description: string;
-  excerpt?: string;
+  excerpt?: string | null;
   content: string;
-  image?: string;
-  imageTitle?: string;
+  image?: string | null;
+  imageTitle?: string | null;
+  assetFileId?: string | null;
   featured?: boolean;
   published?: boolean;
   seoTitle?: string;
@@ -22,10 +23,11 @@ export interface UpdateBlogPostInput {
   title?: string;
   slug?: string;
   description?: string;
-  excerpt?: string;
+  excerpt?: string | null;
   content?: string;
   image?: string | null;
   imageTitle?: string | null;
+  assetFileId?: string | null;
   featured?: boolean;
   featuredAt?: Date | null;
   published?: boolean;

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { createBlogTag, listBlogTags } from "@buildbase/database";
+
+const createBlogTagSchema = z.object({
+  title: z.string().min(1).max(100),
+  slug: z.string().max(100).optional(),
+  isPublic: z.boolean().default(true),
+});
 
 async function handleGET(request: NextRequest) {
   try {
@@ -36,15 +43,12 @@ async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (!body.title) {
-      return NextResponse.json({ error: "Missing required field: title" }, { status: 400 });
+    const parsed = createBlogTagSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 });
     }
 
-    const tag = await createBlogTag(prisma, {
-      title: body.title,
-      slug: body.slug,
-      isPublic: body.isPublic,
-    });
+    const tag = await createBlogTag(prisma, parsed.data);
     return NextResponse.json(tag, { status: 201 });
   } catch (error) {
     console.error("[API] Failed to create blog tag:", error);

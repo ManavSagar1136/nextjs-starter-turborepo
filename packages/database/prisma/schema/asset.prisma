@@ -25,6 +25,9 @@ model Asset {
   // Tags
   assetTags AssetTag[]
 
+  // Blog post images
+  blogPosts BlogPost[] @relation("BlogPostImage")
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

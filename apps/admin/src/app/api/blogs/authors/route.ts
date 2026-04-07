@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { createBlogAuthor, listBlogAuthors } from "@buildbase/database";
+
+const createBlogAuthorSchema = z.object({
+  name: z.string().min(1).max(100),
+  username: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9_-]+$/, "Username can only contain lowercase letters, numbers, hyphens, and underscores"),
+  image: z.string().url().optional().nullable(),
+  links: z.record(z.string(), z.string()).optional().nullable(),
+});
 
 async function handleGET(request: NextRequest) {
   try {
@@ -30,16 +42,12 @@ async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (!body.name || !body.username) {
-      return NextResponse.json({ error: "Missing required fields: name, username" }, { status: 400 });
+    const parsed = createBlogAuthorSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 });
     }
 
-    const author = await createBlogAuthor(prisma, {
-      name: body.name,
-      username: body.username,
-      image: body.image,
-      links: body.links,
-    });
+    const author = await createBlogAuthor(prisma, parsed.data);
     return NextResponse.json(author, { status: 201 });
   } catch (error) {
     console.error("[API] Failed to create blog author:", error);

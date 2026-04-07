@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { createBlogFolder, listBlogFolders } from "@buildbase/database";
+
+const createBlogFolderSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().max(100).optional(),
+  parentFolderId: z.string().optional().nullable(),
+});
 
 async function handleGET(request: NextRequest) {
   try {
@@ -30,14 +37,14 @@ async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (!body.name) {
-      return NextResponse.json({ error: "Missing required field: name" }, { status: 400 });
+    const parsed = createBlogFolderSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 });
     }
 
     const folder = await createBlogFolder(prisma, {
-      name: body.name,
-      slug: body.slug,
-      parentFolderId: body.parentFolderId,
+      ...parsed.data,
+      parentFolderId: parsed.data.parentFolderId ?? undefined,
     });
     return NextResponse.json(folder, { status: 201 });
   } catch (error) {

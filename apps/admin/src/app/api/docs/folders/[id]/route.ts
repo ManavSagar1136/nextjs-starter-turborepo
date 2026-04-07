@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@buildbase/database";
 import { withAuth } from "@buildbase/helpers/auth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { getDocFolderById, updateDocFolder, deleteDocFolder } from "@buildbase/database";
+
+const updateDocFolderSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  slug: z.string().max(100).optional(),
+  parentFolderId: z.string().optional().nullable(),
+});
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -27,11 +34,12 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json();
 
-    const folder = await updateDocFolder(prisma, id, {
-      name: body.name,
-      slug: body.slug,
-      parentFolderId: body.parentFolderId,
-    });
+    const parsed = updateDocFolderSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 });
+    }
+
+    const folder = await updateDocFolder(prisma, id, parsed.data);
     return NextResponse.json(folder);
   } catch (error) {
     console.error("[API] Failed to update doc folder:", error);
