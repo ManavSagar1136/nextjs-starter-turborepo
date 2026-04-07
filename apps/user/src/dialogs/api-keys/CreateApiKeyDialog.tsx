@@ -87,7 +87,9 @@ export const CreateApiKeyDialog: React.FC<CreateApiKeyDialogProps> = ({ open, on
               if (e.key === "Enter") void handleSubmit();
             }}
             disabled={isPending}
+            maxLength={100}
           />
+          <p className="text-muted-foreground text-right text-xs">{name.length}/100</p>
           {error && <p className="text-destructive text-sm">{error}</p>}
         </div>
 

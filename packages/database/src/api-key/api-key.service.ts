@@ -135,10 +135,14 @@ export async function listApiKeys(workspaceId: string) {
 
 /**
  * Revoke an API key (soft delete — marks as inactive).
+ * Returns null if the key does not exist or does not belong to the workspace.
  */
 export async function revokeApiKey(id: string, workspaceId: string) {
+  const key = await prisma.apiKey.findFirst({ where: { id, workspaceId } });
+  if (!key) return null;
+
   return prisma.apiKey.update({
-    where: { id, workspaceId },
+    where: { id },
     data: {
       isActive: false,
       revokedAt: new Date(),
@@ -148,9 +152,11 @@ export async function revokeApiKey(id: string, workspaceId: string) {
 
 /**
  * Permanently delete an API key.
+ * Returns null if the key does not exist or does not belong to the workspace.
  */
 export async function deleteApiKey(id: string, workspaceId: string) {
-  return prisma.apiKey.delete({
-    where: { id, workspaceId },
-  });
+  const key = await prisma.apiKey.findFirst({ where: { id, workspaceId } });
+  if (!key) return null;
+
+  return prisma.apiKey.delete({ where: { id } });
 }
