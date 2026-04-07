@@ -35,6 +35,11 @@ const menuItemsConfig = [
         url: Routes.profile,
         iconName: "User",
       },
+      {
+        title: "API Keys",
+        url: Routes.apiKeys,
+        iconName: "KeyRound",
+      },
     ],
   },
 ];

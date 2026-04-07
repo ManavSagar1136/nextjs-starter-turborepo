@@ -92,7 +92,7 @@ export default function ApiKeysPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
+    <div className="container mx-auto py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold">
