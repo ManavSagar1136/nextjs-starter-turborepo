@@ -2,20 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@buildbase/ui/components/ui/button";
-import { Users, Plus, Edit, Trash2, X, Save } from "lucide-react";
+import { Users, Plus, Edit, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
+import { useAdminDialogManager } from "@/dialogs";
 import { API } from "@/services";
 import type { BlogAuthor } from "@/services/blogs";
+import { ADMIN_DIALOG_KEYS } from "@/dialogs/constants";
 
 const BlogAuthorsPage = () => {
+  const { openDialog } = useAdminDialogManager();
   const [authors, setAuthors] = useState<BlogAuthor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshCounter, setRefreshCounter] = useState(0);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", username: "", image: "", links: "" });
 
   const fetchAuthors = async () => {
     try {
@@ -31,74 +28,39 @@ const BlogAuthorsPage = () => {
 
   useEffect(() => {
     fetchAuthors();
-  }, [refreshCounter]);
-
-  const openCreate = () => {
-    setEditingId(null);
-    setForm({ name: "", username: "", image: "", links: "" });
-    setIsSheetOpen(true);
-  };
-
-  const openEdit = (author: BlogAuthor) => {
-    setEditingId(author.id);
-    setForm({
-      name: author.name,
-      username: author.username,
-      image: author.image || "",
-      links: author.links ? JSON.stringify(author.links, null, 2) : "",
-    });
-    setIsSheetOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!form.name || !form.username) {
-      alert("Name and username are required.");
-      return;
-    }
-    let links: Record<string, string> | undefined;
-    if (form.links.trim()) {
-      try {
-        links = JSON.parse(form.links);
-      } catch {
-        alert('Links must be valid JSON, e.g.: {"twitter": "https://twitter.com/..."}');
-        return;
-      }
-    }
-    try {
-      setIsSaving(true);
-      if (editingId) {
-        await API.blogs.authors.update(editingId, {
-          name: form.name,
-          username: form.username,
-          image: form.image || undefined,
-          links,
-        });
-      } else {
-        await API.blogs.authors.create({
-          name: form.name,
-          username: form.username,
-          image: form.image || undefined,
-          links,
-        });
-      }
-      setIsSheetOpen(false);
-      setRefreshCounter(prev => prev + 1);
-    } catch (error) {
-      console.error("Failed to save author:", error);
-      alert("Failed to save author.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this author?")) return;
     try {
       await API.blogs.authors.remove(id);
-      setRefreshCounter(prev => prev + 1);
+      fetchAuthors();
     } catch (error) {
       console.error("Failed to delete author:", error);
     }
+  };
+
+  const openCreate = () => {
+    openDialog(ADMIN_DIALOG_KEYS.CREATE_BLOG_AUTHOR, {
+      mode: "create",
+      onSaveAuthor: async data => API.blogs.authors.create(data),
+      onSuccess: fetchAuthors,
+    });
+  };
+
+  const openEdit = (author: BlogAuthor) => {
+    openDialog(ADMIN_DIALOG_KEYS.EDIT_BLOG_AUTHOR, {
+      mode: "edit",
+      authorId: author.id,
+      initialData: {
+        name: author.name,
+        username: author.username,
+        image: author.image || "",
+        links: author.links ? JSON.stringify(author.links, null, 2) : "",
+      },
+      onSaveAuthor: async (data, _mode, id) => API.blogs.authors.update(id!, data),
+      onSuccess: fetchAuthors,
+    });
   };
 
   return (
@@ -142,6 +104,7 @@ const BlogAuthorsPage = () => {
                     </TableCell>
                     <TableCell>
                       {author.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={author.image} alt={author.name} className="h-8 w-8 rounded-full object-cover" />
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
@@ -169,63 +132,6 @@ const BlogAuthorsPage = () => {
           </div>
         )}
       </div>
-
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{editingId ? "Edit Author" : "Create Author"}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name *</label>
-              <input
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="Author name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Username *</label>
-              <input
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
-                value={form.username}
-                onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-                placeholder="username"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Image URL</label>
-              <input
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                value={form.image}
-                onChange={e => setForm(f => ({ ...f, image: e.target.value }))}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Links (JSON)</label>
-              <textarea
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
-                rows={4}
-                value={form.links}
-                onChange={e => setForm(f => ({ ...f, links: e.target.value }))}
-                placeholder={'{"twitter": "https://twitter.com/...", "github": "https://github.com/..."}'}
-              />
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button onClick={handleSave} disabled={isSaving} className="flex-1">
-                <Save className="mr-2 h-4 w-4" />
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-              <Button variant="outline" onClick={() => setIsSheetOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 };

@@ -13,12 +13,18 @@
  * Add new dialog keys here as you create new dialogs.
  */
 export const ADMIN_DIALOG_KEYS = {
-  // Add your dialog keys here
-  // Example:
-  // CREATE_USER: "admin:create-user",
-  // EDIT_USER: "admin:edit-user",
-  // MANAGE_PERMISSIONS: "admin:manage-permissions",
-  // BULK_OPERATIONS: "admin:bulk-operations",
+  // Blog Posts
+  CREATE_BLOG_POST: "admin:create-blog-post",
+  EDIT_BLOG_POST: "admin:edit-blog-post",
+  // Blog Folders
+  CREATE_BLOG_FOLDER: "admin:create-blog-folder",
+  EDIT_BLOG_FOLDER: "admin:edit-blog-folder",
+  // Blog Tags
+  CREATE_BLOG_TAG: "admin:create-blog-tag",
+  EDIT_BLOG_TAG: "admin:edit-blog-tag",
+  // Blog Authors
+  CREATE_BLOG_AUTHOR: "admin:create-blog-author",
+  EDIT_BLOG_AUTHOR: "admin:edit-blog-author",
 } as const;
 
 /**

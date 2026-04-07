@@ -1,20 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@buildbase/ui/components/ui/button";
 import { FileText, Plus, Edit, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
 import { Badge } from "@buildbase/ui/components/ui/badge";
+import { useAdminDialogManager } from "@/dialogs";
 import { API } from "@/services";
 import type { BlogPost } from "@/services/blogs";
-import { Routes } from "@/data/routes";
+import { ADMIN_DIALOG_KEYS } from "@/dialogs/constants";
 
 const BlogPostsPage = () => {
-  const router = useRouter();
+  const { openDialog } = useAdminDialogManager();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshCounter, setRefreshCounter] = useState(0);
 
   const fetchPosts = async () => {
     try {
@@ -30,16 +29,38 @@ const BlogPostsPage = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [refreshCounter]);
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this blog post?")) return;
     try {
       await API.blogs.posts.remove(id);
-      setRefreshCounter(prev => prev + 1);
+      fetchPosts();
     } catch (error) {
       console.error("Failed to delete blog post:", error);
     }
+  };
+
+  const openCreate = () => {
+    openDialog(ADMIN_DIALOG_KEYS.CREATE_BLOG_POST, {
+      mode: "create",
+      onSavePost: async (data: any) => API.blogs.posts.create(data),
+      onUpdateTags: (id: string, tagIds: string[]) => API.blogs.posts.updateTags(id, tagIds),
+      onUpdateAuthors: (id: string, authorIds: string[]) => API.blogs.posts.updateAuthors(id, authorIds),
+      onSuccess: fetchPosts,
+    });
+  };
+
+  const openEdit = (post: BlogPost) => {
+    openDialog(ADMIN_DIALOG_KEYS.EDIT_BLOG_POST, {
+      mode: "edit",
+      postId: post.id,
+      onFetchPost: (id: string) => API.blogs.posts.getById(id),
+      onSavePost: async (data: any, _mode: string, id?: string) => API.blogs.posts.update(id!, data),
+      onUpdateTags: (id: string, tagIds: string[]) => API.blogs.posts.updateTags(id, tagIds),
+      onUpdateAuthors: (id: string, authorIds: string[]) => API.blogs.posts.updateAuthors(id, authorIds),
+      onSuccess: fetchPosts,
+    });
   };
 
   return (
@@ -53,7 +74,7 @@ const BlogPostsPage = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Manage blog posts and their content</p>
           </div>
-          <Button onClick={() => router.push(`${Routes.blogs.posts}/new`)}>
+          <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Create Post
           </Button>
@@ -102,12 +123,7 @@ const BlogPostsPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`${Routes.blogs.posts}/${post.id}`)}
-                          title="Edit"
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(post)} title="Edit">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button

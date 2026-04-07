@@ -13,6 +13,13 @@
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
 import type { DialogComponentMap } from "@buildbase/dialog-manager";
 
+// Blog Dialogs
+import { BlogPostDialog } from "./components/BlogPostDialog";
+import { BlogFolderDialog } from "./components/BlogFolderDialog";
+import { BlogTagDialog } from "./components/BlogTagDialog";
+import { BlogAuthorDialog } from "./components/BlogAuthorDialog";
+import { ADMIN_DIALOG_KEYS } from "./constants";
+
 // Media Library Dialogs
 import {
   CreateFolderDialog,
@@ -53,10 +60,15 @@ export type AdminAppDialogs = {
   [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: typeof MoveAssetDialog;
   [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: typeof MediaUploadDialog;
   [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: typeof AssetPreviewDialog;
-  // Add your dialog keys here using ADMIN_DIALOG_KEYS constants
-  // Example:
-  // [ADMIN_DIALOG_KEYS.CREATE_USER]: typeof CreateUserDialog;
-  // [ADMIN_DIALOG_KEYS.EDIT_USER]: typeof EditUserDialog;
+  // Blog dialogs
+  [ADMIN_DIALOG_KEYS.CREATE_BLOG_POST]: typeof BlogPostDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_BLOG_POST]: typeof BlogPostDialog;
+  [ADMIN_DIALOG_KEYS.CREATE_BLOG_FOLDER]: typeof BlogFolderDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_BLOG_FOLDER]: typeof BlogFolderDialog;
+  [ADMIN_DIALOG_KEYS.CREATE_BLOG_TAG]: typeof BlogTagDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_BLOG_TAG]: typeof BlogTagDialog;
+  [ADMIN_DIALOG_KEYS.CREATE_BLOG_AUTHOR]: typeof BlogAuthorDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_BLOG_AUTHOR]: typeof BlogAuthorDialog;
 } & DialogComponentMap;
 
 /**
@@ -81,6 +93,15 @@ export function setupAdminDialogs() {
     [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
+    // Blog dialogs
+    [ADMIN_DIALOG_KEYS.CREATE_BLOG_POST]: BlogPostDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_BLOG_POST]: BlogPostDialog,
+    [ADMIN_DIALOG_KEYS.CREATE_BLOG_FOLDER]: BlogFolderDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_BLOG_FOLDER]: BlogFolderDialog,
+    [ADMIN_DIALOG_KEYS.CREATE_BLOG_TAG]: BlogTagDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_BLOG_TAG]: BlogTagDialog,
+    [ADMIN_DIALOG_KEYS.CREATE_BLOG_AUTHOR]: BlogAuthorDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_BLOG_AUTHOR]: BlogAuthorDialog,
   } as unknown as DialogComponentMap;
 
   setupAppDialogs<AdminAppDialogs>({
