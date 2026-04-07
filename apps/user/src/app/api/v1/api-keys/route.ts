@@ -82,7 +82,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
       name: trimmedName,
       workspaceId: workspaceId,
       createdById: user?.userId,
-      scopes: Array.isArray(scopes) ? (scopes as string[]) : undefined,
+      scopes: Array.isArray(scopes) ? [...new Set((scopes as string[]).map(s => s.trim()))] : undefined,
       rateLimitPerMinute: rateLimitPerMinute !== undefined ? Number(rateLimitPerMinute) : undefined,
     });
 

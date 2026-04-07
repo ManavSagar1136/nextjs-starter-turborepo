@@ -7,7 +7,6 @@
  */
 
 import { randomBytes, createHash } from "crypto";
-import { Prisma } from "@prisma/client";
 import { prisma } from "../index";
 
 export class ApiKeyNameConflictError extends Error {
@@ -63,25 +62,24 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreateApiK
   const keyHash = hashKey(rawKey);
   const prefix = getPrefix(rawKey);
 
-  let apiKey;
-  try {
-    apiKey = await prisma.apiKey.create({
-      data: {
-        name: input.name,
-        prefix,
-        keyHash,
-        workspaceId: input.workspaceId,
-        createdById: input.createdById,
-        scopes: input.scopes ?? [],
-        rateLimitPerMinute: input.rateLimitPerMinute ?? 60,
-      },
-    });
-  } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      throw new ApiKeyNameConflictError();
-    }
-    throw err;
-  }
+  // Enforce name uniqueness among active keys only (revoked keys free up their name)
+  const existing = await prisma.apiKey.findFirst({
+    where: { workspaceId: input.workspaceId, name: input.name, isActive: true },
+    select: { id: true },
+  });
+  if (existing) throw new ApiKeyNameConflictError();
+
+  const apiKey = await prisma.apiKey.create({
+    data: {
+      name: input.name,
+      prefix,
+      keyHash,
+      workspaceId: input.workspaceId,
+      createdById: input.createdById,
+      scopes: input.scopes ?? [],
+      rateLimitPerMinute: input.rateLimitPerMinute ?? 60,
+    },
+  });
 
   return {
     id: apiKey.id,
