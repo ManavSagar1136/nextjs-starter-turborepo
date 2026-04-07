@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, X } from "lucide-react";
+import { BookOpen, Folder, X } from "lucide-react";
 
-import { IBlogPost, IBlogTag } from "@/services/blogs";
+import { IBlogFolder, IBlogPost, IBlogTag } from "@/services/blogs";
+import { Routes } from "@/data/routes";
 
 import { Badge } from "@buildbase/ui/components/ui/badge";
 import { Button } from "@buildbase/ui/components/ui/button";
@@ -25,6 +27,10 @@ interface BlogsGroupProps {
   allTags: IBlogTag[];
   className?: string;
   groupName?: string;
+  /** Display name for the folder (used in the hero) */
+  folderName?: string;
+  /** Immediate sub-folders of the current folder */
+  subFolders?: IBlogFolder[];
 }
 
 const ITEMS_PER_PAGE = 12;
@@ -50,11 +56,16 @@ const BlogsGroup = ({
   allTags,
   className,
   groupName,
+  folderName,
+  subFolders = [],
 }: BlogsGroupProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const groupConfig = useMemo(() => getGroupConfig({ groupName }), [groupName]);
+  const groupConfig = useMemo(
+    () => getGroupConfig({ groupName: folderName ?? groupName }),
+    [groupName, folderName],
+  );
 
   // Extract all search params in a const
   const searchParamsValues = useMemo(
@@ -158,6 +169,28 @@ const BlogsGroup = ({
         </p>
       </HeroBgWrapper>
       <AppBreadcrumb />
+
+      {/* Sub-folders */}
+      {subFolders.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Folders
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+            {subFolders.map((folder) => (
+              <Link
+                key={folder.id}
+                href={Routes.blogGroup(folder.path ?? folder.slug)}
+                className="group flex items-center gap-2.5 rounded-lg border bg-card px-4 py-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Folder className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-accent-foreground" />
+                <span className="truncate">{folder.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Search and Filters Section */}
       <div className="space-y-3">
         {/* Search Bar and Active Filters Row */}
