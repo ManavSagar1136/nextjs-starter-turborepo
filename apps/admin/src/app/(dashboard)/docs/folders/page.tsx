@@ -2,27 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@buildbase/ui/components/ui/button";
-import { FolderOpen, Plus, Edit, Trash2, X, Save } from "lucide-react";
+import { FolderOpen, Plus, Edit, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@buildbase/ui/components/ui/sheet";
+import { useAdminDialogManager } from "@/dialogs";
 import { API } from "@/services";
 import type { DocFolder } from "@/services/docs";
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { ADMIN_DIALOG_KEYS } from "@/dialogs/constants";
 
 const DocFoldersPage = () => {
+  const { openDialog } = useAdminDialogManager();
   const [folders, setFolders] = useState<DocFolder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshCounter, setRefreshCounter] = useState(0);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", slug: "", parentFolderId: "" });
 
   const fetchFolders = async () => {
     try {
@@ -38,61 +28,37 @@ const DocFoldersPage = () => {
 
   useEffect(() => {
     fetchFolders();
-  }, [refreshCounter]);
-
-  const openCreate = () => {
-    setEditingId(null);
-    setForm({ name: "", slug: "", parentFolderId: "" });
-    setIsSheetOpen(true);
-  };
-
-  const openEdit = (folder: DocFolder) => {
-    setEditingId(folder.id);
-    setForm({ name: folder.name, slug: folder.slug, parentFolderId: folder.parentFolderId || "" });
-    setIsSheetOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!form.name) {
-      alert("Name is required.");
-      return;
-    }
-    try {
-      setIsSaving(true);
-      if (editingId) {
-        await API.docs.folders.update(editingId, {
-          name: form.name,
-          slug: form.slug || undefined,
-          parentFolderId: form.parentFolderId || undefined,
-        });
-      } else {
-        await API.docs.folders.create({
-          name: form.name,
-          slug: form.slug || undefined,
-          parentFolderId: form.parentFolderId || undefined,
-        });
-      }
-      setIsSheetOpen(false);
-      setRefreshCounter(prev => prev + 1);
-    } catch (error) {
-      console.error("Failed to save folder:", error);
-      alert("Failed to save folder.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this folder?")) return;
     try {
       await API.docs.folders.remove(id);
-      setRefreshCounter(prev => prev + 1);
+      fetchFolders();
     } catch (error) {
       console.error("Failed to delete folder:", error);
     }
   };
 
-  const parentFolders = folders.filter(f => !editingId || f.id !== editingId);
+  const openCreate = () => {
+    openDialog(ADMIN_DIALOG_KEYS.CREATE_DOC_FOLDER, {
+      mode: "create",
+      parentFolders: folders,
+      onSaveFolder: async data => API.docs.folders.create(data),
+      onSuccess: fetchFolders,
+    });
+  };
+
+  const openEdit = (folder: DocFolder) => {
+    openDialog(ADMIN_DIALOG_KEYS.EDIT_DOC_FOLDER, {
+      mode: "edit",
+      folderId: folder.id,
+      initialData: { name: folder.name, slug: folder.slug, parentFolderId: folder.parentFolderId || "" },
+      parentFolders: folders.filter(f => f.id !== folder.id),
+      onSaveFolder: async (data, _mode, id) => API.docs.folders.update(id!, data),
+      onSuccess: fetchFolders,
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -166,61 +132,6 @@ const DocFoldersPage = () => {
           </div>
         )}
       </div>
-
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{editingId ? "Edit Folder" : "Create Folder"}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name *</label>
-              <input
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                value={form.name}
-                onChange={e =>
-                  setForm(f => ({ ...f, name: e.target.value, slug: f.slug || generateSlug(e.target.value) }))
-                }
-                placeholder="Folder name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Slug</label>
-              <input
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2"
-                value={form.slug}
-                onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
-                placeholder="auto-generated"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Parent Folder</label>
-              <select
-                className="focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                value={form.parentFolderId}
-                onChange={e => setForm(f => ({ ...f, parentFolderId: e.target.value }))}
-              >
-                <option value="">No parent (root)</option>
-                {parentFolders.map(folder => (
-                  <option key={folder.id} value={folder.id}>
-                    {folder.path || folder.slug} — {folder.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button onClick={handleSave} disabled={isSaving} className="flex-1">
-                <Save className="mr-2 h-4 w-4" />
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-              <Button variant="outline" onClick={() => setIsSheetOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 };

@@ -18,6 +18,9 @@ import { BlogPostDialog } from "./components/BlogPostDialog";
 import { BlogFolderDialog } from "./components/BlogFolderDialog";
 import { BlogTagDialog } from "./components/BlogTagDialog";
 import { BlogAuthorDialog } from "./components/BlogAuthorDialog";
+// Doc Dialogs
+import { DocPostDialog } from "./components/DocPostDialog";
+import { DocFolderDialog } from "./components/DocFolderDialog";
 import { ADMIN_DIALOG_KEYS } from "./constants";
 
 // Media Library Dialogs
@@ -69,6 +72,11 @@ export type AdminAppDialogs = {
   [ADMIN_DIALOG_KEYS.EDIT_BLOG_TAG]: typeof BlogTagDialog;
   [ADMIN_DIALOG_KEYS.CREATE_BLOG_AUTHOR]: typeof BlogAuthorDialog;
   [ADMIN_DIALOG_KEYS.EDIT_BLOG_AUTHOR]: typeof BlogAuthorDialog;
+  // Doc dialogs
+  [ADMIN_DIALOG_KEYS.CREATE_DOC_POST]: typeof DocPostDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_DOC_POST]: typeof DocPostDialog;
+  [ADMIN_DIALOG_KEYS.CREATE_DOC_FOLDER]: typeof DocFolderDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_DOC_FOLDER]: typeof DocFolderDialog;
 } & DialogComponentMap;
 
 /**
@@ -102,6 +110,11 @@ export function setupAdminDialogs() {
     [ADMIN_DIALOG_KEYS.EDIT_BLOG_TAG]: BlogTagDialog,
     [ADMIN_DIALOG_KEYS.CREATE_BLOG_AUTHOR]: BlogAuthorDialog,
     [ADMIN_DIALOG_KEYS.EDIT_BLOG_AUTHOR]: BlogAuthorDialog,
+    // Doc dialogs
+    [ADMIN_DIALOG_KEYS.CREATE_DOC_POST]: DocPostDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_DOC_POST]: DocPostDialog,
+    [ADMIN_DIALOG_KEYS.CREATE_DOC_FOLDER]: DocFolderDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_DOC_FOLDER]: DocFolderDialog,
   } as unknown as DialogComponentMap;
 
   setupAppDialogs<AdminAppDialogs>({

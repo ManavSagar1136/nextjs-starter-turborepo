@@ -1,20 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@buildbase/ui/components/ui/button";
 import { BookOpen, Plus, Edit, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@buildbase/ui/components/ui/table";
 import { Badge } from "@buildbase/ui/components/ui/badge";
+import { useAdminDialogManager } from "@/dialogs";
 import { API } from "@/services";
 import type { DocPost } from "@/services/docs";
-import { Routes } from "@/data/routes";
+import { ADMIN_DIALOG_KEYS } from "@/dialogs/constants";
 
 const DocPostsPage = () => {
-  const router = useRouter();
+  const { openDialog } = useAdminDialogManager();
   const [posts, setPosts] = useState<DocPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshCounter, setRefreshCounter] = useState(0);
 
   const fetchPosts = async () => {
     try {
@@ -30,16 +29,34 @@ const DocPostsPage = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [refreshCounter]);
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this doc?")) return;
     try {
       await API.docs.posts.remove(id);
-      setRefreshCounter(prev => prev + 1);
+      fetchPosts();
     } catch (error) {
       console.error("Failed to delete doc post:", error);
     }
+  };
+
+  const openCreate = () => {
+    openDialog(ADMIN_DIALOG_KEYS.CREATE_DOC_POST, {
+      mode: "create",
+      onSavePost: async (data: any) => API.docs.posts.create(data),
+      onSuccess: fetchPosts,
+    });
+  };
+
+  const openEdit = (post: DocPost) => {
+    openDialog(ADMIN_DIALOG_KEYS.EDIT_DOC_POST, {
+      mode: "edit",
+      postId: post.id,
+      onFetchPost: (id: string) => API.docs.posts.getById(id),
+      onSavePost: async (data: any, _mode: string, id?: string) => API.docs.posts.update(id!, data),
+      onSuccess: fetchPosts,
+    });
   };
 
   return (
@@ -53,7 +70,7 @@ const DocPostsPage = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Manage documentation pages</p>
           </div>
-          <Button onClick={() => router.push(`${Routes.docs.posts}/new`)}>
+          <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Create Doc
           </Button>
@@ -88,7 +105,7 @@ const DocPostsPage = () => {
                     </TableCell>
                     <TableCell>{post.folder?.name || <span className="text-muted-foreground">—</span>}</TableCell>
                     <TableCell>
-                      {post.order !== undefined && post.order !== null ? (
+                      {post.order != null ? (
                         <span className="text-sm">{post.order}</span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -106,11 +123,7 @@ const DocPostsPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`${Routes.docs.posts}/${post.id}`)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(post)} title="Edit">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
@@ -118,6 +131,7 @@ const DocPostsPage = () => {
                           size="sm"
                           onClick={() => handleDelete(post.id)}
                           className="text-destructive hover:text-destructive"
+                          title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

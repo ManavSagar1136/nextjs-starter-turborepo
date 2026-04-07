@@ -25,6 +25,12 @@ export const ADMIN_DIALOG_KEYS = {
   // Blog Authors
   CREATE_BLOG_AUTHOR: "admin:create-blog-author",
   EDIT_BLOG_AUTHOR: "admin:edit-blog-author",
+  // Doc Posts
+  CREATE_DOC_POST: "admin:create-doc-post",
+  EDIT_DOC_POST: "admin:edit-doc-post",
+  // Doc Folders
+  CREATE_DOC_FOLDER: "admin:create-doc-folder",
+  EDIT_DOC_FOLDER: "admin:edit-doc-folder",
 } as const;
 
 /**
