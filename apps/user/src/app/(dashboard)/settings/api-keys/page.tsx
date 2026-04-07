@@ -4,8 +4,8 @@ import React from "react";
 import { KeyRound, Plus, Trash2, AlertCircle } from "lucide-react";
 import { useTanstackQuery } from "@buildbase/tanstack-query/hooks/use-tanstack-query";
 import { useTanstackMutation } from "@buildbase/tanstack-query/hooks/use-tanstack-mutation";
-import { useDialogManager } from "@buildbase/dialog-manager";
 import { COMMON_DIALOG_KEYS, CONFIRMATION_DIALOG_VARIANTS } from "@buildbase/dialog-manager";
+import { useUserDialogManager } from "@/dialogs/hooks";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@buildbase/ui/components/ui/card";
 import { Button } from "@buildbase/ui/components/ui/button";
 import { Badge } from "@buildbase/ui/components/ui/badge";
@@ -47,7 +47,7 @@ function formatDate(iso: string) {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ApiKeysPage() {
-  const { openDialog } = useDialogManager();
+  const { openDialog } = useUserDialogManager();
   const workspaceId = useWorkspaceId();
 
   const {

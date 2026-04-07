@@ -31,6 +31,22 @@ export const API_KEY_DIALOG_KEYS = {
   REVEAL: "api-key:reveal",
 } as const;
 
+export type UserAppDialogs = {
+  // Media library dialogs
+  [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: typeof CreateFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: typeof EditFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER]: typeof MoveFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG]: typeof CreateTagDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG]: typeof EditTagDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS]: typeof AssignTagsDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: typeof MoveAssetDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: typeof MediaUploadDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: typeof AssetPreviewDialog;
+  // API Key dialogs
+  [API_KEY_DIALOG_KEYS.CREATE]: typeof CreateApiKeyDialog;
+  [API_KEY_DIALOG_KEYS.REVEAL]: typeof RevealApiKeyDialog;
+} & DialogComponentMap;
+
 /**
  * Setup dialogs for the user app
  * This function should be called once when the app initializes
