@@ -1,0 +1,39 @@
+// API Key model - stores developer API keys for public REST API access
+// Keys are stored as hashes for security; only the prefix is stored in plain text
+
+model ApiKey {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Key identity
+  name    String // Human-readable label (e.g. "Production", "Staging")
+  prefix  String // First 12 chars of key for identification (e.g. "rk_live_a1b2")
+  keyHash String @unique // SHA-256 hash of the full key
+
+  // Permissions
+  scopes String[] @default([])
+
+  // Rate limiting
+  rateLimitPerMinute Int @default(60)
+
+  // Usage tracking
+  lastUsedAt DateTime?
+  usageCount Int       @default(0)
+
+  // Status
+  isActive  Boolean   @default(true)
+  revokedAt DateTime?
+
+  // Multi-tenant
+  workspaceId String    @db.ObjectId
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  // Audit
+  createdById String?  @db.ObjectId
+  createdBy   User?    @relation("ApiKeyCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId, isActive]) // covers listApiKeys query
+  @@map("api_keys")
+}

@@ -16,6 +16,7 @@
   "exports": {
     "./users": "./dist/users.js",
     "./prisma": "./dist/prisma.js",
+    "./middleware/with-api-key-auth": "./dist/middleware/with-api-key-auth.js",
     "./middleware/with-cron-check": "./dist/middleware/with-cron-check.js",
     "./middleware/types": "./dist/middleware/types.js",
     "./middleware/rate-limit-helper": "./dist/middleware/rate-limit-helper.js",

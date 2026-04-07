@@ -6,6 +6,7 @@
  */
 
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
+import { ConfirmationDialog, AlertDialog, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import type { DialogComponentMap } from "@buildbase/dialog-manager";
 
 // Media Library Dialogs
@@ -21,6 +22,34 @@ import {
   AssetPreviewDialog,
   MEDIA_LIBRARY_DIALOG_KEYS,
 } from "@buildbase/dialog-manager/media-library";
+
+// API Key Dialogs
+import { CreateApiKeyDialog } from "./api-keys/CreateApiKeyDialog";
+import { RevealApiKeyDialog } from "./api-keys/RevealApiKeyDialog";
+
+export const API_KEY_DIALOG_KEYS = {
+  CREATE: "api-key:create",
+  REVEAL: "api-key:reveal",
+} as const;
+
+export type UserAppDialogs = {
+  // Common dialogs
+  [COMMON_DIALOG_KEYS.CONFIRMATION]: typeof ConfirmationDialog;
+  [COMMON_DIALOG_KEYS.ALERT]: typeof AlertDialog;
+  // Media library dialogs
+  [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: typeof CreateFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: typeof EditFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_FOLDER]: typeof MoveFolderDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_TAG]: typeof CreateTagDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_TAG]: typeof EditTagDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.ASSIGN_TAGS]: typeof AssignTagsDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: typeof MoveAssetDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: typeof MediaUploadDialog;
+  [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: typeof AssetPreviewDialog;
+  // API Key dialogs
+  [API_KEY_DIALOG_KEYS.CREATE]: typeof CreateApiKeyDialog;
+  [API_KEY_DIALOG_KEYS.REVEAL]: typeof RevealApiKeyDialog;
+} & DialogComponentMap;
 
 /**
  * Setup dialogs for the user app
@@ -40,6 +69,10 @@ export function setupUserDialogs() {
     [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
+
+    // API Key dialogs
+    [API_KEY_DIALOG_KEYS.CREATE]: CreateApiKeyDialog,
+    [API_KEY_DIALOG_KEYS.REVEAL]: RevealApiKeyDialog,
   } as unknown as DialogComponentMap;
 
   setupAppDialogs({

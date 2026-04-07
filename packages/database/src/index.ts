@@ -15,6 +15,9 @@ if (isDevelopment()) globalForPrisma.prisma = prisma;
 
 export * from "@prisma/client";
 
+// Export API key service functions
+export * from "./api-key";
+
 // Export user service functions
 export * from "./user";
 

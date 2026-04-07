@@ -12,6 +12,9 @@ model User {
   workspaces       WorkspaceMember[]
   currentWorkspace Workspace?        @relation("UserCurrentWorkspace", fields: [currentWorkspaceId], references: [id])
 
+  // API keys created by this user
+  apiKeysCreated ApiKey[] @relation("ApiKeyCreatedBy")
+
   // Email provider audit
   emailProvidersCreated EmailProvider[] @relation("EmailProviderCreatedBy")
   emailProvidersUpdated EmailProvider[] @relation("EmailProviderUpdatedBy")
