@@ -31,6 +31,9 @@ export const ADMIN_DIALOG_KEYS = {
   // Doc Folders
   CREATE_DOC_FOLDER: "admin:create-doc-folder",
   EDIT_DOC_FOLDER: "admin:edit-doc-folder",
+  // Changelog Posts
+  CREATE_CHANGELOG_POST: "admin:create-changelog-post",
+  EDIT_CHANGELOG_POST: "admin:edit-changelog-post",
 } as const;
 
 /**

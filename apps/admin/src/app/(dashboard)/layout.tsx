@@ -111,6 +111,17 @@ const menuItemsConfig = [
       },
     ],
   },
+  {
+    title: "Changelog Management",
+    url: "#",
+    items: [
+      {
+        title: "Changelogs",
+        url: Routes.changelogs.posts,
+        iconName: "History",
+      },
+    ],
+  },
 ];
 
 async function ProtectedLayout({ children }: { children: React.ReactNode }) {

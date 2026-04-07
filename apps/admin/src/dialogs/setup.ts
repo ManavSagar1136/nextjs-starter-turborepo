@@ -21,6 +21,8 @@ import { BlogAuthorDialog } from "./components/BlogAuthorDialog";
 // Doc Dialogs
 import { DocPostDialog } from "./components/DocPostDialog";
 import { DocFolderDialog } from "./components/DocFolderDialog";
+// Changelog Dialogs
+import { ChangelogPostDialog } from "./components/ChangelogPostDialog";
 import { ADMIN_DIALOG_KEYS } from "./constants";
 
 // Media Library Dialogs
@@ -77,6 +79,9 @@ export type AdminAppDialogs = {
   [ADMIN_DIALOG_KEYS.EDIT_DOC_POST]: typeof DocPostDialog;
   [ADMIN_DIALOG_KEYS.CREATE_DOC_FOLDER]: typeof DocFolderDialog;
   [ADMIN_DIALOG_KEYS.EDIT_DOC_FOLDER]: typeof DocFolderDialog;
+  // Changelog dialogs
+  [ADMIN_DIALOG_KEYS.CREATE_CHANGELOG_POST]: typeof ChangelogPostDialog;
+  [ADMIN_DIALOG_KEYS.EDIT_CHANGELOG_POST]: typeof ChangelogPostDialog;
 } & DialogComponentMap;
 
 /**
@@ -115,6 +120,9 @@ export function setupAdminDialogs() {
     [ADMIN_DIALOG_KEYS.EDIT_DOC_POST]: DocPostDialog,
     [ADMIN_DIALOG_KEYS.CREATE_DOC_FOLDER]: DocFolderDialog,
     [ADMIN_DIALOG_KEYS.EDIT_DOC_FOLDER]: DocFolderDialog,
+    // Changelog dialogs
+    [ADMIN_DIALOG_KEYS.CREATE_CHANGELOG_POST]: ChangelogPostDialog,
+    [ADMIN_DIALOG_KEYS.EDIT_CHANGELOG_POST]: ChangelogPostDialog,
   } as unknown as DialogComponentMap;
 
   setupAppDialogs<AdminAppDialogs>({

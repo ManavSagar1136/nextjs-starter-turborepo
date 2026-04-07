@@ -62,6 +62,13 @@ export const Routes = {
   },
 
   /**
+   * Changelog management routes
+   */
+  changelogs: {
+    posts: "/changelogs/posts",
+  },
+
+  /**
    * API routes
    */
   api: {

@@ -4,6 +4,7 @@ import { AssetApis } from "./assets";
 import { MediaLibraryService } from "./media-library";
 import { BlogPostApis, BlogFolderApis, BlogTagApis, BlogAuthorApis } from "./blogs";
 import { DocPostApis, DocFolderApis } from "./docs";
+import { ChangelogPostApis } from "./changelogs";
 
 export const API = {
   auth: new AuthApis(),
@@ -24,5 +25,8 @@ export const API = {
   docs: {
     posts: new DocPostApis(),
     folders: new DocFolderApis(),
+  },
+  changelogs: {
+    posts: new ChangelogPostApis(),
   },
 };

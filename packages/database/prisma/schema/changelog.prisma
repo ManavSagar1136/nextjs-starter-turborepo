@@ -1,0 +1,30 @@
+// Changelog content model
+
+model ChangelogPost {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String   @unique
+  version     String   @unique
+  description String?
+  content     String
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  releaseDate DateTime?
+  deleted     Boolean  @default(false)
+
+  seoTitle       String
+  seoDescription String?
+  seoKeywords    String[]
+
+  createdById String? @db.ObjectId
+  updatedById String? @db.ObjectId
+
+  createdBy User? @relation("ChangelogCreatedBy", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedBy User? @relation("ChangelogUpdatedBy", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([publishedAt])
+}

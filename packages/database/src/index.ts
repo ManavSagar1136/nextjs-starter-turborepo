@@ -54,3 +54,6 @@ export * from "./blog-post";
 // Export doc service functions
 export * from "./doc-folder";
 export * from "./doc-post";
+
+// Export changelog service functions
+export * from "./changelog-post";

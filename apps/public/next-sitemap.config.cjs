@@ -19,6 +19,7 @@ const additionalSitemaps = [
   "/all-pages/sitemap.xml",
   "/blogs/sitemap.xml",
   "/docs/sitemap.xml",
+  "/changelogs/sitemap.xml",
 ];
 
 module.exports = {
