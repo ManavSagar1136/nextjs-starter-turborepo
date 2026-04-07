@@ -56,7 +56,15 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string)
       );
     }
 
-    const result = await verifyApiKey(rawKey);
+    let result: Awaited<ReturnType<typeof verifyApiKey>>;
+    try {
+      result = await verifyApiKey(rawKey);
+    } catch {
+      return NextResponse.json(
+        { error: "Internal Server Error", message: "Failed to verify API key." },
+        { status: 500 }
+      );
+    }
 
     if (!result) {
       return NextResponse.json(

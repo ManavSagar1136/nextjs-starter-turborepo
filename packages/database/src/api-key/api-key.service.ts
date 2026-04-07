@@ -78,14 +78,22 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreateApiK
 }
 
 /**
- * Verify an API key and return the associated workspace context if valid.
+ * Verify an API key and return the associated context if valid.
  */
 export async function verifyApiKey(rawKey: string) {
   const keyHash = hashKey(rawKey);
 
   const apiKey = await prisma.apiKey.findUnique({
     where: { keyHash },
-    include: { workspace: true },
+    select: {
+      id: true,
+      name: true,
+      workspaceId: true,
+      scopes: true,
+      rateLimitPerMinute: true,
+      isActive: true,
+      revokedAt: true,
+    },
   });
 
   if (!apiKey || !apiKey.isActive || apiKey.revokedAt) {
@@ -96,10 +104,7 @@ export async function verifyApiKey(rawKey: string) {
   prisma.apiKey
     .update({
       where: { id: apiKey.id },
-      data: {
-        lastUsedAt: new Date(),
-        usageCount: { increment: 1 },
-      },
+      data: { lastUsedAt: new Date(), usageCount: { increment: 1 } },
     })
     .catch(() => {});
 
@@ -107,7 +112,6 @@ export async function verifyApiKey(rawKey: string) {
     id: apiKey.id,
     name: apiKey.name,
     workspaceId: apiKey.workspaceId,
-    workspace: apiKey.workspace,
     scopes: apiKey.scopes,
     rateLimitPerMinute: apiKey.rateLimitPerMinute,
   };
@@ -135,28 +139,23 @@ export async function listApiKeys(workspaceId: string) {
 
 /**
  * Revoke an API key (soft delete — marks as inactive).
- * Returns null if the key does not exist or does not belong to the workspace.
+ * Returns the count of updated records (0 = not found / wrong workspace).
+ * Single atomic operation — no TOCTOU race.
  */
-export async function revokeApiKey(id: string, workspaceId: string) {
-  const key = await prisma.apiKey.findFirst({ where: { id, workspaceId } });
-  if (!key) return null;
-
-  return prisma.apiKey.update({
-    where: { id },
-    data: {
-      isActive: false,
-      revokedAt: new Date(),
-    },
+export async function revokeApiKey(id: string, workspaceId: string): Promise<{ count: number }> {
+  return prisma.apiKey.updateMany({
+    where: { id, workspaceId, isActive: true },
+    data: { isActive: false, revokedAt: new Date() },
   });
 }
 
 /**
  * Permanently delete an API key.
- * Returns null if the key does not exist or does not belong to the workspace.
+ * Returns the count of deleted records (0 = not found / wrong workspace).
+ * Single atomic operation — no TOCTOU race.
  */
-export async function deleteApiKey(id: string, workspaceId: string) {
-  const key = await prisma.apiKey.findFirst({ where: { id, workspaceId } });
-  if (!key) return null;
-
-  return prisma.apiKey.delete({ where: { id } });
+export async function deleteApiKey(id: string, workspaceId: string): Promise<{ count: number }> {
+  return prisma.apiKey.deleteMany({
+    where: { id, workspaceId },
+  });
 }

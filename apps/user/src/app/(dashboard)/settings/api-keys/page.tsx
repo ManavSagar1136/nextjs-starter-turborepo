@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { KeyRound, Plus, Trash2 } from "lucide-react";
+import { KeyRound, Plus, Trash2, AlertCircle } from "lucide-react";
 import { useTanstackQuery } from "@buildbase/tanstack-query/hooks/use-tanstack-query";
 import { useTanstackMutation } from "@buildbase/tanstack-query/hooks/use-tanstack-mutation";
 import { useDialogManager } from "@buildbase/dialog-manager";
@@ -51,6 +51,7 @@ export default function ApiKeysPage() {
   const {
     data: keys = [],
     isLoading,
+    isError,
     refetch,
   } = useTanstackQuery<ApiKey[]>({
     queryKey: ["api-keys"],
@@ -118,6 +119,14 @@ export default function ApiKeysPage() {
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground py-8 text-center text-sm">Loading…</p>
+          ) : isError ? (
+            <div className="text-destructive flex flex-col items-center gap-2 py-8 text-center text-sm">
+              <AlertCircle className="h-5 w-5" />
+              <p>Failed to load API keys.</p>
+              <Button variant="outline" size="sm" onClick={() => void refetch()}>
+                Retry
+              </Button>
+            </div>
           ) : keys.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center text-sm">
               No API keys yet. Create one to get started.

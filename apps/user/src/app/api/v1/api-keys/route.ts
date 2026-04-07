@@ -18,7 +18,7 @@ const NAME_MAX_LENGTH = 100;
 const RATE_LIMIT_MIN = 1;
 const RATE_LIMIT_MAX = 10_000;
 
-type AuthedRequest = NextRequest & { authenticatedUser?: { workspaceId?: string } };
+type AuthedRequest = NextRequest & { authenticatedUser?: { workspaceId?: string; userId?: string } };
 
 async function handleGET(request: NextRequest): Promise<NextResponse> {
   const user = (request as AuthedRequest).authenticatedUser;
@@ -78,6 +78,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     const result = await createApiKey({
       name: trimmedName,
       workspaceId: user.workspaceId,
+      createdById: user.userId,
       scopes: Array.isArray(scopes) ? (scopes as string[]) : undefined,
       rateLimitPerMinute: rateLimitPerMinute !== undefined ? Number(rateLimitPerMinute) : undefined,
     });
@@ -111,8 +112,8 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const result = await revokeApiKey(id, user.workspaceId);
-    if (!result) {
+    const { count } = await revokeApiKey(id, user.workspaceId);
+    if (count === 0) {
       return NextResponse.json({ error: "API key not found" }, { status: 404 });
     }
     return NextResponse.json({ message: "API key revoked" });
