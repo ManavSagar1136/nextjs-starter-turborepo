@@ -14,6 +14,7 @@ import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { createApiKey, listApiKeys, revokeApiKey, ApiKeyNameConflictError } from "@buildbase/database";
 
 const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
+const SCOPE_RE = /^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*$/i; // e.g. "templates:read"
 const NAME_MAX_LENGTH = 100;
 const RATE_LIMIT_MIN = 1;
 const RATE_LIMIT_MAX = 10_000;
@@ -59,10 +60,13 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: `name must be ${NAME_MAX_LENGTH} characters or fewer` }, { status: 400 });
   }
 
-  // Validate scopes (optional — must be string array if provided)
+  // Validate scopes (optional — must be string array matching resource:action format)
   if (scopes !== undefined) {
-    if (!Array.isArray(scopes) || scopes.some(s => typeof s !== "string" || !s.trim())) {
-      return NextResponse.json({ error: "scopes must be an array of non-empty strings" }, { status: 400 });
+    if (!Array.isArray(scopes) || scopes.some(s => typeof s !== "string" || !SCOPE_RE.test(s.trim()))) {
+      return NextResponse.json(
+        { error: "Each scope must match the format resource:action (e.g. templates:read)" },
+        { status: 400 }
+      );
     }
   }
 

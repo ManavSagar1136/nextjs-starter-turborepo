@@ -34,7 +34,6 @@ model ApiKey {
   updatedAt   DateTime @updatedAt
 
   @@unique([workspaceId, name])
-  @@index([workspaceId])
-  @@index([isActive])
+  @@index([workspaceId, isActive]) // covers listApiKeys query
   @@map("api_keys")
 }

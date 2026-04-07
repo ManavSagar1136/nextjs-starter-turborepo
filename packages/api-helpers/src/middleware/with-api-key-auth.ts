@@ -35,6 +35,9 @@ type ApiRouteHandler = (
   params?: Record<string, string>
 ) => Promise<NextResponse | Response>;
 
+// rk_live_ prefix (8 chars) + 64 hex chars = 72 total
+const RAW_KEY_RE = /^rk_live_[0-9a-f]{64}$/;
+
 export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string) {
   return async (req: NextRequest, routeCtx?: { params: Promise<Record<string, string>> | Record<string, string> }) => {
     const authHeader = req.headers.get("authorization");
@@ -43,7 +46,7 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string)
     let rawKey: string | null = null;
 
     if (authHeader?.startsWith("Bearer rk_")) {
-      rawKey = authHeader.substring(7);
+      rawKey = authHeader.substring(7); // strip "Bearer "
     } else if (apiKeyHeader?.startsWith("rk_")) {
       rawKey = apiKeyHeader;
     }
@@ -56,6 +59,11 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string)
         },
         { status: 401 }
       );
+    }
+
+    // Reject malformed keys before touching the database
+    if (!RAW_KEY_RE.test(rawKey)) {
+      return NextResponse.json({ error: "Unauthorized", message: "Invalid or revoked API key." }, { status: 401 });
     }
 
     let result: Awaited<ReturnType<typeof verifyApiKey>>;
@@ -88,11 +96,19 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string)
       );
     }
 
-    // ── Per-key rate limiting ────────────────────────────────────────────────
-    const rateLimitResult = await defaultRateLimiter.checkRateLimit(`apikey:${result.id}`, {
-      windowMs: 60 * 1000,
-      maxRequests: result.rateLimitPerMinute,
-    });
+    // ── Per-key rate limiting (fail-closed: Redis errors block the request) ──
+    let rateLimitResult;
+    try {
+      rateLimitResult = await defaultRateLimiter.checkRateLimitStrict(`apikey:${result.id}`, {
+        windowMs: 60 * 1000,
+        maxRequests: result.rateLimitPerMinute,
+      });
+    } catch {
+      return NextResponse.json(
+        { error: "Service Unavailable", message: "Rate limiting service unavailable. Try again shortly." },
+        { status: 503 }
+      );
+    }
 
     if (!rateLimitResult.success) {
       return NextResponse.json(

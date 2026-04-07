@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Copy, Check, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
@@ -19,11 +19,19 @@ export interface RevealApiKeyDialogProps extends DialogOrSheetBaseProps {
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    []
+  );
 
   const copy = () => {
     void navigator.clipboard.writeText(value);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    timerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -52,9 +60,7 @@ export const RevealApiKeyDialog: React.FC<RevealApiKeyDialogProps> = ({ open, on
         </DialogHeader>
 
         <div className="bg-muted flex items-center gap-2 rounded-md px-3 py-2 font-mono text-sm">
-          <span className="flex-1 select-all break-all">
-            {visible ? rawKey : "•".repeat(Math.min(rawKey.length, 40))}
-          </span>
+          <span className="flex-1 select-all break-all">{visible ? rawKey : "•".repeat(40)}</span>
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setVisible(v => !v)}>
             {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>

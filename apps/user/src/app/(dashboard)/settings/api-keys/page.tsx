@@ -36,7 +36,7 @@ async function fetchApiKeys(): Promise<ApiKey[]> {
 }
 
 async function revokeApiKey(id: string): Promise<void> {
-  const res = await fetch(`/api/v1/api-keys?id=${id}`, { method: "DELETE" });
+  const res = await fetch(`/api/v1/api-keys?${new URLSearchParams({ id })}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to revoke API key");
 }
 

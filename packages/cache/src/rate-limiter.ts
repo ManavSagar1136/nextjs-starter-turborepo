@@ -82,6 +82,22 @@ export class UpstashRateLimiter {
   }
 
   /**
+   * Like checkRateLimit but throws on Redis/network errors instead of failing open.
+   * Use this when you must deny requests under degraded conditions (e.g. API key auth).
+   */
+  async checkRateLimitStrict(identifier: string, config: RateLimitConfig): Promise<RateLimitResult> {
+    const rateLimiter = this.createRateLimiter(config);
+    const result = await rateLimiter.limit(identifier); // intentionally not caught — caller handles
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+      retryAfter: result.success ? undefined : Math.ceil((result.reset - Date.now()) / 1000),
+    };
+  }
+
+  /**
    * Get rate limit info without consuming a request
    */
   async getRateLimitInfo(identifier: string, config: RateLimitConfig): Promise<RateLimitResult> {
