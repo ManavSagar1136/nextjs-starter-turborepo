@@ -22,6 +22,15 @@ import {
   MEDIA_LIBRARY_DIALOG_KEYS,
 } from "@buildbase/dialog-manager/media-library";
 
+// API Key Dialogs
+import { CreateApiKeyDialog } from "./api-keys/CreateApiKeyDialog";
+import { RevealApiKeyDialog } from "./api-keys/RevealApiKeyDialog";
+
+export const API_KEY_DIALOG_KEYS = {
+  CREATE: "api-key:create",
+  REVEAL: "api-key:reveal",
+} as const;
+
 /**
  * Setup dialogs for the user app
  * This function should be called once when the app initializes
@@ -40,6 +49,10 @@ export function setupUserDialogs() {
     [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
+
+    // API Key dialogs
+    [API_KEY_DIALOG_KEYS.CREATE]: CreateApiKeyDialog,
+    [API_KEY_DIALOG_KEYS.REVEAL]: RevealApiKeyDialog,
   } as unknown as DialogComponentMap;
 
   setupAppDialogs({
