@@ -9,6 +9,7 @@ import BlogWrapper from "@/components/blog/BlogWrapper";
 
 // Force static generation
 export const dynamic = "force-static";
+export const revalidate = 3600;
 
 export async function generateMetadata() {
   return generateSEOMetadata({

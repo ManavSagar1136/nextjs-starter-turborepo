@@ -4,6 +4,9 @@ import { generateSEOMetadata } from "@/utils/seo";
 import { SiteConfig } from "@/config";
 import DocsListing from "@/components/doc/DocsListing";
 
+export const dynamic = "force-static";
+export const revalidate = 3600;
+
 export async function generateMetadata() {
   return generateSEOMetadata({
     title: "Documentation",

@@ -9,6 +9,7 @@ import BlogExplorer from "@/components/blog/BlogExplorer";
 
 // Force static generation
 export const dynamic = "force-static";
+export const revalidate = 3600;
 
 export async function generateMetadata() {
   return generateSEOMetadata({

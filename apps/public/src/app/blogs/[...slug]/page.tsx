@@ -23,6 +23,7 @@ import BlogsGroup from "@/components/blog/BlogsGroup";
 
 // Force static generation
 export const dynamic = "force-static";
+export const revalidate = 3600;
 
 /**
  * Generates all possible static paths for blog posts and folders.

@@ -14,6 +14,7 @@ import GroupRender from "@/components/doc/GroupRender";
 
 // Force static generation
 export const dynamic = "force-static";
+export const revalidate = 3600;
 
 /**
  * Generates all possible static paths for documentation pages and folders.
