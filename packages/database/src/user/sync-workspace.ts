@@ -62,6 +62,9 @@ export const syncWorkspace = async (sdkWorkspaceData: SDKWorkspaceData) => {
           description: sdkWorkspaceData.description || undefined,
           isActive: true, // Ensure workspace is active on sync
           updatedAt: new Date(),
+          // Persist plan data when provided by subscription sync events
+          ...(sdkWorkspaceData.features !== undefined && { features: sdkWorkspaceData.features }),
+          ...(sdkWorkspaceData.limits !== undefined && { limits: sdkWorkspaceData.limits }),
         },
       });
 
@@ -76,6 +79,8 @@ export const syncWorkspace = async (sdkWorkspaceData: SDKWorkspaceData) => {
           slug: slugToUse, // Always set a slug to avoid null unique constraint issues
           description: sdkWorkspaceData.description,
           isActive: true,
+          ...(sdkWorkspaceData.features !== undefined && { features: sdkWorkspaceData.features }),
+          ...(sdkWorkspaceData.limits !== undefined && { limits: sdkWorkspaceData.limits }),
         },
       });
 

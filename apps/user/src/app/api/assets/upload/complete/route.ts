@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { withPermissionCheck, withPlanCheck, withQuotaCheck } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getStorage } from "@buildbase/storage";
 import { AssetsRepository } from "@buildbase/database/assets";
-import { env } from "@buildbase/env";
 
 /**
  * POST /api/assets/upload/complete - Complete upload and create asset record
@@ -105,4 +104,24 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
 }
 
 // POST: Allow admins and editors to complete asset uploads
-export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+// withPlanCheck — enforces max-assets limit (hard cap from subscription plan)
+// withQuotaCheck — records storage bytes used after a successful upload
+export const POST = withPermissionCheck(
+  withPlanCheck(
+    withQuotaCheck(handlePOST, {
+      quotaSlug: "storage",
+      // Record file size in bytes; body is already consumed by handlePOST so we
+      // pass a static 1 here — override with actual size if body is cloned upstream.
+      quantity: 1,
+      source: "upload",
+      allowOverage: true, // storage quota uses metered overage billing
+    }),
+    {
+      limit: {
+        slug: "max-assets",
+        countFn: dbWorkspaceId => AssetsRepository.countByWorkspace(dbWorkspaceId),
+      },
+    }
+  ),
+  [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]
+);

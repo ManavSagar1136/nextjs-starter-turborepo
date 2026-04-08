@@ -234,3 +234,6 @@ export type { UseSDKAuthReturn } from "./hooks/useSDKAuth";
 // Server-side proxy usage hooks (call your app's BE routes, not buildbase directly)
 // Named useServer* to distinguish from the SDK's built-in useRecordUsage / useAllQuotaUsage
 export * from "./hooks/useUsage";
+
+// Client-side limit check hook (reads from SubscriptionContextProvider)
+export * from "./hooks/useLimitCheck";

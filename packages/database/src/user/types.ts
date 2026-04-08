@@ -18,5 +18,9 @@ export interface SDKWorkspaceData {
   slug?: string;
   description?: string;
   role?: string; // User's role in this workspace
+  /** Feature flags from subscription plan e.g. { "api-access": true } */
+  features?: Record<string, boolean>;
+  /** Hard caps from subscription plan e.g. { "max-assets": 500, "max-api-keys": null } */
+  limits?: Record<string, number | null>;
   [key: string]: any;
 }

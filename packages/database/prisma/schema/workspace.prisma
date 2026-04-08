@@ -8,6 +8,12 @@ model Workspace {
   description    String? // Workspace description
   isActive       Boolean @default(true) // Soft delete flag
 
+  // Plan enforcement — synced from Buildbase SDK on subscription change
+  // features: { [slug: string]: boolean }  e.g. { "api-access": true }
+  // limits:   { [slug: string]: number | null }  null = unlimited
+  features Json? // feature flags from subscription plan
+  limits   Json? // hard caps from subscription plan
+
   // Workspace members
   members      WorkspaceMember[]
   currentUsers User[]            @relation("UserCurrentWorkspace") // Users with this as current workspace
