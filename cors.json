@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://app-url.com"],
+    "method": ["PUT", "GET", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]
