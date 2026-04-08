@@ -8,6 +8,7 @@
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
 import { ConfirmationDialog, AlertDialog, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 import type { DialogComponentMap } from "@buildbase/dialog-manager";
+import { FeatureAccessDeniedDialog, FEATURE_GATE_DIALOG_KEYS } from "../components/feature-gate";
 
 // Media Library Dialogs
 import {
@@ -36,6 +37,8 @@ export type UserAppDialogs = {
   // Common dialogs
   [COMMON_DIALOG_KEYS.CONFIRMATION]: typeof ConfirmationDialog;
   [COMMON_DIALOG_KEYS.ALERT]: typeof AlertDialog;
+  // Feature gate dialog
+  [FEATURE_GATE_DIALOG_KEYS.ACCESS_DENIED]: typeof FeatureAccessDeniedDialog;
   // Media library dialogs
   [MEDIA_LIBRARY_DIALOG_KEYS.CREATE_FOLDER]: typeof CreateFolderDialog;
   [MEDIA_LIBRARY_DIALOG_KEYS.EDIT_FOLDER]: typeof EditFolderDialog;
@@ -69,6 +72,9 @@ export function setupUserDialogs() {
     [MEDIA_LIBRARY_DIALOG_KEYS.MOVE_ASSET]: MoveAssetDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.MEDIA_UPLOAD]: MediaUploadDialog,
     [MEDIA_LIBRARY_DIALOG_KEYS.ASSET_PREVIEW]: AssetPreviewDialog,
+
+    // Feature gate dialog
+    [FEATURE_GATE_DIALOG_KEYS.ACCESS_DENIED]: FeatureAccessDeniedDialog,
 
     // API Key dialogs
     [API_KEY_DIALOG_KEYS.CREATE]: CreateApiKeyDialog,

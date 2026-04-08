@@ -237,3 +237,7 @@ export * from "./hooks/useUsage";
 
 // Client-side limit check hook (reads from SubscriptionContextProvider)
 export * from "./hooks/useLimitCheck";
+
+// Client-side feature gate hook + FEATURE_STATES enum
+export * from "./hooks/useFeatureGate";
+export type { UseFeatureGateOptions, UseFeatureGateReturn, FeatureState } from "./hooks/useFeatureGate";
