@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withPermissionCheck, withPlanCheck, withQuotaCheck } from "@buildbase/helpers/auth";
+import { withPermissionCheck, withPlanCheck, withQuotaCheck, PLAN_LIMITS, PLAN_QUOTAS } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getStorage } from "@buildbase/storage";
 import { AssetsRepository } from "@buildbase/database/assets";
@@ -109,7 +109,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
 export const POST = withPermissionCheck(
   withPlanCheck(
     withQuotaCheck(handlePOST, {
-      quotaSlug: "storage",
+      quotaSlug: PLAN_QUOTAS.STORAGE,
       // Record file size in bytes; body is already consumed by handlePOST so we
       // pass a static 1 here — override with actual size if body is cloned upstream.
       quantity: 1,
@@ -118,7 +118,7 @@ export const POST = withPermissionCheck(
     }),
     {
       limit: {
-        slug: "max-assets",
+        slug: PLAN_LIMITS.MAX_ASSETS,
         countFn: dbWorkspaceId => AssetsRepository.countByWorkspace(dbWorkspaceId),
       },
     }

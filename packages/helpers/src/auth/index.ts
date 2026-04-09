@@ -5,3 +5,4 @@ export * from "./with-role-check";
 export * from "./with-permission-check";
 export * from "./with-plan-check";
 export * from "./with-quota-check";
+export * from "./plan-slugs";

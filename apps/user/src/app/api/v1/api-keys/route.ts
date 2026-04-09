@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { withPermissionCheck, withPlanCheck } from "@buildbase/helpers/auth";
+import { withPermissionCheck, withPlanCheck, PLAN_FEATURES, PLAN_LIMITS } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { createApiKey, listApiKeys, revokeApiKey, ApiKeyNameConflictError, prisma } from "@buildbase/database";
 
@@ -138,12 +138,12 @@ export const GET = withPermissionCheck(handleGET, [
   WORKSPACE_ROLES.VIEWER,
 ]);
 
-// POST: withPlanCheck — requires "api-access" feature and enforces max-api-keys limit
+// POST: withPlanCheck — requires api-access feature and enforces max-api-keys limit
 export const POST = withPermissionCheck(
   withPlanCheck(handlePOST, {
-    feature: "api-access",
+    feature: PLAN_FEATURES.API_ACCESS,
     limit: {
-      slug: "max-api-keys",
+      slug: PLAN_LIMITS.MAX_API_KEYS,
       countFn: dbWorkspaceId => prisma.apiKey.count({ where: { workspaceId: dbWorkspaceId, isActive: true } }),
     },
   }),
