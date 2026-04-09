@@ -5,7 +5,7 @@ import { Crown, Zap, Lock, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button, type ButtonProps } from "@buildbase/ui/button";
-import { useDialogManager } from "@buildbase/dialog-manager";
+import { useAppDialogManager } from "../../hooks/useAppDialogManager";
 import { useFeatureGate, FEATURE_STATES } from "@buildbase/saas-sdk";
 import type { UseFeatureGateOptions } from "@buildbase/saas-sdk";
 
@@ -13,7 +13,7 @@ import { FEATURE_DENIAL_REASONS } from "./FeatureAccessDeniedDialog";
 import type { FeatureDenialReason } from "./FeatureAccessDeniedDialog";
 import { FEATURE_GATE_DIALOG_KEYS } from "./constants";
 
-export interface FeatureButtonProps extends Omit<ButtonProps, "onClick" | "disabled">, UseFeatureGateOptions {
+export interface FeatureButtonProps extends Omit<ButtonProps, "onClick">, UseFeatureGateOptions {
   /** Feature slug checked against the subscription plan. */
   featureSlug: string;
   /** Human-readable name shown in the access-denied dialog. */
@@ -52,7 +52,7 @@ export function FeatureButton({
   ...buttonProps
 }: FeatureButtonProps) {
   const router = useRouter();
-  const { openDialog } = useDialogManager();
+  const { openDialog } = useAppDialogManager();
   const { state } = useFeatureGate(featureSlug, { quotaSlug, hasPermission });
 
   const isLoading = state === FEATURE_STATES.LOADING;

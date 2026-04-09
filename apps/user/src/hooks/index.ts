@@ -5,3 +5,4 @@
 
 export * from "./query-keys";
 export * from "./use-auth";
+export * from "./useAppDialogManager";
