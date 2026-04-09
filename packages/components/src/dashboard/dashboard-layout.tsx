@@ -24,6 +24,8 @@ import { WorkspaceSwitcher } from "./workspace-switcher";
 import type { DashboardLayoutProps } from "./types";
 
 export interface DashboardLayoutComponentProps extends DashboardLayoutProps {
+  /** Whether to show the Profile item in the user popover. Defaults to true. */
+  showProfile?: boolean;
   /**
    * Optional custom logout handler
    * If provided, this will be used instead of the SDK's signOut
@@ -71,6 +73,7 @@ export function DashboardLayout({
   className,
   sidebarClassName,
   contentClassName,
+  showProfile,
   onLogout,
 }: DashboardLayoutComponentProps) {
   return (
@@ -102,7 +105,7 @@ export function DashboardLayout({
         </SidebarContent>
         <SidebarFooter>
           <ThemeToggle />
-          <NavUser onLogout={onLogout} />
+          <NavUser showProfile={showProfile} onLogout={onLogout} />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className={contentClassName || "flex h-[calc(100dvh-theme(spacing.14))] flex-col overflow-hidden"}>

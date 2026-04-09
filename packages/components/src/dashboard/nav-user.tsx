@@ -20,6 +20,11 @@ import { useSDKAuth } from "@buildbase/saas-sdk";
 
 export interface NavUserProps {
   /**
+   * Whether to show the Profile menu item. Defaults to true.
+   * Set to false for apps where profile is managed elsewhere (e.g. admin app).
+   */
+  showProfile?: boolean;
+  /**
    * Optional custom logout handler
    * If provided, this will be used instead of the SDK's signOut
    * Otherwise, the SDK's signOut will be used (which triggers onSignOut callback in SaaSProvider)
@@ -45,7 +50,7 @@ export interface NavUserProps {
  * />
  * ```
  */
-export function NavUser({ onLogout }: NavUserProps) {
+export function NavUser({ onLogout, showProfile = true }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { isLoading, isAuthenticated, user } = useAuth();
   const { signOut, openWorkspaceSettings } = useSDKAuth();
@@ -115,10 +120,12 @@ export function NavUser({ onLogout }: NavUserProps) {
                   </div>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuItem className="gap-2 p-2" onClick={handleOpenProfile}>
-                <User className="size-4" />
-                Profile
-              </DropdownMenuItem>
+              {showProfile && (
+                <DropdownMenuItem className="gap-2 p-2" onClick={handleOpenProfile}>
+                  <User className="size-4" />
+                  Profile
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuItem className="gap-2" onClick={handleSignOut}>
               <LogOut className="size-4" />

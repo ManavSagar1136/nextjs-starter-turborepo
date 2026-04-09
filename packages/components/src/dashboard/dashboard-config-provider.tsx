@@ -29,6 +29,8 @@ interface DashboardConfigProviderProps extends Omit<DashboardLayoutProps, "menuI
    * Icons will be resolved client-side from the iconMap
    */
   menuItemsConfig: MenuItemConfig[];
+  /** Whether to show the Profile item in the user popover. Defaults to true. */
+  showProfile?: boolean;
   /**
    * Optional custom logout handler
    * If not provided, SDK's signOut will be used (triggers onSignOut callback in SaaSProvider)
