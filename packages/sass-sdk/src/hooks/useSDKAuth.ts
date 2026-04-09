@@ -23,6 +23,11 @@ export interface UseSDKAuthReturn {
   // Status helpers
   isReady: boolean;
   hasUser: boolean;
+
+  // Workspace settings dialog
+  openWorkspaceSettings: ReturnType<typeof useSaaSAuth>["openWorkspaceSettings"];
+  /** Opens the Buildbase subscription/billing dialog directly. */
+  openSubscriptionSettings: () => void;
 }
 
 /**
@@ -54,5 +59,9 @@ export function useSDKAuth(): UseSDKAuthReturn {
     // Status helpers
     isReady: !sdkAuth.isLoading,
     hasUser: !!sdkAuth.user,
+
+    // Workspace settings dialog
+    openWorkspaceSettings: sdkAuth.openWorkspaceSettings,
+    openSubscriptionSettings: () => sdkAuth.openWorkspaceSettings("subscription"),
   };
 }

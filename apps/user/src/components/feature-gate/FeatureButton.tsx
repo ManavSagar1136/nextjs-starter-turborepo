@@ -2,13 +2,13 @@
 
 import React from "react";
 import { Crown, Zap, Lock, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { Button, type ButtonProps } from "@buildbase/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@buildbase/ui/popover";
 import { useAppDialogManager } from "../../hooks/useAppDialogManager";
 import { useFeatureGate, FEATURE_STATES } from "@buildbase/saas-sdk";
 import type { UseFeatureGateOptions } from "@buildbase/saas-sdk";
+import { useSDKAuth } from "../../hooks/useSDKAuth";
 
 import { FEATURE_DENIAL_REASONS } from "./FeatureAccessDeniedDialog";
 import type { FeatureDenialReason } from "./FeatureAccessDeniedDialog";
@@ -21,8 +21,6 @@ export interface FeatureButtonProps extends Omit<ButtonProps, "onClick">, UseFea
   featureName?: string;
   /** Called when the user clicks and access is allowed. */
   onExecute?: () => void;
-  /** Path to navigate to for upgrading. Defaults to "/settings/billing". */
-  upgradePath?: string;
   /** Override the dialog description. */
   denialDescription?: string;
 }
@@ -46,15 +44,14 @@ export function FeatureButton({
   featureSlug,
   featureName,
   onExecute,
-  upgradePath = "/settings/billing",
   denialDescription,
   children,
   quotaSlug,
   hasPermission,
   ...buttonProps
 }: FeatureButtonProps) {
-  const router = useRouter();
   const { openDialog } = useAppDialogManager();
+  const { openSubscriptionSettings } = useSDKAuth();
   const { state } = useFeatureGate(featureSlug, { quotaSlug, hasPermission });
 
   const isLoading = state === FEATURE_STATES.LOADING;
@@ -72,7 +69,7 @@ export function FeatureButton({
         featureName: featureName ?? featureSlug,
         reason,
         description: denialDescription,
-        onUpgrade: () => router.push(upgradePath),
+        onUpgrade: openSubscriptionSettings,
       });
       return;
     }

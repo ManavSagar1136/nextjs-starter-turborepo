@@ -2,7 +2,6 @@
 
 import React from "react";
 import { KeyRound, Plus, Trash2, AlertCircle, ShieldOff, Crown } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTanstackQuery } from "@buildbase/tanstack-query/hooks/use-tanstack-query";
 import { useTanstackMutation } from "@buildbase/tanstack-query/hooks/use-tanstack-mutation";
 import { COMMON_DIALOG_KEYS, CONFIRMATION_DIALOG_VARIANTS } from "@buildbase/dialog-manager";
@@ -53,8 +52,7 @@ function formatDate(iso: string) {
 
 export default function ApiKeysPage() {
   const { openDialog } = useUserDialogManager();
-  const { isAdmin, activeWorkspaceId } = useSDKAuth();
-  const router = useRouter();
+  const { isAdmin, activeWorkspaceId, openSubscriptionSettings } = useSDKAuth();
 
   const {
     data: keys = [],
@@ -153,7 +151,7 @@ export default function ApiKeysPage() {
                     API keys.
                   </p>
                 </div>
-                <Button onClick={() => router.push("/settings/billing")}>Upgrade Plan</Button>
+                <Button onClick={openSubscriptionSettings}>Upgrade Plan</Button>
               </div>
             }
             loadingFallback={<p className="text-muted-foreground py-8 text-center text-sm">Loading…</p>}

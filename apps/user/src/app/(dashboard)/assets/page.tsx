@@ -15,7 +15,6 @@
  * active subscription or without this feature on their plan see a locked state.
  */
 
-import { useRouter } from "next/navigation";
 import { ImageOff, Crown } from "lucide-react";
 import { AssetsPage } from "@buildbase/components/media-library";
 import { Button } from "@buildbase/ui/components/ui/button";
@@ -25,8 +24,7 @@ import { FeatureGate } from "@/components/feature-gate/FeatureGate";
 import { PLAN_FEATURES } from "@buildbase/saas-sdk";
 
 export default function Page() {
-  const { isAdmin, isEditor, activeWorkspaceId } = useSDKAuth();
-  const router = useRouter();
+  const { isAdmin, isEditor, activeWorkspaceId, openSubscriptionSettings } = useSDKAuth();
 
   const canWrite = isAdmin || isEditor;
 
@@ -47,7 +45,7 @@ export default function Page() {
               Your current plan doesn&apos;t include the Media Library. Upgrade your plan to upload and manage assets.
             </p>
           </div>
-          <Button onClick={() => router.push("/settings/billing")}>Upgrade Plan</Button>
+          <Button onClick={openSubscriptionSettings}>Upgrade Plan</Button>
         </div>
       }
       loadingFallback={
