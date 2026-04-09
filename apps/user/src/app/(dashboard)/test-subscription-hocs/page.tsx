@@ -25,6 +25,7 @@ import {
   useServerRecordUsage,
   useServerQuotaStatus,
   useServerAllQuotas,
+  useServerUsageLogs,
 } from "@buildbase/saas-sdk";
 import { FeatureGate, FeatureButton } from "@/components/feature-gate";
 import { SubscriptionStatusBanner } from "@/components/subscription/SubscriptionStatusBanner";
@@ -238,6 +239,17 @@ export default function TestSubscriptionHocsPage() {
     error: allError,
     refetch: refetchAll,
   } = useServerAllQuotas({ workspaceId: workspaceId ?? "" });
+
+  const {
+    logs: usageLogs,
+    totalDocs: logsTotalDocs,
+    totalPages: logsTotalPages,
+    page: logsPage,
+    hasNextPage: logsHasNextPage,
+    isLoading: logsLoading,
+    error: logsError,
+    refetch: refetchLogs,
+  } = useServerUsageLogs({ workspaceId: workspaceId ?? "", quotaSlug: QUOTA_VIDEOS, limit: 5 });
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900">
@@ -1057,6 +1069,54 @@ FEATURE_STATES.LOADING      → subscription data loading`}
                     ))
                   )}
                 </div>
+              )}
+            </div>
+            {/* Usage Logs */}
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 md:col-span-3 dark:border-amber-800 dark:bg-amber-900/20">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                4. Usage Logs
+              </p>
+              <p className="mb-3 text-xs text-amber-600 dark:text-amber-300">
+                GET /api/saas/usage/logs — last 5 entries for <code>videos</code>
+              </p>
+              <button
+                onClick={refetchLogs}
+                disabled={logsLoading || !workspaceId}
+                className="rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              >
+                {logsLoading ? "Fetching…" : "Fetch Logs"}
+              </button>
+              {logsError && <p className="mt-2 text-xs text-red-600">{logsError}</p>}
+              {usageLogs.length > 0 && (
+                <div className="mt-3 overflow-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-amber-200 text-left text-amber-700 dark:border-amber-700 dark:text-amber-400">
+                        <th className="pb-1 pr-3">Quota</th>
+                        <th className="pb-1 pr-3">Qty</th>
+                        <th className="pb-1 pr-3">Source</th>
+                        <th className="pb-1">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usageLogs.map(log => (
+                        <tr key={log._id} className="border-b border-amber-100 dark:border-amber-800">
+                          <td className="py-1 pr-3 font-mono">{log.quotaSlug}</td>
+                          <td className="py-1 pr-3">{log.quantity}</td>
+                          <td className="py-1 pr-3 text-gray-500">{log.source ?? "—"}</td>
+                          <td className="py-1 text-gray-500">{new Date(log.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                    Page {logsPage} of {logsTotalPages} ({logsTotalDocs} total)
+                    {logsHasNextPage ? " — more available" : ""}
+                  </p>
+                </div>
+              )}
+              {!logsLoading && usageLogs.length === 0 && workspaceId && (
+                <p className="mt-3 text-xs text-gray-400">No usage logs recorded yet.</p>
               )}
             </div>
           </div>

@@ -247,3 +247,100 @@ export const getAllQuotas = async (config: AllQuotasConfig): Promise<AllQuotasRe
     return { success: false, message: "Failed to get all quotas" };
   }
 };
+
+// ─── Usage Logs ───────────────────────────────────────────────────────────────
+
+export interface UsageLogsConfig {
+  workspaceId: string;
+  sessionId: string;
+  baseUrl?: string;
+  /** Optional: filter logs by quota slug */
+  quotaSlug?: string;
+  /** Optional: ISO date string — filter logs from this date */
+  from?: string;
+  /** Optional: ISO date string — filter logs until this date */
+  to?: string;
+  /** Optional: filter logs by source */
+  source?: string;
+  /** Optional: page number (default: 1) */
+  page?: number;
+  /** Optional: results per page (default: 20) */
+  limit?: number;
+}
+
+export interface UsageLogEntry {
+  _id: string;
+  quotaSlug: string;
+  quantity: number;
+  source?: string;
+  createdAt: string;
+}
+
+export interface UsageLogsResponse {
+  success: boolean;
+  logs?: UsageLogEntry[];
+  totalDocs?: number;
+  totalPages?: number;
+  page?: number;
+  hasNextPage?: boolean;
+  message?: string;
+}
+
+/**
+ * Get paginated usage logs for a workspace.
+ *
+ * @example
+ * const { logs } = await getUsageLogs({
+ *   workspaceId: "ws123",
+ *   sessionId: "abc...",
+ *   quotaSlug: "emails",
+ *   page: 1,
+ *   limit: 20,
+ * });
+ */
+export const getUsageLogs = async (config: UsageLogsConfig): Promise<UsageLogsResponse> => {
+  const { workspaceId, sessionId, baseUrl, quotaSlug, from, to, source, page, limit } = config;
+
+  if (!workspaceId || !sessionId) {
+    return { success: false, message: "workspaceId and sessionId are required" };
+  }
+
+  const base = getBaseUrl(baseUrl);
+  if (!base) {
+    return { success: false, message: "No baseUrl configured (set NEXT_PUBLIC_SAAS_SERVER_URL)" };
+  }
+
+  try {
+    const url = new URL(`${base}/api/v1/public/workspaces/${workspaceId}/subscription/usage/logs`);
+    if (quotaSlug) url.searchParams.set("quotaSlug", quotaSlug);
+    if (from) url.searchParams.set("from", from);
+    if (to) url.searchParams.set("to", to);
+    if (source) url.searchParams.set("source", source);
+    if (page !== undefined) url.searchParams.set("page", String(page));
+    if (limit !== undefined) url.searchParams.set("limit", String(limit));
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: usageHeaders(sessionId),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Unknown error");
+      return { success: false, message: `Get usage logs failed (${response.status}): ${errorText}` };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      logs: data.logs,
+      totalDocs: data.totalDocs,
+      totalPages: data.totalPages,
+      page: data.page,
+      hasNextPage: data.hasNextPage,
+    };
+  } catch (error) {
+    console.error("[getUsageLogs] Error:", error);
+    return { success: false, message: "Failed to get usage logs" };
+  }
+};
