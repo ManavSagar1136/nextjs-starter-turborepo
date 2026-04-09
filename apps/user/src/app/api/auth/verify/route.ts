@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { syncUser, syncAllWorkspaces, APP_ROLES, type SDKWorkspaceData } from "@buildbase/database/user";
+import { syncUser, syncAllWorkspaces, APP_ROLES, WORKSPACE_ROLES, type SDKWorkspaceData } from "@buildbase/database/user";
 import { createResponseWithAuthToken } from "@buildbase/helpers/auth";
 import { verifySDKToken } from "@buildbase/saas-sdk";
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       const workspaceData: SDKWorkspaceData[] = workspaces.map((ws: any) => {
         // Find user's role in this workspace
         const userInWorkspace = ws.users?.find((u: any) => u._id === userData.id || u.id === userData.id);
-        const userRole = userInWorkspace?.role || ws.role || "viewer";
+        const userRole = userInWorkspace?.role || ws.role || WORKSPACE_ROLES.VIEWER;
 
         return {
           id: ws.id || ws._id || ws.workspaceId,

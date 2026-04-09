@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { KeyRound, Plus, Trash2, AlertCircle } from "lucide-react";
+import { KeyRound, Plus, Trash2, AlertCircle, ShieldOff } from "lucide-react";
 import { useTanstackQuery } from "@buildbase/tanstack-query/hooks/use-tanstack-query";
 import { useTanstackMutation } from "@buildbase/tanstack-query/hooks/use-tanstack-mutation";
 import { COMMON_DIALOG_KEYS, CONFIRMATION_DIALOG_VARIANTS } from "@buildbase/dialog-manager";
@@ -12,6 +12,10 @@ import { Badge } from "@buildbase/ui/components/ui/badge";
 import { API_KEY_DIALOG_KEYS } from "@/dialogs/setup";
 import type { CreatedApiKey } from "@/dialogs/api-keys/CreateApiKeyDialog";
 import { useWorkspaceId } from "@/store/hooks";
+import { useSDKAuth } from "@/hooks/useSDKAuth";
+import { FeatureButton } from "@/components/feature-gate/FeatureButton";
+import { PLAN_FEATURES, WhenWorkspaceRoles } from "@buildbase/saas-sdk";
+import { WORKSPACE_ROLES } from "@buildbase/database/user";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +53,7 @@ function formatDate(iso: string) {
 export default function ApiKeysPage() {
   const { openDialog } = useUserDialogManager();
   const workspaceId = useWorkspaceId();
+  const { isAdmin } = useSDKAuth();
 
   const {
     data: keys = [],
@@ -106,10 +111,23 @@ export default function ApiKeysPage() {
             Authenticate your application with the REST API using these keys.
           </p>
         </div>
-        <Button onClick={handleCreate}>
+
+        {/*
+         * FeatureButton gates on two things simultaneously:
+         *   1. Plan feature flag — requires "api-access" to be enabled on the subscription
+         *   2. Role permission   — requires isAdmin (hasPermission prop)
+         * If either check fails, a contextual popover explains why and optionally opens
+         * the FeatureAccessDeniedDialog (for plan denials) or shows a lock (for role denials).
+         */}
+        <FeatureButton
+          featureSlug={PLAN_FEATURES.API_ACCESS}
+          featureName="API Key Management"
+          hasPermission={isAdmin}
+          onExecute={handleCreate}
+        >
           <Plus className="mr-2 h-4 w-4" />
           New Key
-        </Button>
+        </FeatureButton>
       </div>
 
       <Card>
@@ -132,7 +150,9 @@ export default function ApiKeysPage() {
             </div>
           ) : keys.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center text-sm">
-              No API keys yet. Create one to get started.
+              {isAdmin
+                ? "No API keys yet. Create one to get started."
+                : "No API keys have been created for this workspace yet."}
             </p>
           ) : (
             <div className="divide-y">
@@ -156,18 +176,31 @@ export default function ApiKeysPage() {
                       </div>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive ml-4 shrink-0"
-                    onClick={() => handleRevoke(key)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+
+                  {/* Revoke button visible only to admins */}
+                  <WhenWorkspaceRoles roles={[WORKSPACE_ROLES.ADMIN]}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive ml-4 shrink-0"
+                      onClick={() => handleRevoke(key)}
+                      title="Revoke API key"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </WhenWorkspaceRoles>
                 </div>
               ))}
             </div>
           )}
+
+          {/* Informational notice for non-admins */}
+          <WhenWorkspaceRoles roles={[WORKSPACE_ROLES.EDITOR, WORKSPACE_ROLES.VIEWER]} fallback={null}>
+            <div className="text-muted-foreground mt-4 flex items-center gap-1.5 border-t pt-4 text-xs">
+              <ShieldOff className="h-3.5 w-3.5 shrink-0" />
+              <span>Only workspace admins can create or revoke API keys.</span>
+            </div>
+          </WhenWorkspaceRoles>
         </CardContent>
       </Card>
     </div>

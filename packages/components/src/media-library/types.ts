@@ -209,6 +209,98 @@ export interface IMediaLibraryLabels {
 }
 
 /**
+ * Role-based permissions for the media library.
+ *
+ * Pass this to control which write actions are available for a given user.
+ * Defaults to fully permissive (all true) for backwards compatibility.
+ *
+ * @example
+ * // Viewer — read only
+ * <AssetsPage permissions={{ canWrite: false }} />
+ *
+ * @example
+ * // Editor — full write except tag management
+ * <AssetsPage permissions={{ canWrite: true, canManageTags: false }} />
+ */
+export interface MediaLibraryPermissions {
+  /**
+   * Master write switch. When false, all create/edit/delete actions are hidden.
+   * Individual flags can further restrict specific operations.
+   * Default: true
+   */
+  canWrite?: boolean;
+  /**
+   * Allow uploading new assets. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canUpload?: boolean;
+  /**
+   * Allow creating, renaming, and deleting folders. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canManageFolders?: boolean;
+  /**
+   * Allow deleting assets. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canDeleteAssets?: boolean;
+  /**
+   * Allow moving assets between folders. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canMoveAssets?: boolean;
+  /**
+   * Allow creating, editing, and deleting tags. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canManageTags?: boolean;
+  /**
+   * Allow toggling asset public/private status. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canTogglePrivacy?: boolean;
+  /**
+   * Allow bulk delete and bulk move actions. Falls back to `canWrite`.
+   * Default: canWrite
+   */
+  canBulkActions?: boolean;
+}
+
+/**
+ * Fully resolved permissions (all booleans, no undefined).
+ * @internal
+ */
+export interface IResolvedMediaLibraryPermissions {
+  canWrite: boolean;
+  canUpload: boolean;
+  canManageFolders: boolean;
+  canDeleteAssets: boolean;
+  canMoveAssets: boolean;
+  canManageTags: boolean;
+  canTogglePrivacy: boolean;
+  canBulkActions: boolean;
+}
+
+/**
+ * Resolves a partial permissions object into a fully-typed one.
+ * Individual flags fall back to `canWrite`; `canWrite` defaults to true.
+ * @internal
+ */
+export function resolvePermissions(p?: MediaLibraryPermissions): IResolvedMediaLibraryPermissions {
+  const write = p?.canWrite ?? true;
+  return {
+    canWrite: write,
+    canUpload: p?.canUpload ?? write,
+    canManageFolders: p?.canManageFolders ?? write,
+    canDeleteAssets: p?.canDeleteAssets ?? write,
+    canMoveAssets: p?.canMoveAssets ?? write,
+    canManageTags: p?.canManageTags ?? write,
+    canTogglePrivacy: p?.canTogglePrivacy ?? write,
+    canBulkActions: p?.canBulkActions ?? write,
+  };
+}
+
+/**
  * Media Library configuration
  */
 export interface IMediaLibraryConfig {
@@ -230,6 +322,11 @@ export interface IMediaLibraryConfig {
   allowedMimeTypes?: string[];
   /** Custom labels */
   labels?: Partial<IMediaLibraryLabels>;
+  /**
+   * Role-based permissions controlling which write actions are visible.
+   * Defaults to fully permissive. Pass `{ canWrite: false }` for read-only viewers.
+   */
+  permissions?: MediaLibraryPermissions;
 }
 
 /**
@@ -245,6 +342,7 @@ export interface IResolvedMediaLibraryConfig {
   maxFileSize: number;
   allowedMimeTypes: string[];
   labels: IMediaLibraryLabels;
+  permissions: IResolvedMediaLibraryPermissions;
 }
 
 /**
@@ -267,4 +365,5 @@ export const DEFAULT_MEDIA_LIBRARY_CONFIG: IResolvedMediaLibraryConfig = {
     noAssets: "No assets found",
     noFolders: "No folders yet",
   },
+  permissions: resolvePermissions(),
 };

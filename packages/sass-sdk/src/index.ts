@@ -241,3 +241,8 @@ export * from "./hooks/useLimitCheck";
 // Client-side feature gate hook + FEATURE_STATES enum
 export * from "./hooks/useFeatureGate";
 export type { UseFeatureGateOptions, UseFeatureGateReturn, FeatureState } from "./hooks/useFeatureGate";
+
+// Plan slug constants — shared source of truth for client and server
+// Server-side (@buildbase/helpers/auth) re-exports from here to avoid duplication
+export * from "./plan-slugs";
+export type { PlanFeatureSlug, PlanLimitSlug, PlanQuotaSlug } from "./plan-slugs";
