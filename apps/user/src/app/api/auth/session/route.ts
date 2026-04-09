@@ -57,6 +57,7 @@ export async function GET() {
         role: session.user.role,
         workspaceId: session.user.workspaceId || session.user.currentWorkspaceId,
         workspaceName: session.user.workspaceName,
+        workspaceRole: session.user.workspaceRole,
       },
     });
   } catch (error) {

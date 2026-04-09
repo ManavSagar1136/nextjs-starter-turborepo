@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { syncUser, syncAllWorkspaces, APP_ROLES, WORKSPACE_ROLES, type SDKWorkspaceData } from "@buildbase/database/user";
+import {
+  syncUser,
+  syncAllWorkspaces,
+  getWorkspaceMemberRole,
+  APP_ROLES,
+  WORKSPACE_ROLES,
+  type SDKWorkspaceData,
+} from "@buildbase/database/user";
 import { createResponseWithAuthToken } from "@buildbase/helpers/auth";
 import { verifySDKToken } from "@buildbase/saas-sdk";
 
@@ -82,6 +89,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Resolve workspace role for the current workspace so it's in the JWT from the start.
+    // This avoids a "Viewer" flash on profile/permission UI before any workspace event fires.
+    const currentSdkWorkspaceId = userData.workspaceId || userData.currentWorkspaceId;
+    let workspaceRole: string | undefined;
+    if (currentSdkWorkspaceId && userId) {
+      const roleResult = await getWorkspaceMemberRole(userId, currentSdkWorkspaceId);
+      workspaceRole = roleResult.role ?? undefined;
+    }
+
     // Create response with auth token set as HTTP-only cookie
     // IMPORTANT: role must be at top level for withServerAuth to work correctly
     const userRole = syncResult.user?.role || userData.role || APP_ROLES.USER;
@@ -104,10 +120,11 @@ export async function POST(request: NextRequest) {
         sdkUserId: userData.id || userData._id,
         userId: syncResult.user?.id,
         email: userData.email,
-        role: userRole, // Must be at top level for withServerAuth role check
+        role: userRole, // APP_ROLE — must be at top level for withServerAuth role check
         user: userData,
-        workspaceId: userData.workspaceId || userData.currentWorkspaceId,
+        workspaceId: currentSdkWorkspaceId,
         workspaceName: userData.workspaceName,
+        workspaceRole, // workspace-level role for permission UI
       }
     );
   } catch (error) {

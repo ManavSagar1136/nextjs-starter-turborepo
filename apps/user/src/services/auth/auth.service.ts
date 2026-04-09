@@ -74,6 +74,7 @@ export interface ISessionResponse {
     role?: string;
     workspaceId?: string;
     workspaceName?: string;
+    workspaceRole?: string;
   };
 }
 

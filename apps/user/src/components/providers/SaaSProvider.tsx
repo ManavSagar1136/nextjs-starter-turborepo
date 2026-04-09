@@ -52,9 +52,10 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
                 name: data.user.name || null,
                 image: data.user.image || null,
                 role: data.user.role || null,
-                sdkUserId: userId, // SDK user ID stored for API calls and consistency
+                sdkUserId: userId,
                 workspaceId: data.user.workspaceId || data.user.currentWorkspaceId || null,
                 workspaceName: data.user.workspaceName || null,
+                workspaceRole: (data.user as any).workspaceRole || null,
               })
             );
 
@@ -184,7 +185,12 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
               .handleWorkspaceEvent(payload)
               .then(result => {
                 if (result.success) {
-                  // Token is managed via HTTP-only cookies, no need to store in localStorage
+                  // If the current user's workspace role changed, update Redux immediately
+                  // so UI (profile badge, permission checks) reflects the new role without a page reload.
+                  if (eventType === "workspace:user-role-changed" && newRole) {
+                    dispatch(updateUser({ workspaceRole: newRole }));
+                  }
+
                   const actionMap: Record<string, string> = {
                     "workspace:created": "created",
                     "workspace:updated": "updated",
@@ -228,12 +234,13 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
             throw new Error(result.error || "Failed to change workspace");
           }
 
-          // Update workspaceId in Redux store from response
+          // Update workspace context in Redux store from response
           if (result.workspace) {
             dispatch(
               updateUser({
                 workspaceId: (result.workspace as any).id,
                 workspaceName: (result.workspace as any).name,
+                workspaceRole: (result.user as any)?.workspaceRole || null,
               })
             );
           }
