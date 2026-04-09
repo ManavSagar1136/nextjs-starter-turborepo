@@ -72,7 +72,34 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
         console.log("*** eventType", eventType);
         console.log("*** data", data);
 
-        // Handle workspace created, updated, deleted, user-added, user-removed, and user-role-changed events
+        // ─── user:created / user:updated ─────────────────────────────────────
+        // Sync user profile to DB and refresh JWT if the event is for the current user.
+        if (eventType === "user:created" || eventType === "user:updated") {
+          const userEventData = data as { user: any; previousUser?: any };
+          if (userEventData.user) {
+            API.auth
+              .handleUserEvent({
+                eventType: eventType as "user:created" | "user:updated",
+                user: userEventData.user,
+                previousUser: userEventData.previousUser,
+              })
+              .then(result => {
+                if (result.success) {
+                  console.log(
+                    `[SaaSProvider] User ${eventType === "user:created" ? "created" : "updated"} synced successfully`
+                  );
+                } else {
+                  console.error(`[SaaSProvider] Failed to sync user event:`, result.error);
+                }
+              })
+              .catch(error => {
+                console.error(`[SaaSProvider] Error handling ${eventType}:`, error);
+              });
+          }
+          return;
+        }
+
+        // ─── workspace events ─────────────────────────────────────────────────
         // Note: workspace:changed is handled by onWorkspaceChange callback, not here
         if (
           eventType === "workspace:created" ||

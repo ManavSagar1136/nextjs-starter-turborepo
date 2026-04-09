@@ -33,6 +33,18 @@ export interface IWorkspaceEventPayload {
   newRole?: string;
 }
 
+export interface IUserEventPayload {
+  eventType: "user:created" | "user:updated";
+  user: unknown;
+  previousUser?: unknown;
+}
+
+export interface IUserEventResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
 export interface IWorkspaceEventResponse {
   success: boolean;
   message?: string;
@@ -123,5 +135,13 @@ export class AuthApis extends BaseApiPaginationController<IAuth> {
     return (
       await this.post<IWorkspaceEventResponse>(`${this.urlPath}/workspace-change`, {}, {}, { workspace, user, role })
     ).data;
+  }
+
+  /**
+   * Handle user events (user:created, user:updated) from SDK
+   * Syncs user profile to DB and refreshes JWT if needed
+   */
+  async handleUserEvent(payload: IUserEventPayload): Promise<IUserEventResponse> {
+    return (await this.post<IUserEventResponse>(`${this.urlPath}/user-event`, {}, {}, payload)).data;
   }
 }

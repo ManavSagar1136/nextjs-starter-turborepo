@@ -95,18 +95,21 @@ async function postHandler(request: NextRequest) {
       try {
         console.log(`[workspace-event] Handling workspace:deleted for workspace ID:`, workspaceId);
 
-        const result = await deleteWorkspace(workspaceId);
+        // Only workspace admins call deleteWorkspace — non-admins just refresh their JWT.
+        // Check role before calling deleteWorkspace; after deletion the membership is gone.
+        const callerRoleResult = userData.sdkUserId
+          ? await getWorkspaceMemberRole(userData.sdkUserId, workspaceId)
+          : { role: null };
+        const isWorkspaceAdmin = callerRoleResult.role === WORKSPACE_ROLES.ADMIN;
 
-        if (!result.workspace) {
-          return NextResponse.json({
-            success: true,
-            message: result.message || "Workspace not found, nothing to delete",
-          });
+        if (isWorkspaceAdmin) {
+          // deleteWorkspace is idempotent — "not found" just means another caller already ran it.
+          // Do NOT return early here; fall through to JWT refresh so the admin's token is also cleared.
+          await deleteWorkspace(workspaceId);
         }
 
-        // Use JWT state to decide if this user's token needs refreshing.
-        // deleteWorkspace already cleared currentWorkspaceId for all users in DB,
-        // so we can't rely on DB state — check what the JWT says.
+        // All users (admin + non-admin) refresh JWT if this was their active workspace.
+        // Use JWT state — deleteWorkspace may have already cleared DB state.
         if (userData.workspaceId === workspaceId) {
           return createResponseWithAuthToken(
             {
@@ -125,7 +128,133 @@ async function postHandler(request: NextRequest) {
       }
     }
 
-    // ─── Sync workspace (all remaining events need this) ──────────────────────
+    // ─── workspace:created ────────────────────────────────────────────────────
+    // Handled BEFORE the admin guard: the workspace doesn't exist in DB yet when this
+    // event fires, so getWorkspaceMemberRole would return null and the guard would
+    // incorrectly block the entire sync. The creator is always the workspace admin —
+    // trust workspace.createdBy from the SDK payload.
+    if (eventType === "workspace:created") {
+      const workspacePayloadCreated = {
+        id: workspaceId,
+        name: workspace.name || `Workspace ${workspaceId}`,
+        image: workspace.image,
+        slug: workspace.slug,
+        ...(workspace.features !== undefined && { features: workspace.features }),
+        ...(workspace.limits !== undefined && { limits: workspace.limits }),
+      };
+
+      let createdWorkspace = (await syncWorkspace(workspacePayloadCreated)).workspace;
+      if (!createdWorkspace) {
+        createdWorkspace = (await syncWorkspace(workspacePayloadCreated)).workspace;
+      }
+
+      const workspaceUsers = workspace.users || [];
+      const normalizedUsers: Array<{ _id?: string; id?: string; name?: string; email?: string; image?: string }> =
+        workspaceUsers.map((u: any) => (typeof u === "string" ? { _id: u, id: u } : u));
+
+      if (normalizedUsers.length > 0) {
+        const createdBy = workspace.createdBy;
+        const creatorId = typeof createdBy === "string" ? createdBy : createdBy?._id || createdBy?.id;
+
+        for (const workspaceUser of normalizedUsers) {
+          try {
+            const sdkUserId = workspaceUser._id || workspaceUser.id;
+            if (!sdkUserId) {
+              console.error("Invalid user data:", workspaceUser);
+              continue;
+            }
+
+            const userRole: string = sdkUserId === creatorId ? WORKSPACE_ROLES.ADMIN : DEFAULT_ROLE;
+
+            await syncUser(
+              { id: sdkUserId, email: workspaceUser.email, name: workspaceUser.name, image: workspaceUser.image },
+              false
+            );
+
+            const membershipResult = await addUserToWorkspace(sdkUserId, workspaceId, userRole);
+            if (!membershipResult.success) {
+              console.warn(
+                `[workspace-event] Failed to add user ${sdkUserId} to workspace ${workspaceId}:`,
+                membershipResult.error
+              );
+              // Emergency: workspace may not exist yet — try one more sync
+              const errorMsg = membershipResult.error?.toString() || "";
+              if (errorMsg.includes("workspace not found") || errorMsg.includes("Workspace not found")) {
+                const emergencySync = await syncWorkspace(workspacePayloadCreated);
+                if (emergencySync.success && emergencySync.workspace) {
+                  createdWorkspace = emergencySync.workspace;
+                  await addUserToWorkspace(sdkUserId, workspaceId, userRole);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`Error syncing workspace user ${workspaceUser._id || workspaceUser.id}:`, error);
+          }
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        workspace: createdWorkspace,
+        message: "Workspace created and synced successfully",
+      });
+    }
+
+    // ─── Workspace admin guard ────────────────────────────────────────────────
+    // Only workspace admins perform full DB sync. Viewers/editors only refresh their
+    // own JWT for events that directly affect their session — the admin's call already
+    // handles all DB state for the workspace.
+    const callerRoleResult = userData.sdkUserId
+      ? await getWorkspaceMemberRole(userData.sdkUserId, workspaceId)
+      : { role: null };
+    const isWorkspaceAdmin = callerRoleResult.role === WORKSPACE_ROLES.ADMIN;
+
+    if (!isWorkspaceAdmin) {
+      console.log(
+        `[workspace-event] Non-admin caller (role: ${callerRoleResult.role ?? "none"}) for event ${eventType} — skipping DB sync, refreshing JWT only if needed`
+      );
+
+      // workspace:updated — refresh JWT name if this is the caller's active workspace
+      if (eventType === "workspace:updated" && userData.workspaceId === workspaceId) {
+        const updatedUserData = {
+          ...userData,
+          workspaceName: workspace.name || userData.workspaceName,
+        };
+        return createResponseWithAuthToken(
+          { success: true, message: "Workspace updated, token refreshed" },
+          updatedUserData
+        );
+      }
+
+      // workspace:user-removed — clear JWT workspace if the caller was removed from their active workspace
+      if (
+        eventType === "workspace:user-removed" &&
+        userData.sdkUserId === userId &&
+        userData.workspaceId === workspaceId
+      ) {
+        return createResponseWithAuthToken(
+          { success: true, message: "Removed from workspace, token updated" },
+          { ...userData, workspaceId: undefined, workspaceName: undefined }
+        );
+      }
+
+      // workspace:user-role-changed — update JWT workspace role only if it's the caller's own role in their active workspace
+      if (
+        eventType === "workspace:user-role-changed" &&
+        userData.sdkUserId === userId &&
+        userData.workspaceId === workspaceId
+      ) {
+        return createResponseWithAuthToken(
+          { success: true, message: "Role updated, token refreshed" },
+          { ...userData, workspaceRole: newRole } // workspace-level role — never overwrite APP_ROLE (userData.role)
+        );
+      }
+
+      // workspace:user-added — admin handles all DB ops; the added user gets context via workspace:change
+      return NextResponse.json({ success: true, message: "Event acknowledged" });
+    }
+
+    // ─── Admin path: full DB sync ─────────────────────────────────────────────
     // Include features/limits so plan data is persisted on workspace:updated
     const workspacePayload = {
       id: workspaceId,
@@ -189,62 +318,6 @@ async function postHandler(request: NextRequest) {
       console.log(`[workspace-event] Workspace successfully synced:`, finalWorkspace.id);
     }
 
-    // ─── workspace:created ────────────────────────────────────────────────────
-    // Sync all initial members: creator → ADMIN, others → DEFAULT_ROLE.
-    // workspace.users is IUser[] where .role is APP_ROLE — never use it as workspace role.
-    if (eventType === "workspace:created") {
-      const workspaceUsers = workspace.users || [];
-      const normalizedUsers: Array<{ _id?: string; id?: string; name?: string; email?: string; image?: string }> =
-        workspaceUsers.map((u: any) => (typeof u === "string" ? { _id: u, id: u } : u));
-
-      if (normalizedUsers.length > 0) {
-        const createdBy = workspace.createdBy;
-        const creatorId = typeof createdBy === "string" ? createdBy : createdBy?._id || createdBy?.id;
-
-        for (const workspaceUser of normalizedUsers) {
-          try {
-            const sdkUserId = workspaceUser._id || workspaceUser.id;
-            if (!sdkUserId) {
-              console.error("Invalid user data:", workspaceUser);
-              continue;
-            }
-
-            const userRole: string = sdkUserId === creatorId ? WORKSPACE_ROLES.ADMIN : DEFAULT_ROLE;
-
-            await syncUser(
-              { id: sdkUserId, email: workspaceUser.email, name: workspaceUser.name, image: workspaceUser.image },
-              false
-            );
-
-            const membershipResult = await addUserToWorkspace(sdkUserId, workspaceId, userRole);
-            if (!membershipResult.success) {
-              console.warn(
-                `[workspace-event] Failed to add user ${sdkUserId} to workspace ${workspaceId}:`,
-                membershipResult.error
-              );
-              // Emergency: workspace may not exist yet — try one more sync
-              const errorMsg = membershipResult.error?.toString() || "";
-              if (errorMsg.includes("workspace not found") || errorMsg.includes("Workspace not found")) {
-                const emergencySyncResult = await syncWorkspace(workspacePayload);
-                if (emergencySyncResult.success && emergencySyncResult.workspace) {
-                  finalWorkspace = emergencySyncResult.workspace;
-                  await addUserToWorkspace(sdkUserId, workspaceId, userRole);
-                }
-              }
-            }
-          } catch (error) {
-            console.error(`Error syncing workspace user ${workspaceUser._id || workspaceUser.id}:`, error);
-          }
-        }
-      }
-
-      return NextResponse.json({
-        success: true,
-        workspace: finalWorkspace || workspaceSyncResult.workspace,
-        message: "Workspace created and synced successfully",
-      });
-    }
-
     // ─── workspace:updated ────────────────────────────────────────────────────
     if (eventType === "workspace:updated") {
       // Read workspace role from DB — IUser[].role is APP_ROLE, not workspace role.
@@ -271,7 +344,7 @@ async function postHandler(request: NextRequest) {
         const updatedUserData = {
           ...userData,
           workspaceName: workspace.name || userData.workspaceName,
-          role: currentUserRole,
+          workspaceRole: currentUserRole, // workspace-level role — never overwrite APP_ROLE (userData.role)
         };
         return createResponseWithAuthToken(
           {
@@ -363,9 +436,10 @@ async function postHandler(request: NextRequest) {
         const result = await removeUserFromWorkspace(userId, workspaceId);
 
         if (!result.success) {
+          const notFound = result.error === "User not found" || result.error === "Workspace not found";
           return NextResponse.json(
             { error: result.error || "Failed to remove user" },
-            { status: result.error === "User not found" ? 404 : 500 }
+            { status: notFound ? 404 : 500 }
           );
         }
 
@@ -437,7 +511,7 @@ async function postHandler(request: NextRequest) {
               membership: result.membership,
               message: "User role updated in workspace and token refreshed successfully",
             },
-            { ...userData, role: newRole }
+            { ...userData, workspaceRole: newRole } // workspace-level role — never overwrite APP_ROLE (userData.role)
           );
         }
 
