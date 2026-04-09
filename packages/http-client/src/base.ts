@@ -9,6 +9,21 @@ const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 const DEFAULT_SERVER_URL = "http://localhost:3000";
 const DEFAULT_SECRET_KEY = "your-client-secret-here";
 
+/** Methods that require a CSRF token header. */
+const CSRF_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * Read the CSRF token from the browser cookie jar.
+ * Returns null during SSR or if the cookie is absent.
+ * Cookie name is environment-prefixed (e.g. "development-cms-csrf").
+ */
+function readCsrfCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const prefix = `${process.env.NODE_ENV ?? "development"}-cms-csrf=`;
+  const cookie = document.cookie.split(";").find(c => c.trim().startsWith(prefix));
+  return cookie ? decodeURIComponent(cookie.trim().slice(prefix.length)) : null;
+}
+
 const handleResponse = <T = any>(data: string, secretKey: string) => {
   const bytes = CryptoJS.AES.decrypt(data, secretKey).toString(CryptoJS.enc.Utf8);
   return JSON.parse(bytes) as T;
@@ -65,6 +80,13 @@ const request = async (
         rejectUnauthorized: false,
       });
     }
+    // Attach CSRF token on mutating requests (browser only)
+    const csrfHeaders: Record<string, string> = {};
+    if (CSRF_METHODS.has(method)) {
+      const csrfToken = readCsrfCookie();
+      if (csrfToken) csrfHeaders["x-csrf-token"] = csrfToken;
+    }
+
     const response = await axios.request({
       method: method,
       url: finalUrl,
@@ -76,6 +98,7 @@ const request = async (
         }
       },
       headers: {
+        ...csrfHeaders,
         ...headers,
       },
       httpsAgent: httpsAgent,
@@ -146,11 +169,13 @@ const upload = async (
   };
 
   try {
+    const csrfToken = readCsrfCookie();
     return await axios.request({
       method: "POST",
       url: requestConfig.serverUrl + "" + url,
       params: query,
       headers: {
+        ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
         ...headers,
       },
       data: data,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { isProduction, env, getEnvironment } from "@buildbase/env";
 import type { AuthenticatedUser } from "./auth-middleware";
+import { setCsrfCookie, clearCsrfCookie } from "./csrf";
 
 /**
  * Cookie name for authentication token
@@ -66,7 +67,12 @@ export const setAuthTokenCookie = <T>(response: NextResponse<T>, token?: string 
  */
 export const withAuthToken = <T = any>(data: T, userData: Partial<AuthenticatedUser>): NextResponse => {
   const token = createAuthToken(userData);
-  return setAuthTokenCookie(NextResponse.json(data), token);
+  let response = setAuthTokenCookie(NextResponse.json(data), token);
+  // Set CSRF cookie bound to this user + workspace
+  if (userData.userId && userData.workspaceId) {
+    response = setCsrfCookie(response, userData.userId, userData.workspaceId);
+  }
+  return response;
 };
 
 /**
@@ -75,6 +81,7 @@ export const withAuthToken = <T = any>(data: T, userData: Partial<AuthenticatedU
  * @returns The same response with cookie cleared
  */
 export const clearAuthTokenCookie = <T>(response: NextResponse<T>): NextResponse<T> => {
+  clearCsrfCookie(response);
   return setAuthTokenCookie(response);
 };
 

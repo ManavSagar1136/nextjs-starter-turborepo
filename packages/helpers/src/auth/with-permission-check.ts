@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "./auth-middleware";
 import { WORKSPACE_ROLES, type WorkspaceRole } from "@buildbase/database/user";
 import { prisma } from "@buildbase/database";
+import { env } from "@buildbase/env";
+import { verifyCsrfToken, CSRF_HEADER_NAME } from "./csrf";
+
+/** HTTP methods that mutate state — CSRF is enforced on these. */
+const CSRF_ENFORCED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /**
  * Options for withPermissionCheck middleware
@@ -88,6 +93,27 @@ export function withPermissionCheck<T extends any[]>(
     if (allowInternalApiKey && authResult.isInternalApiKey) {
       (request as any).authenticatedUser = user;
       return handler(request, ...args);
+    }
+
+    // ── CSRF verification ────────────────────────────────────────────────────
+    // Enforced on all mutating methods (POST/PUT/PATCH/DELETE).
+    // Skipped when APP_JWT_SECRET is not configured (local dev without env).
+    // Token = HMAC-SHA256(userId:workspaceId, APP_JWT_SECRET) — recomputed from
+    // the decoded JWT, so an attacker cannot forge it without knowing the secret.
+    if (CSRF_ENFORCED_METHODS.has(request.method) && env.APP_JWT_SECRET) {
+      const csrfHeader = request.headers.get(CSRF_HEADER_NAME);
+      const userId = user.userId ?? "";
+      const workspaceId = user.workspaceId ?? "";
+
+      if (!verifyCsrfToken(csrfHeader, userId, workspaceId)) {
+        return NextResponse.json(
+          {
+            error: "Forbidden",
+            message: "Invalid or missing CSRF token.",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Check if workspaceId is present in token
