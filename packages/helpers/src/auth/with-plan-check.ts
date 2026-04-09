@@ -104,8 +104,8 @@ export function withPlanCheck<T extends any[]>(
       if (hasData && slug in limits) {
         const max = limits[slug];
 
-        if (max !== null) {
-          // null = unlimited
+        if (max !== null && max !== undefined) {
+          // null/undefined = unlimited
           const current = await countFn(dbWorkspaceId);
 
           if (current >= max) {
