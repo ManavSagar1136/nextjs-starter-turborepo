@@ -9,9 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { withPermissionCheck, withPlanCheck, PLAN_FEATURES, PLAN_LIMITS } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
-import { createApiKey, listApiKeys, revokeApiKey, ApiKeyNameConflictError } from "@buildbase/database";
+import { createApiKey, listApiKeys, revokeApiKey, ApiKeyNameConflictError, prisma } from "@buildbase/database";
 
 const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
 const SCOPE_RE = /^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*$/i; // e.g. "templates:read"
@@ -137,5 +137,17 @@ export const GET = withPermissionCheck(handleGET, [
   WORKSPACE_ROLES.EDITOR,
   WORKSPACE_ROLES.VIEWER,
 ]);
-export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN]);
+
+// POST: withPlanCheck — requires api-access feature and enforces max-api-keys limit
+export const POST = withPermissionCheck(
+  withPlanCheck(handlePOST, {
+    feature: PLAN_FEATURES.API_ACCESS,
+    limit: {
+      slug: PLAN_LIMITS.MAX_API_KEYS,
+      countFn: dbWorkspaceId => prisma.apiKey.count({ where: { workspaceId: dbWorkspaceId, isActive: true } }),
+    },
+  }),
+  [WORKSPACE_ROLES.ADMIN]
+);
+
 export const DELETE = withPermissionCheck(handleDELETE, [WORKSPACE_ROLES.ADMIN]);

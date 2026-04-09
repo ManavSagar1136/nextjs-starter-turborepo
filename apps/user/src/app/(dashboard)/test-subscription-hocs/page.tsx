@@ -2,1074 +2,911 @@
 
 import React, { useState } from "react";
 import {
-  // Subscription gates (read-only — cancel/purchase/resume handled by SDK modal)
   WhenSubscription,
   WhenNoSubscription,
   WhenSubscriptionToPlans,
   WhenTrialing,
   WhenNotTrialing,
   WhenTrialEnding,
-
-  // Feature gates
   WhenWorkspaceFeatureEnabled,
   WhenWorkspaceFeatureDisabled,
   WhenUserFeatureEnabled,
-  WhenUserFeatureDisabled,
-
-  // Role gates
   WhenRoles,
   WhenWorkspaceRoles,
-
-  // Subscription data (read-only)
   useSubscriptionContext,
   useSubscription,
   useSubscriptionManagement,
-
-  // Feature & auth hooks
   useSaaSWorkspaces,
   useSaaSAuth,
   useUserFeatures,
-
-  // Trial hook
+  useFeatureGate,
+  FEATURE_STATES,
   useTrialStatus,
-
-  // Server-side proxy hooks
   useServerRecordUsage,
   useServerQuotaStatus,
   useServerAllQuotas,
 } from "@buildbase/saas-sdk";
+import { FeatureGate, FeatureButton } from "@/components/feature-gate";
+import { SubscriptionStatusBanner } from "@/components/subscription/SubscriptionStatusBanner";
 
-/**
- * Comprehensive Test Page for @buildbase/sdk - Organized by Flow
- *
- * Flow:
- * 1. Fetch Subscription Status - How to get subscription data
- * 2. Check Workspace Features Allocation - What features are allocated to workspace
- * 3. Check Feature Availability with HOCs/Hooks - How to check if features are available
- *
- * Navigate to: /test-subscription-hocs
- */
+// ─── Plan slugs (from BuildBase plan config) ─────────────────────────────────
+//
+//  FEATURE  (boolean flag)  → useFeatureGate(slug)
+//    analytics              — analytics dashboard on/off
+//
+//  LIMIT    (hard numeric cap, no usage tracking)
+//    max-test  = 24         — max number of tests allowed
+//    max-users = 10         — max workspace members
+//
+//  QUOTA    (included amount + overage pricing, usage-tracked)
+//    videos                 — 2/month, 24/year, 6/quarterly; overage $2/unit per 100
+//
+//  Not in plan (for upgrade-flow demos)
+//    enterprise-sso
+
+const FEATURE_ANALYTICS = "analytics"; // feature flag
+const LIMIT_MAX_TEST = "max-test"; // hard limit
+const LIMIT_MAX_USERS = "max-users"; // hard limit
+const QUOTA_VIDEOS = "videos"; // usage quota with overage
+const NOT_IN_PLAN = "enterprise-sso";
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function StatusBadge({
+  value,
+  trueLabel = "Yes",
+  falseLabel = "No",
+}: {
+  value: boolean;
+  trueLabel?: string;
+  falseLabel?: string;
+}) {
+  return (
+    <span
+      className={`rounded px-2 py-0.5 text-xs font-semibold ${
+        value
+          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+      }`}
+    >
+      {value ? trueLabel : falseLabel}
+    </span>
+  );
+}
+
+function GateBadge({ state }: { state: string }) {
+  const colors: Record<string, string> = {
+    [FEATURE_STATES.OK]: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    [FEATURE_STATES.EXHAUSTED]: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    [FEATURE_STATES.NOT_INCLUDED]: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
+    [FEATURE_STATES.NOT_PERMITTED]: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    [FEATURE_STATES.LOADING]: "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400",
+  };
+  return (
+    <span
+      className={`rounded px-2 py-0.5 font-mono text-xs font-semibold ${colors[state] ?? "bg-gray-100 text-gray-500"}`}
+    >
+      {state}
+    </span>
+  );
+}
+
+function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-white">{title}</h2>
+      {subtitle && <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
+function SubSection({ title, code, children }: { title: string; code?: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600">
+      <h3 className="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">{title}</h3>
+      {code && <p className="mb-2 font-mono text-xs text-gray-400 dark:text-gray-500">{code}</p>}
+      {children}
+    </div>
+  );
+}
+
+function ResultBox({ ok, children }: { ok: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={`rounded border-l-4 p-3 text-sm ${
+        ok
+          ? "border-green-500 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200"
+          : "border-red-400 bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function UpgradeFallback({ slug }: { slug: string }) {
+  return (
+    <div className="rounded border-l-4 border-orange-400 bg-orange-50 p-3 text-sm dark:bg-orange-900/20">
+      <p className="font-semibold text-orange-800 dark:text-orange-200">
+        🔒 <code className="rounded bg-orange-100 px-1 dark:bg-orange-900">{slug}</code> not in your plan — upgrade to
+        unlock
+      </p>
+    </div>
+  );
+}
+
+function LimitFallback({ slug, reason }: { slug: string; reason: string }) {
+  return (
+    <div className="rounded border-l-4 border-red-400 bg-red-50 p-3 text-sm dark:bg-red-900/20">
+      <p className="font-semibold text-red-800 dark:text-red-200">
+        🚫 <code className="rounded bg-red-100 px-1 dark:bg-red-900">{slug}</code> limit reached — {reason}
+      </p>
+    </div>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between py-1 text-sm">
+      <span className="text-gray-500 dark:text-gray-400">{label}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function TypePill({ type }: { type: "feature" | "limit" | "quota" | "none" }) {
+  const styles: Record<string, string> = {
+    feature: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+    limit: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300",
+    quota: "bg-teal-100   text-teal-700   dark:bg-teal-900   dark:text-teal-300",
+    none: "bg-gray-100   text-gray-500",
+  };
+  return (
+    <span className={`rounded px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${styles[type]}`}>{type}</span>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function TestSubscriptionHocsPage() {
   const { currentWorkspace } = useSaaSWorkspaces();
   const { response, loading } = useSubscriptionContext();
   const { user } = useSaaSAuth();
-  const { features: userFeatures, isFeatureEnabled: isUserFeatureEnabled } = useUserFeatures();
+  const { features: userFeatures } = useUserFeatures();
 
-  // Subscription Hooks
   const workspaceId = currentWorkspace?._id || null;
-  const {
-    subscription,
-    loading: subscriptionLoading,
-    error: subscriptionError,
-    refetch: refetchSubscription,
-  } = useSubscription(workspaceId);
-  const {
-    subscription: mgmtSubscription,
-    planGroup: mgmtPlanGroup,
-    loading: mgmtLoading,
-    refetch: refetchManagement,
-  } = useSubscriptionManagement(workspaceId);
 
-  // Trial status (no args — reads from SubscriptionContext)
+  const { subscription, loading: subLoading, error: subError, refetch: refetchSub } = useSubscription(workspaceId);
+  const {
+    subscription: mgmtSub,
+    planGroup,
+    loading: mgmtLoading,
+    refetch: refetchMgmt,
+  } = useSubscriptionManagement(workspaceId);
   const { isTrialing, isTrialEnding, daysRemaining } = useTrialStatus();
 
-  // Extract subscription data
-  const subscriptionStatus =
-    response?.subscription?.subscriptionStatus || subscription?.subscription?.subscriptionStatus || "none";
-  const planSlug = response?.plan?.slug || subscription?.plan?.slug || "none";
+  // ── Plan data ──────────────────────────────────────────────────────────────
+  const subStatus = response?.subscription?.subscriptionStatus || "none";
+  const planSlug = response?.plan?.slug || "none";
   const planVersion = response?.planVersion || subscription?.planVersion;
   const planFeatures = planVersion?.features || {};
   const planLimits = planVersion?.limits || {};
   const planQuotas = planVersion?.quotas || {};
-  const subscriptionItems = planVersion?.subscriptionItems || [];
 
-  // Workspace features
-  const workspaceFeatures = currentWorkspace?.features || {};
-  const workspaceFeatureKeys = Object.keys(workspaceFeatures);
-  const enabledWorkspaceFeatures = workspaceFeatureKeys.filter(key => workspaceFeatures[key] === true);
+  // ── Workspace feature flags ────────────────────────────────────────────────
+  const wsFeatures = (currentWorkspace as any)?.features || {};
+  const wsFeatureKeys = Object.keys(wsFeatures);
+  const disabledWsFeatures = wsFeatureKeys.filter(k => wsFeatures[k] === false);
 
-  // Get feature names from subscription items
-  const featureItems = subscriptionItems.filter((item: any) => item.type === "feature");
-  const limitItems = subscriptionItems.filter((item: any) => item.type === "limit");
-  const quotaItems = subscriptionItems.filter((item: any) => item.type === "quota");
-
-  // Get enabled plan features with metadata
-  const enabledPlanFeatures = Object.entries(planFeatures)
-    .filter(([_, enabled]) => enabled === true)
-    .map(([key]) => {
-      const item = featureItems.find((f: any) => f.slug === key);
-      return {
-        slug: key,
-        name: item?.name || key,
-        description: item?.description,
-        category: item?.category,
-      };
-    });
-
-  // Get workspace feature slugs that are actually enabled
-  const enabledWorkspaceFeatureSlugs = workspaceFeatureKeys.filter(key => workspaceFeatures[key] === true);
-
-  // Get user feature slugs that are actually enabled
-  const enabledUserFeatureSlugs = Object.entries(userFeatures)
-    .filter(([_, enabled]) => enabled === true)
-    .map(([key]) => key);
-
+  // ── Roles ──────────────────────────────────────────────────────────────────
   const userRole = user?.role || "none";
-  // Try to get workspace role from workspace users if available
-  const workspaceUsers = currentWorkspace?.users || [];
-  const workspaceRole =
-    (Array.isArray(workspaceUsers)
-      ? workspaceUsers.find((u: any) => u._id === user?.id || u.userId === user?.id)?.role
+  const wsUsers = (currentWorkspace as any)?.users || [];
+  const wsRole =
+    (Array.isArray(wsUsers)
+      ? wsUsers.find((u: any) => u._id === user?.id || u.userId === user?.id)?.role
       : undefined) || "none";
 
-  // ── Usage Tracking ────────────────────────────────────────────────────────────
-  const [recordQuotaSlug, setRecordQuotaSlug] = useState("emails");
-  const [recordQuantity, setRecordQuantity] = useState(1);
-  const [statusQuotaSlug, setStatusQuotaSlug] = useState("emails");
+  // ── Live gate states ───────────────────────────────────────────────────────
+  // Feature (boolean)
+  const { state: stateAnalytics } = useFeatureGate(FEATURE_ANALYTICS);
 
-  const {
-    record,
-    isLoading: recordLoading,
-    data: recordData,
-    error: recordError,
-    reset: resetRecord,
-  } = useServerRecordUsage();
+  // Limits (hard caps — no quotaSlug needed, SDK checks the limit value from plan)
+  const { state: stateMaxTest } = useFeatureGate(LIMIT_MAX_TEST);
+  const { state: stateMaxUsers } = useFeatureGate(LIMIT_MAX_USERS);
+
+  // Quota (usage-tracked with overage — pass quotaSlug so SDK checks consumed vs included)
+  const { state: stateVideos } = useFeatureGate(QUOTA_VIDEOS, { quotaSlug: QUOTA_VIDEOS });
+
+  // Not in plan
+  const { state: stateNotInPlan } = useFeatureGate(NOT_IN_PLAN);
+
+  // ── Usage tracking (quotas only — limits don't use usage API) ─────────────
+  const [recordQty, setRecordQty] = useState(1);
+  const [statusSlug, setStatusSlug] = useState(QUOTA_VIDEOS);
+
+  const { record, isLoading: recLoading, data: recData, error: recError, reset: resetRec } = useServerRecordUsage();
   const {
     data: quotaStatus,
     isLoading: statusLoading,
     error: statusError,
     refetch: refetchStatus,
-  } = useServerQuotaStatus({
-    workspaceId: workspaceId ?? "",
-    quotaSlug: statusQuotaSlug,
-  });
+  } = useServerQuotaStatus({ workspaceId: workspaceId ?? "", quotaSlug: statusSlug });
   const {
     quotas: allQuotas,
-    isLoading: allQuotasLoading,
-    error: allQuotasError,
-    refetch: refetchAllQuotas,
+    isLoading: allLoading,
+    error: allError,
+    refetch: refetchAll,
   } = useServerAllQuotas({ workspaceId: workspaceId ?? "" });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 dark:bg-gray-900">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900">
+      <div className="mx-auto max-w-5xl space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-white">
-            @buildbase/sdk Test Page - Feature Flow
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Step-by-step guide: Fetch Subscription → Check Features Allocation → Check Feature Availability
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Subscription & Feature Test Panel</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Live test of all gates using your real plan configuration.
           </p>
-        </div>
-
-        {/* ====================================================================
-            SECTION 1: FETCH SUBSCRIPTION STATUS
-            ==================================================================== */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">1. Fetch Subscription Status</h2>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
-            Learn how to fetch and check subscription status using hooks
-          </p>
-
-          {/* useSubscriptionContext Hook */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">useSubscriptionContext Hook</h3>
-            <div className="mb-3 rounded border-l-4 border-blue-500 bg-blue-50 p-4 dark:bg-blue-900/20">
-              <p className="mb-2 font-mono text-sm text-blue-800 dark:text-blue-200">
-                const {"{ response, loading }"} = useSubscriptionContext();
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Loading:</span>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-semibold ${loading ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}`}
-                  >
-                    {loading ? "Loading..." : "Loaded"}
-                  </span>
-                </div>
-                {response && (
-                  <div className="mt-3 space-y-1 text-sm">
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Status:</span>{" "}
-                      <span
-                        className={`rounded px-2 py-1 text-xs font-semibold ${
-                          subscriptionStatus === "active"
-                            ? "bg-green-100 text-green-800"
-                            : subscriptionStatus === "trialing"
-                              ? "bg-blue-100 text-blue-800"
-                              : subscriptionStatus === "canceled"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {subscriptionStatus.toUpperCase()}
-                      </span>
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Plan Slug:</span> {planSlug}
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Plan Name:</span> {response.plan?.name || "N/A"}
-                    </p>
-                  </div>
-                )}
+          {/* Plan slug legend */}
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            {[
+              { slug: "analytics", type: "feature" as const, note: "boolean flag" },
+              { slug: "max-test", type: "limit" as const, note: "hard cap = 24" },
+              { slug: "max-users", type: "limit" as const, note: "hard cap = 10" },
+              { slug: "videos", type: "quota" as const, note: "2/mo, overage $2/100" },
+              { slug: "enterprise-sso", type: "none" as const, note: "not in plan" },
+            ].map(({ slug, type, note }) => (
+              <div
+                key={slug}
+                className="flex items-center gap-1.5 rounded border border-gray-200 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-800"
+              >
+                <code className="text-gray-700 dark:text-gray-300">{slug}</code>
+                <TypePill type={type} />
+                <span className="text-gray-400">{note}</span>
               </div>
-            </div>
-          </div>
-
-          {/* useSubscription Hook */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">useSubscription Hook</h3>
-            <div className="mb-3 rounded border-l-4 border-cyan-500 bg-cyan-50 p-4 dark:bg-cyan-900/20">
-              <p className="mb-2 font-mono text-sm text-cyan-800 dark:text-cyan-200">
-                const {"{ subscription, loading, error, refetch }"} = useSubscription(workspaceId);
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Loading:</span>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-semibold ${subscriptionLoading ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}`}
-                  >
-                    {subscriptionLoading ? "Loading..." : "Loaded"}
-                  </span>
-                </div>
-                {subscriptionError && (
-                  <div className="text-sm text-red-600 dark:text-red-400">Error: {subscriptionError}</div>
-                )}
-                {subscription && (
-                  <div className="mt-3 space-y-1 text-sm">
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Status:</span>{" "}
-                      {subscription.subscription?.subscriptionStatus || "N/A"}
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Plan:</span>{" "}
-                      {subscription.plan?.name || subscription.plan?.slug || "N/A"}
-                    </p>
-                    <button
-                      onClick={() => refetchSubscription()}
-                      className="mt-2 rounded bg-cyan-600 px-3 py-1 text-sm text-white transition hover:bg-cyan-700"
-                    >
-                      Refetch Subscription
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* useSubscriptionManagement Hook */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-              useSubscriptionManagement Hook (Combined)
-            </h3>
-            <div className="mb-3 rounded border-l-4 border-emerald-500 bg-emerald-50 p-4 dark:bg-emerald-900/20">
-              <p className="mb-2 font-mono text-sm text-emerald-800 dark:text-emerald-200">
-                const {"{ subscription, planGroup, loading, refetch }"} = useSubscriptionManagement(workspaceId);
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Loading:</span>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-semibold ${mgmtLoading ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}`}
-                  >
-                    {mgmtLoading ? "Loading..." : "Loaded"}
-                  </span>
-                </div>
-                {mgmtSubscription && mgmtPlanGroup && (
-                  <div className="mt-3 space-y-1 text-sm">
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Subscription Status:</span>{" "}
-                      {mgmtSubscription.subscription?.subscriptionStatus || "N/A"}
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Plan Group:</span>{" "}
-                      {mgmtPlanGroup?.group?.name || mgmtPlanGroup?.group?.slug || "N/A"}
-                    </p>
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Combines useSubscription, usePlanGroup, and useUpdateSubscription
-                    </p>
-                    <button
-                      onClick={() => refetchManagement()}
-                      className="mt-2 rounded bg-emerald-600 px-3 py-1 text-sm text-white transition hover:bg-emerald-700"
-                    >
-                      Refetch All
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* ====================================================================
-            SECTION 2: CHECK WORKSPACE FEATURES ALLOCATION
-            ==================================================================== */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
-            2. Check Workspace Features Allocation
-          </h2>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
-            See what features are allocated to your workspace from the subscription plan
-          </p>
-
-          {/* Plan Features (from subscription) */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-              Plan Features (Allocated from Subscription)
-            </h3>
-            <div className="rounded border-l-4 border-purple-500 bg-purple-50 p-4 dark:bg-purple-900/20">
-              <p className="mb-3 text-sm text-purple-800 dark:text-purple-200">
-                Features allocated from your subscription plan:
+        {/* ── SECTION 1: Subscription Status ─────────────────────────────── */}
+        <SectionCard
+          title="1. Subscription Status"
+          subtitle="Live data from useSubscriptionContext, useSubscription, and useSubscriptionManagement."
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-400">
+                useSubscriptionContext
               </p>
-              {enabledPlanFeatures.length > 0 ? (
-                <div className="space-y-2">
-                  {enabledPlanFeatures.map(feature => (
-                    <div key={feature.slug} className="rounded bg-white p-3 dark:bg-gray-800">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">✅ {feature.name}</p>
-                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Slug: {feature.slug}</p>
-                          {feature.description && (
-                            <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">{feature.description}</p>
-                          )}
-                          {feature.category && (
-                            <span className="mt-1 inline-block rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                              {feature.category}
-                            </span>
-                          )}
-                        </div>
-                        <div className="ml-4">
-                          <span className="rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200">
-                            Enabled
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No plan features allocated. Check your subscription plan.
+              <Row label="Loading">
+                <StatusBadge value={!loading} trueLabel="Ready" falseLabel="Loading…" />
+              </Row>
+              <Row label="Status">
+                <span
+                  className={`rounded px-2 py-0.5 text-xs font-semibold ${subStatus === "active" ? "bg-green-100 text-green-800" : subStatus === "trialing" ? "bg-blue-100 text-blue-800" : subStatus === "canceled" ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-600"}`}
+                >
+                  {subStatus.toUpperCase()}
+                </span>
+              </Row>
+              <Row label="Plan slug">
+                <span className="font-mono text-xs">{planSlug}</span>
+              </Row>
+              <Row label="Plan name">
+                <span className="text-xs">{response?.plan?.name || "—"}</span>
+              </Row>
+            </div>
+
+            <div className="rounded-lg border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-800 dark:bg-cyan-900/20">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-700 dark:text-cyan-400">
+                useSubscription(workspaceId)
+              </p>
+              <Row label="Loading">
+                <StatusBadge value={!subLoading} trueLabel="Ready" falseLabel="Loading…" />
+              </Row>
+              {subError && <p className="mt-1 text-xs text-red-600">{subError}</p>}
+              <Row label="Status">
+                <span className="font-mono text-xs">{subscription?.subscription?.subscriptionStatus || "—"}</span>
+              </Row>
+              <Row label="Plan">
+                <span className="text-xs">{subscription?.plan?.name || "—"}</span>
+              </Row>
+              <button
+                onClick={() => refetchSub()}
+                className="mt-3 w-full rounded bg-cyan-600 py-1 text-xs text-white hover:bg-cyan-700"
+              >
+                Refetch
+              </button>
+            </div>
+
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/20">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                useSubscriptionManagement
+              </p>
+              <Row label="Loading">
+                <StatusBadge value={!mgmtLoading} trueLabel="Ready" falseLabel="Loading…" />
+              </Row>
+              <Row label="Status">
+                <span className="font-mono text-xs">{mgmtSub?.subscription?.subscriptionStatus || "—"}</span>
+              </Row>
+              <Row label="Plan group">
+                <span className="text-xs">{planGroup?.group?.name || "—"}</span>
+              </Row>
+              <button
+                onClick={() => refetchMgmt()}
+                className="mt-3 w-full rounded bg-emerald-600 py-1 text-xs text-white hover:bg-emerald-700"
+              >
+                Refetch
+              </button>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── SECTION 2: Plan Configuration ──────────────────────────────── */}
+        <SectionCard
+          title="2. Plan Configuration — Features, Limits & Quotas"
+          subtitle="Raw values from planVersion. Your plan has: 1 feature flag, 2 hard limits, 1 quota."
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Features */}
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-900/20">
+              <div className="mb-2 flex items-center gap-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-purple-700 dark:text-purple-400">
+                  Features
                 </p>
+                <TypePill type="feature" />
+              </div>
+              <p className="mb-2 text-xs text-purple-600 dark:text-purple-400">
+                Boolean flags. On = feature available to workspace.
+              </p>
+              {Object.keys(planFeatures).length > 0 ? (
+                Object.entries(planFeatures).map(([slug, val]) => (
+                  <Row key={slug} label={slug}>
+                    <StatusBadge value={val === true} trueLabel="✓ On" falseLabel="✗ Off" />
+                  </Row>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">No features in plan</p>
               )}
+            </div>
+
+            {/* Limits */}
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/20">
+              <div className="mb-2 flex items-center gap-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-indigo-700 dark:text-indigo-400">Limits</p>
+                <TypePill type="limit" />
+              </div>
+              <p className="mb-2 text-xs text-indigo-600 dark:text-indigo-400">
+                Hard caps. Cannot exceed. No usage tracking needed — SDK checks count vs limit.
+              </p>
+              {Object.keys(planLimits).length > 0 ? (
+                Object.entries(planLimits).map(([slug, val]) => (
+                  <Row key={slug} label={slug}>
+                    <span className="font-mono text-sm font-bold text-indigo-700 dark:text-indigo-300">
+                      {typeof val === "number" ? val.toLocaleString() : String(val)}
+                    </span>
+                  </Row>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">No limits in plan</p>
+              )}
+              <div className="mt-2 rounded bg-indigo-100 p-2 text-xs text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                max-test = 24 · max-users = 10
+              </div>
+            </div>
+
+            {/* Quotas */}
+            <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-900/20">
+              <div className="mb-2 flex items-center gap-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-teal-700 dark:text-teal-400">Quotas</p>
+                <TypePill type="quota" />
+              </div>
+              <p className="mb-2 text-xs text-teal-600 dark:text-teal-400">
+                Usage-tracked with included amount + overage pricing. Record consumption via API.
+              </p>
+              {Object.keys(planQuotas).length > 0 ? (
+                Object.entries(planQuotas).map(([slug, val]) => (
+                  <Row key={slug} label={slug}>
+                    <span className="font-mono text-xs text-teal-700 dark:text-teal-300">
+                      {typeof val === "object" ? JSON.stringify(val) : String(val)}
+                    </span>
+                  </Row>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">No quotas in plan</p>
+              )}
+              <div className="mt-2 rounded bg-teal-100 p-2 text-xs text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">
+                videos: 2/mo included · $2 overage per 100
+              </div>
             </div>
           </div>
 
-          {/* Plan Limits */}
-          {Object.keys(planLimits).length > 0 && (
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Plan Limits</h3>
-              <div className="rounded border-l-4 border-indigo-500 bg-indigo-50 p-4 dark:bg-indigo-900/20">
-                <div className="space-y-2">
-                  {Object.entries(planLimits).map(([key, value]) => {
-                    const limitItem = limitItems.find((item: any) => item.slug === key);
-                    return (
-                      <div key={key} className="rounded bg-white p-3 dark:bg-gray-800">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                              {limitItem?.name || key}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Slug: {key}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                              {typeof value === "number" ? value.toLocaleString() : String(value)}
-                            </p>
-                            {limitItem?.description && (
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{limitItem.description}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+          {/* Workspace feature flags */}
+          {wsFeatureKeys.length > 0 && (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                Workspace Feature Flags (currentWorkspace.features)
+              </p>
+              <div className="grid gap-1 sm:grid-cols-2 md:grid-cols-3">
+                {wsFeatureKeys.map(k => (
+                  <Row key={k} label={k}>
+                    <StatusBadge value={wsFeatures[k] === true} trueLabel="Enabled" falseLabel="Disabled" />
+                  </Row>
+                ))}
               </div>
             </div>
           )}
+        </SectionCard>
 
-          {/* Plan Quotas */}
-          {Object.keys(planQuotas).length > 0 && (
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Plan Quotas</h3>
-              <div className="rounded border-l-4 border-teal-500 bg-teal-50 p-4 dark:bg-teal-900/20">
-                <div className="space-y-2">
-                  {Object.entries(planQuotas)
-                    .slice(0, 5)
-                    .map(([key, value]) => {
-                      const quotaItem = quotaItems.find((item: any) => item.slug === key);
-                      return (
-                        <div key={key} className="rounded bg-white p-3 dark:bg-gray-800">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {quotaItem?.name || key}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">Slug: {key}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-gray-700 dark:text-gray-300">
-                                {typeof value === "object" ? JSON.stringify(value) : String(value)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Workspace Features (enabled/disabled flags) */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Workspace Feature Flags</h3>
-            <div className="rounded border-l-4 border-amber-500 bg-amber-50 p-4 dark:bg-amber-900/20">
-              <p className="mb-3 text-sm text-amber-800 dark:text-amber-200">Feature flags set at workspace level:</p>
-              {workspaceFeatureKeys.length > 0 ? (
-                <div className="space-y-2">
-                  {workspaceFeatureKeys.map(key => (
-                    <div key={key} className="rounded bg-white p-3 dark:bg-gray-800">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-900 dark:text-white">{key}</span>
-                        <span
-                          className={`rounded px-2 py-1 text-xs font-semibold ${
-                            workspaceFeatures[key]
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                          }`}
-                        >
-                          {workspaceFeatures[key] ? "Enabled" : "Disabled"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No workspace feature flags configured</p>
-              )}
-            </div>
-          </div>
-
-          {/* User Features */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">User Feature Flags</h3>
-            <div className="rounded border-l-4 border-violet-500 bg-violet-50 p-4 dark:bg-violet-900/20">
-              <p className="mb-3 text-sm text-violet-800 dark:text-violet-200">Feature flags set at user level:</p>
-              {Object.keys(userFeatures).length > 0 ? (
-                <div className="space-y-2">
-                  {Object.entries(userFeatures).map(([key, value]) => (
-                    <div key={key} className="rounded bg-white p-3 dark:bg-gray-800">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-900 dark:text-white">{key}</span>
-                        <span
-                          className={`rounded px-2 py-1 text-xs font-semibold ${
-                            value
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                          }`}
-                        >
-                          {value ? "Enabled" : "Disabled"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No user feature flags configured</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ====================================================================
-            SECTION 3: CHECK FEATURE AVAILABILITY WITH HOCS/HOOKS
-            ==================================================================== */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
-            3. Check Feature Availability with HOCs/Hooks
-          </h2>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
-            Use HOCs and hooks to conditionally render content based on feature availability
-          </p>
-
+        {/* ── SECTION 3: SDK HOC Gates ────────────────────────────────────── */}
+        <SectionCard
+          title="3. SDK HOC Gates — live results"
+          subtitle="Render logic components from @buildbase/saas-sdk using your real slugs."
+        >
           {/* Subscription HOCs */}
-          <div className="mb-8">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">3.1 Subscription HOCs</h3>
-
-            {/* WhenSubscription */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                WhenSubscription - Check if workspace has active subscription
-              </h4>
-              <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                {"<WhenSubscription>...</WhenSubscription>"}
-              </p>
-              <WhenSubscription
-                fallbackComponent={
-                  <div className="rounded border-l-4 border-red-500 bg-red-50 p-4 dark:bg-red-900/20">
-                    <p className="font-semibold text-red-800 dark:text-red-200">❌ No active subscription</p>
-                  </div>
-                }
-              >
-                <div className="rounded border-l-4 border-green-500 bg-green-50 p-4 dark:bg-green-900/20">
-                  <p className="font-semibold text-green-800 dark:text-green-200">✅ Active subscription detected</p>
-                  <p className="mt-1 text-sm text-green-700 dark:text-green-300">
-                    Status: {subscriptionStatus} | Plan: {planSlug}
-                  </p>
-                </div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            3.1 Subscription
+          </h3>
+          <div className="mb-5 grid gap-3 sm:grid-cols-3">
+            <SubSection title="WhenSubscription" code="<WhenSubscription>">
+              <WhenSubscription fallbackComponent={<ResultBox ok={false}>No active subscription</ResultBox>}>
+                <ResultBox ok={true}>
+                  Active — {subStatus} · {planSlug}
+                </ResultBox>
               </WhenSubscription>
-            </div>
+            </SubSection>
 
-            {/* WhenNoSubscription */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                WhenNoSubscription - Check if workspace has no subscription
-              </h4>
-              <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                {"<WhenNoSubscription>...</WhenNoSubscription>"}
-              </p>
-              <WhenNoSubscription
-                fallbackComponent={
-                  <div className="rounded border-l-4 border-green-500 bg-green-50 p-4 dark:bg-green-900/20">
-                    <p className="font-semibold text-green-800 dark:text-green-200">✅ You have a subscription</p>
-                  </div>
-                }
-              >
-                <div className="rounded border-l-4 border-blue-500 bg-blue-50 p-4 dark:bg-blue-900/20">
-                  <p className="font-semibold text-blue-800 dark:text-blue-200">✅ No subscription found</p>
-                  <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">Subscribe to unlock features</p>
-                </div>
+            <SubSection title="WhenNoSubscription" code="<WhenNoSubscription>">
+              <WhenNoSubscription fallbackComponent={<ResultBox ok={true}>You have a subscription</ResultBox>}>
+                <ResultBox ok={false}>No subscription found</ResultBox>
               </WhenNoSubscription>
-            </div>
+            </SubSection>
 
-            {/* WhenSubscriptionToPlans */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                WhenSubscriptionToPlans - Check if subscribed to specific plans
-              </h4>
-              <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                {"<WhenSubscriptionToPlans plans={[planSlug]}>...</WhenSubscriptionToPlans>"}
-              </p>
+            <SubSection
+              title={`WhenSubscriptionToPlans ["${planSlug}"]`}
+              code={`<WhenSubscriptionToPlans plans={["${planSlug}"]}`}
+            >
               {planSlug !== "none" ? (
                 <WhenSubscriptionToPlans
                   plans={[planSlug]}
-                  fallbackComponent={
-                    <div className="rounded border-l-4 border-orange-500 bg-orange-50 p-4 dark:bg-orange-900/20">
-                      <p className="font-semibold text-orange-800 dark:text-orange-200">
-                        ❌ Plan "{planSlug}" not matching
-                      </p>
-                      <p className="mt-1 text-sm text-orange-700 dark:text-orange-300">Current plan: {planSlug}</p>
-                    </div>
-                  }
+                  fallbackComponent={<ResultBox ok={false}>Not on plan "{planSlug}"</ResultBox>}
                 >
-                  <div className="rounded border-l-4 border-purple-500 bg-purple-50 p-4 dark:bg-purple-900/20">
-                    <p className="font-semibold text-purple-800 dark:text-purple-200">✅ Plan "{planSlug}" detected</p>
-                    <p className="mt-1 text-sm text-purple-700 dark:text-purple-300">
-                      You're subscribed to: {planSlug}
-                    </p>
-                  </div>
+                  <ResultBox ok={true}>On plan "{planSlug}"</ResultBox>
                 </WhenSubscriptionToPlans>
               ) : (
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">ℹ️ No plan subscription found</p>
-                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                    Subscribe to a plan to see this HOC in action
-                  </p>
-                </div>
+                <p className="text-xs text-gray-400">No plan found</p>
               )}
-            </div>
+            </SubSection>
           </div>
 
-          {/* Workspace Feature HOCs */}
-          <div className="mb-8">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">3.2 Workspace Feature HOCs</h3>
+          {/* Feature / Workspace HOCs */}
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            3.2 Workspace Feature HOCs — <TypePill type="feature" />
+          </h3>
+          <div className="mb-5 grid gap-3 sm:grid-cols-2">
+            <SubSection
+              title={`WhenWorkspaceFeatureEnabled  slug="${FEATURE_ANALYTICS}"`}
+              code={`<WhenWorkspaceFeatureEnabled slug="${FEATURE_ANALYTICS}">`}
+            >
+              <WhenWorkspaceFeatureEnabled slug={FEATURE_ANALYTICS}>
+                <ResultBox ok={true}>analytics is enabled on this workspace</ResultBox>
+              </WhenWorkspaceFeatureEnabled>
+            </SubSection>
 
-            {/* WhenWorkspaceFeatureEnabled */}
-            {enabledWorkspaceFeatureSlugs.length > 0 ? (
-              enabledWorkspaceFeatureSlugs.slice(0, 2).map(featureSlug => (
-                <div
-                  key={featureSlug}
-                  className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700"
-                >
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                    WhenWorkspaceFeatureEnabled - Check if workspace feature is enabled
-                  </h4>
-                  <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                    {'<WhenWorkspaceFeatureEnabled slug="' + featureSlug + '">...</WhenWorkspaceFeatureEnabled>'}
-                  </p>
-                  <WhenWorkspaceFeatureEnabled slug={featureSlug}>
-                    <div className="rounded border-l-4 border-emerald-500 bg-emerald-50 p-4 dark:bg-emerald-900/20">
-                      <p className="font-semibold text-emerald-800 dark:text-emerald-200">
-                        ✅ Feature "{featureSlug}" is enabled
-                      </p>
-                    </div>
-                  </WhenWorkspaceFeatureEnabled>
-                </div>
-              ))
-            ) : (
-              <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-                <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  WhenWorkspaceFeatureEnabled - Example
-                </h4>
-                <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                  {'<WhenWorkspaceFeatureEnabled slug="feature-name">...</WhenWorkspaceFeatureEnabled>'}
-                </p>
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">
-                    ℹ️ No enabled workspace features to demonstrate
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* WhenWorkspaceFeatureDisabled */}
-            {workspaceFeatureKeys.length > enabledWorkspaceFeatureSlugs.length ? (
-              workspaceFeatureKeys
-                .filter(key => workspaceFeatures[key] === false)
-                .slice(0, 1)
-                .map(featureSlug => (
-                  <div
-                    key={featureSlug}
-                    className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700"
-                  >
-                    <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                      WhenWorkspaceFeatureDisabled - Check if workspace feature is disabled
-                    </h4>
-                    <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                      {'<WhenWorkspaceFeatureDisabled slug="' + featureSlug + '">...</WhenWorkspaceFeatureDisabled>'}
-                    </p>
-                    <WhenWorkspaceFeatureDisabled slug={featureSlug}>
-                      <div className="rounded border-l-4 border-amber-500 bg-amber-50 p-4 dark:bg-amber-900/20">
-                        <p className="font-semibold text-amber-800 dark:text-amber-200">
-                          ✅ Feature "{featureSlug}" is disabled
-                        </p>
-                      </div>
-                    </WhenWorkspaceFeatureDisabled>
-                  </div>
-                ))
-            ) : (
-              <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-                <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  WhenWorkspaceFeatureDisabled - Example
-                </h4>
-                <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                  {'<WhenWorkspaceFeatureDisabled slug="feature-name">...</WhenWorkspaceFeatureDisabled>'}
-                </p>
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">
-                    ℹ️ All workspace features are enabled
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Feature HOCs */}
-          <div className="mb-8">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">3.3 User Feature HOCs</h3>
-
-            {/* WhenUserFeatureEnabled */}
-            {enabledUserFeatureSlugs.length > 0 ? (
-              enabledUserFeatureSlugs.slice(0, 2).map(featureSlug => (
-                <div
-                  key={featureSlug}
-                  className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700"
-                >
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                    WhenUserFeatureEnabled - Check if user feature is enabled
-                  </h4>
-                  <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                    {'<WhenUserFeatureEnabled slug="' + featureSlug + '">...</WhenUserFeatureEnabled>'}
-                  </p>
-                  <WhenUserFeatureEnabled slug={featureSlug}>
-                    <div className="rounded border-l-4 border-violet-500 bg-violet-50 p-4 dark:bg-violet-900/20">
-                      <p className="font-semibold text-violet-800 dark:text-violet-200">
-                        ✅ User feature "{featureSlug}" is enabled
-                      </p>
-                    </div>
-                  </WhenUserFeatureEnabled>
-                </div>
-              ))
-            ) : (
-              <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-                <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  WhenUserFeatureEnabled - Example
-                </h4>
-                <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                  {'<WhenUserFeatureEnabled slug="feature-name">...</WhenUserFeatureEnabled>'}
-                </p>
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">
-                    ℹ️ No enabled user features to demonstrate
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* WhenUserFeatureDisabled */}
-            {Object.keys(userFeatures).length > enabledUserFeatureSlugs.length ? (
-              Object.entries(userFeatures)
-                .filter(([_, enabled]) => enabled === false)
-                .slice(0, 1)
-                .map(([featureSlug]) => (
-                  <div
-                    key={featureSlug}
-                    className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700"
-                  >
-                    <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                      WhenUserFeatureDisabled - Check if user feature is disabled
-                    </h4>
-                    <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                      {'<WhenUserFeatureDisabled slug="' + featureSlug + '">...</WhenUserFeatureDisabled>'}
-                    </p>
-                    <WhenUserFeatureDisabled slug={featureSlug}>
-                      <div className="rounded border-l-4 border-slate-500 bg-slate-50 p-4 dark:bg-slate-900/20">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">
-                          ✅ User feature "{featureSlug}" is disabled
-                        </p>
-                      </div>
-                    </WhenUserFeatureDisabled>
-                  </div>
-                ))
-            ) : (
-              <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-                <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  WhenUserFeatureDisabled - Example
-                </h4>
-                <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                  {'<WhenUserFeatureDisabled slug="feature-name">...</WhenUserFeatureDisabled>'}
-                </p>
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">ℹ️ All user features are enabled</p>
-                </div>
-              </div>
-            )}
+            <SubSection
+              title="WhenWorkspaceFeatureDisabled — disabled feature"
+              code='<WhenWorkspaceFeatureDisabled slug="...">'
+            >
+              {disabledWsFeatures.length > 0 && disabledWsFeatures[0] ? (
+                <WhenWorkspaceFeatureDisabled slug={disabledWsFeatures[0]}>
+                  <ResultBox ok={false}>"{disabledWsFeatures[0]}" is disabled on this workspace</ResultBox>
+                </WhenWorkspaceFeatureDisabled>
+              ) : (
+                <p className="text-xs text-gray-400">All workspace features are currently enabled</p>
+              )}
+            </SubSection>
           </div>
 
           {/* Role HOCs */}
-          <div className="mb-8">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">3.4 Role-Based Access HOCs</h3>
-
-            {/* WhenRoles */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                WhenRoles - Check global user role
-              </h4>
-              <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                {"<WhenRoles roles={[userRole]}>...</WhenRoles>"}
-              </p>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            3.3 Role HOCs
+          </h3>
+          <div className="mb-4 grid gap-3 sm:grid-cols-2">
+            <SubSection title="WhenRoles — APP role (admin / user)" code={`<WhenRoles roles={["${userRole}"]}`}>
               {userRole !== "none" ? (
                 <WhenRoles
                   roles={[userRole]}
-                  fallback={
-                    <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                      <p className="font-semibold text-gray-800 dark:text-gray-200">
-                        ❌ Role "{userRole}" not matching
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Current role: {userRole}</p>
-                    </div>
-                  }
+                  fallback={<ResultBox ok={false}>APP role "{userRole}" not matched</ResultBox>}
                 >
-                  <div className="rounded border-l-4 border-rose-500 bg-rose-50 p-4 dark:bg-rose-900/20">
-                    <p className="font-semibold text-rose-800 dark:text-rose-200">✅ Role "{userRole}" detected</p>
-                    <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">Your current role: {userRole}</p>
-                  </div>
+                  <ResultBox ok={true}>APP role "{userRole}" matched</ResultBox>
                 </WhenRoles>
               ) : (
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">ℹ️ No user role found</p>
-                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                    User role will be checked when available
-                  </p>
-                </div>
+                <p className="text-xs text-gray-400">No APP role on user</p>
               )}
-            </div>
+            </SubSection>
 
-            {/* WhenWorkspaceRoles */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                WhenWorkspaceRoles - Check workspace role
-              </h4>
-              <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                {"<WhenWorkspaceRoles roles={[workspaceRole]}>...</WhenWorkspaceRoles>"}
-              </p>
-              {workspaceRole !== "none" ? (
+            <SubSection title="WhenWorkspaceRoles — workspace role" code={`<WhenWorkspaceRoles roles={["${wsRole}"]}`}>
+              {wsRole !== "none" ? (
                 <WhenWorkspaceRoles
-                  roles={[workspaceRole]}
-                  fallback={
-                    <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                      <p className="font-semibold text-gray-800 dark:text-gray-200">
-                        ❌ Workspace role "{workspaceRole}" not matching
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                        Current workspace role: {workspaceRole}
-                      </p>
-                    </div>
-                  }
+                  roles={[wsRole]}
+                  fallback={<ResultBox ok={false}>Workspace role "{wsRole}" not matched</ResultBox>}
                 >
-                  <div className="rounded border-l-4 border-fuchsia-500 bg-fuchsia-50 p-4 dark:bg-fuchsia-900/20">
-                    <p className="font-semibold text-fuchsia-800 dark:text-fuchsia-200">
-                      ✅ Workspace role "{workspaceRole}" detected
-                    </p>
-                    <p className="mt-1 text-sm text-fuchsia-700 dark:text-fuchsia-300">
-                      Your workspace role: {workspaceRole}
-                    </p>
-                  </div>
+                  <ResultBox ok={true}>Workspace role "{wsRole}" matched</ResultBox>
                 </WhenWorkspaceRoles>
               ) : (
-                <div className="rounded border-l-4 border-gray-500 bg-gray-50 p-4 dark:bg-gray-900/20">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">ℹ️ No workspace role found</p>
-                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                    Workspace role will be checked when available
-                  </p>
-                </div>
+                <p className="text-xs text-gray-400">No workspace role found</p>
               )}
-            </div>
+            </SubSection>
           </div>
+        </SectionCard>
 
-          {/* Hook-based Feature Checking */}
-          <div className="mb-8">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-              3.5 Hook-based Feature Checking
-            </h3>
-
-            {/* useUserFeatures Hook */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                useUserFeatures Hook - Check user features programmatically
-              </h4>
-              <p className="mb-3 font-mono text-sm text-gray-600 dark:text-gray-400">
-                const {"{ features, isFeatureEnabled }"} = useUserFeatures();
+        {/* ── SECTION 4: Trial Gates ──────────────────────────────────────── */}
+        <SectionCard
+          title="4. Trial Status Gates"
+          subtitle="useTrialStatus + WhenTrialing / WhenNotTrialing / WhenTrialEnding. Subscription actions handled by SDK modal."
+        >
+          <div className="grid gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 dark:border-teal-800 dark:bg-teal-900/20">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-teal-700 dark:text-teal-400">
+                useTrialStatus()
               </p>
-              <div className="rounded border-l-4 border-violet-500 bg-violet-50 p-4 dark:bg-violet-900/20">
-                <p className="mb-2 text-sm text-violet-800 dark:text-violet-200">Available user features:</p>
-                {Object.keys(userFeatures).length > 0 ? (
-                  <div className="space-y-1">
-                    {Object.entries(userFeatures)
-                      .slice(0, 5)
-                      .map(([key, value]) => (
-                        <div
-                          key={key}
-                          className="flex items-center justify-between rounded bg-white p-2 dark:bg-gray-800"
-                        >
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{key}</span>
-                          <span
-                            className={`rounded px-2 py-0.5 text-xs font-semibold ${
-                              value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {value ? "Enabled" : "Disabled"}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No user features configured</p>
-                )}
-                <div className="mt-3 border-t border-violet-200 pt-3 dark:border-violet-800">
-                  {enabledUserFeatureSlugs.length > 0 ? (
-                    <div className="space-y-1">
-                      <p className="mb-1 text-xs font-semibold text-violet-700 dark:text-violet-300">Example checks:</p>
-                      {enabledUserFeatureSlugs.slice(0, 2).map(featureSlug => (
-                        <p key={featureSlug} className="text-xs text-violet-700 dark:text-violet-300">
-                          isFeatureEnabled("{featureSlug}") = {isUserFeatureEnabled(featureSlug) ? "true" : "false"}
-                        </p>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-violet-700 dark:text-violet-300">
-                      Example: isFeatureEnabled("feature-slug") ={" "}
-                      {Object.keys(userFeatures).length > 0 ? "true/false" : "false"}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <Row label="isTrialing">
+                <StatusBadge value={isTrialing} />
+              </Row>
+              <Row label="isTrialEnding">
+                <StatusBadge value={isTrialEnding} />
+              </Row>
+              <Row label="daysRemaining">
+                <span className="font-mono text-xs">{daysRemaining ?? "—"}</span>
+              </Row>
             </div>
 
-            {/* Programmatic Feature Check Example */}
-            <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                Programmatic Feature Check Example
-              </h4>
-              <div className="rounded bg-gray-50 p-4 dark:bg-gray-900">
-                <pre className="overflow-x-auto text-xs text-gray-700 dark:text-gray-300">
-                  {`// Check subscription status
-const { response } = useSubscriptionContext();
-const hasActiveSubscription = 
-  response?.subscription?.subscriptionStatus === "active" || 
-  response?.subscription?.subscriptionStatus === "trialing";
-
-// Check plan features (using actual plan features)
-const planFeatures = response?.planVersion?.features || {};
-${enabledPlanFeatures.length > 0 && enabledPlanFeatures[0] ? `const hasFeature = planFeatures["${enabledPlanFeatures[0].slug}"] === true;` : '// const hasFeature = planFeatures["feature-slug"] === true;'}
-
-// Check workspace features (using actual workspace features)
-const { currentWorkspace } = useSaaSWorkspaces();
-const workspaceFeatures = currentWorkspace?.features || {};
-${enabledWorkspaceFeatureSlugs.length > 0 ? `const hasWorkspaceFeature = workspaceFeatures["${enabledWorkspaceFeatureSlugs[0]}"] === true;` : '// const hasWorkspaceFeature = workspaceFeatures["feature-slug"] === true;'}
-
-// Check user features (using actual user features)
-const { isFeatureEnabled } = useUserFeatures();
-${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled("${enabledUserFeatureSlugs[0]}");` : '// const hasUserFeature = isFeatureEnabled("feature-slug");'}`}
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ====================================================================
-            SECTION 4: TRIAL STATUS GATES
-            ==================================================================== */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">4. Trial Status Gates</h2>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
-            Use trial HOCs and{" "}
-            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">useTrialStatus</code> to
-            conditionally render content based on trial state. Subscription cancel/resume/purchase is handled by the SDK
-            manage workspace modal — read-only from our app.
-          </p>
-
-          {/* useTrialStatus */}
-          <div className="mb-6 rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">useTrialStatus Hook</h3>
-            <div className="mb-3 rounded border-l-4 border-teal-500 bg-teal-50 p-4 dark:bg-teal-900/20">
-              <p className="mb-2 font-mono text-sm text-teal-800 dark:text-teal-200">
-                {"const { isTrialing, isTrialEnding, daysRemaining } = useTrialStatus();"}
-              </p>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Is Trialing:</span>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-semibold ${isTrialing ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}
-                  >
-                    {isTrialing ? "Yes" : "No"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Trial Ending Soon:</span>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-semibold ${isTrialEnding ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-800"}`}
-                  >
-                    {isTrialEnding ? "Yes" : "No"}
-                  </span>
-                </div>
-                {daysRemaining !== undefined && daysRemaining !== null && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">Days Remaining:</span>
-                    <span className="font-mono text-xs font-semibold text-gray-800 dark:text-gray-200">
-                      {daysRemaining}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Trial HOCs */}
-          <div className="grid gap-4 md:grid-cols-3">
-            {/* WhenTrialing */}
-            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenTrialing</h4>
-              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
-                {"<WhenTrialing>...</WhenTrialing>"}
-              </p>
-              <WhenTrialing
-                fallbackComponent={
-                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Not currently trialing</p>
-                  </div>
-                }
-              >
-                <div className="rounded border-l-4 border-teal-500 bg-teal-50 p-3 dark:bg-teal-900/20">
-                  <p className="text-sm font-semibold text-teal-800 dark:text-teal-200">Currently on trial</p>
-                </div>
+            <SubSection title="WhenTrialing" code="<WhenTrialing>">
+              <WhenTrialing fallbackComponent={<ResultBox ok={false}>Not trialing</ResultBox>}>
+                <ResultBox ok={true}>On trial — {daysRemaining} days left</ResultBox>
               </WhenTrialing>
-            </div>
+            </SubSection>
 
-            {/* WhenNotTrialing */}
-            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenNotTrialing</h4>
-              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
-                {"<WhenNotTrialing>...</WhenNotTrialing>"}
-              </p>
-              <WhenNotTrialing
-                fallbackComponent={
-                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Currently trialing</p>
-                  </div>
-                }
-              >
-                <div className="rounded border-l-4 border-green-500 bg-green-50 p-3 dark:bg-green-900/20">
-                  <p className="text-sm font-semibold text-green-800 dark:text-green-200">Not on trial (active/paid)</p>
-                </div>
+            <SubSection title="WhenNotTrialing" code="<WhenNotTrialing>">
+              <WhenNotTrialing fallbackComponent={<ResultBox ok={false}>Currently trialing</ResultBox>}>
+                <ResultBox ok={true}>Paid / expired trial</ResultBox>
               </WhenNotTrialing>
-            </div>
+            </SubSection>
 
-            {/* WhenTrialEnding */}
-            <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
-              <h4 className="mb-2 font-semibold text-gray-900 dark:text-white">WhenTrialEnding</h4>
-              <p className="mb-3 font-mono text-xs text-gray-600 dark:text-gray-400">
-                {"<WhenTrialEnding daysThreshold={7}>...</WhenTrialEnding>"}
-              </p>
+            <SubSection title="WhenTrialEnding (≤7 days)" code="<WhenTrialEnding daysThreshold={7}>">
               <WhenTrialEnding
                 daysThreshold={7}
+                fallbackComponent={<ResultBox ok={true}>More than 7 days left</ResultBox>}
+              >
+                <ResultBox ok={false}>Ends in &lt;7 days!</ResultBox>
+              </WhenTrialEnding>
+            </SubSection>
+          </div>
+        </SectionCard>
+
+        {/* ── SECTION 5: Our Custom UI Components ────────────────────────── */}
+        <SectionCard
+          title="5. App-Level Gate UI Components"
+          subtitle="SubscriptionStatusBanner, FeatureGate, FeatureButton, useFeatureGate — built on top of the SDK."
+        >
+          {/* 5.1 SubscriptionStatusBanner */}
+          <SubSection title="5.1 SubscriptionStatusBanner" code="<SubscriptionStatusBanner />">
+            <div className="overflow-hidden rounded border border-gray-200 dark:border-gray-600">
+              <div className="bg-gray-100 px-3 py-1 text-xs text-gray-400 dark:bg-gray-700 dark:text-gray-500">
+                Live preview — priority: past_due → canceled → trial ending ≤3 days → trialing
+              </div>
+              <SubscriptionStatusBanner />
+              <WhenSubscription
                 fallbackComponent={
-                  <div className="rounded border-l-4 border-gray-400 bg-gray-50 p-3 dark:bg-gray-900/20">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Trial not ending within 7 days</p>
+                  <div className="px-4 py-3 text-xs text-gray-400 dark:text-gray-500">
+                    No active subscription — no banner shown.
                   </div>
                 }
               >
-                <div className="rounded border-l-4 border-amber-500 bg-amber-50 p-3 dark:bg-amber-900/20">
-                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
-                    Trial ending soon! (&lt;7 days)
-                  </p>
-                </div>
-              </WhenTrialEnding>
+                <WhenTrialing fallbackComponent={null}>
+                  <div className="border-t px-4 py-2 text-xs text-gray-400 dark:border-gray-600 dark:text-gray-500">
+                    ↑ Trial banner active
+                  </div>
+                </WhenTrialing>
+              </WhenSubscription>
             </div>
+          </SubSection>
+
+          {/* 5.2 FeatureGate — all real slugs */}
+          <h3 className="mb-3 mt-5 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            5.2 FeatureGate — all real slugs
+          </h3>
+          <div className="mb-5 grid gap-3 sm:grid-cols-2">
+            {/* analytics — feature flag */}
+            <SubSection
+              title={`analytics  ·  state: ${stateAnalytics}`}
+              code={`<FeatureGate featureSlug="${FEATURE_ANALYTICS}">  // feature`}
+            >
+              <FeatureGate
+                featureSlug={FEATURE_ANALYTICS}
+                fallback={<UpgradeFallback slug="analytics" />}
+                loadingFallback={
+                  <div className="rounded bg-gray-100 p-2 text-xs text-gray-400 dark:bg-gray-700">Loading…</div>
+                }
+              >
+                <ResultBox ok={true}>
+                  ✅ <strong>analytics</strong> flag is ON — render analytics dashboard here
+                </ResultBox>
+              </FeatureGate>
+            </SubSection>
+
+            {/* analytics + additionalCondition role check */}
+            <SubSection
+              title="analytics + additionalCondition=false (viewer)"
+              code={`<FeatureGate featureSlug="${FEATURE_ANALYTICS}" additionalCondition={isEditor}>`}
+            >
+              <FeatureGate
+                featureSlug={FEATURE_ANALYTICS}
+                additionalCondition={false}
+                fallback={
+                  <div className="rounded border-l-4 border-yellow-400 bg-yellow-50 p-3 text-sm dark:bg-yellow-900/20">
+                    <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+                      🔒 Feature on — but role check failed (viewer has no write access)
+                    </p>
+                  </div>
+                }
+              >
+                <ResultBox ok={true}>Editor/Admin — write access</ResultBox>
+              </FeatureGate>
+            </SubSection>
+
+            {/* max-test — hard limit */}
+            <SubSection
+              title={`max-test  ·  state: ${stateMaxTest}`}
+              code={`<FeatureGate featureSlug="${LIMIT_MAX_TEST}">  // limit (cap=24)`}
+            >
+              <FeatureGate
+                featureSlug={LIMIT_MAX_TEST}
+                fallback={<LimitFallback slug="max-test" reason="24 test limit reached, cannot create more" />}
+                loadingFallback={
+                  <div className="rounded bg-gray-100 p-2 text-xs text-gray-400 dark:bg-gray-700">Loading…</div>
+                }
+              >
+                <ResultBox ok={true}>
+                  ✅ <strong>max-test</strong> under limit (cap: 24) — test creation allowed
+                </ResultBox>
+              </FeatureGate>
+            </SubSection>
+
+            {/* max-users — hard limit */}
+            <SubSection
+              title={`max-users  ·  state: ${stateMaxUsers}`}
+              code={`<FeatureGate featureSlug="${LIMIT_MAX_USERS}">  // limit (cap=10)`}
+            >
+              <FeatureGate
+                featureSlug={LIMIT_MAX_USERS}
+                fallback={<LimitFallback slug="max-users" reason="10 member limit reached, cannot invite more" />}
+                loadingFallback={
+                  <div className="rounded bg-gray-100 p-2 text-xs text-gray-400 dark:bg-gray-700">Loading…</div>
+                }
+              >
+                <ResultBox ok={true}>
+                  ✅ <strong>max-users</strong> under limit (cap: 10) — member invite allowed
+                </ResultBox>
+              </FeatureGate>
+            </SubSection>
+
+            {/* videos — quota */}
+            <SubSection
+              title={`videos  ·  state: ${stateVideos}`}
+              code={`<FeatureGate featureSlug="${QUOTA_VIDEOS}" quotaSlug="${QUOTA_VIDEOS}">  // quota`}
+            >
+              <FeatureGate
+                featureSlug={QUOTA_VIDEOS}
+                quotaSlug={QUOTA_VIDEOS}
+                fallback={
+                  <div className="rounded border-l-4 border-orange-400 bg-orange-50 p-3 text-sm dark:bg-orange-900/20">
+                    <p className="font-semibold text-orange-800 dark:text-orange-200">
+                      ⚡ <strong>videos</strong> quota exhausted (2/month included). Overage: $2 per 100 videos.
+                    </p>
+                  </div>
+                }
+                loadingFallback={
+                  <div className="rounded bg-gray-100 p-2 text-xs text-gray-400 dark:bg-gray-700">Loading…</div>
+                }
+              >
+                <ResultBox ok={true}>
+                  ✅ <strong>videos</strong> quota OK — video upload allowed (2/month included, then $2/100)
+                </ResultBox>
+              </FeatureGate>
+            </SubSection>
+
+            {/* not in plan */}
+            <SubSection
+              title={`enterprise-sso  ·  state: ${stateNotInPlan}`}
+              code={`<FeatureGate featureSlug="${NOT_IN_PLAN}">  // not in plan`}
+            >
+              <FeatureGate featureSlug={NOT_IN_PLAN} fallback={<UpgradeFallback slug="enterprise-sso" />}>
+                <ResultBox ok={true}>enterprise-sso accessible (unexpected)</ResultBox>
+              </FeatureGate>
+            </SubSection>
           </div>
-        </div>
 
-        {/* ── Usage Tracking ─────────────────────────────────────────────── */}
-        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Usage Tracking (Server-side Secure)
-          </h2>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-            All calls go through{" "}
-            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">/api/saas/usage/*</code> — the{" "}
-            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">sessionId</code> stays in an
-            HttpOnly cookie and never reaches the browser.
-            {!workspaceId && (
-              <span className="ml-2 font-semibold text-amber-600 dark:text-amber-400">
-                ⚠ No workspace selected — hooks are paused until workspaceId is available.
-              </span>
-            )}
-          </p>
+          {/* 5.3 FeatureButton */}
+          <SubSection
+            title="5.3 FeatureButton — all gate states side by side"
+            code="<FeatureButton featureSlug={...} onExecute={...}>"
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* OK — feature */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-semibold uppercase text-gray-500">OK</p>
+                  <TypePill type="feature" />
+                </div>
+                <FeatureButton
+                  featureSlug={FEATURE_ANALYTICS}
+                  featureName="Analytics"
+                  onExecute={() => alert("✅ analytics — action executed")}
+                  variant="default"
+                  size="sm"
+                >
+                  View Analytics
+                </FeatureButton>
+                <p className="text-xs text-gray-400">No icon. Executes immediately.</p>
+              </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Record Usage */}
-            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-700 dark:bg-purple-900/20">
-              <h3 className="mb-3 font-semibold text-purple-900 dark:text-purple-200">1. Record Usage</h3>
-              <p className="mb-3 text-xs text-purple-700 dark:text-purple-300">
-                POST <code>/api/saas/usage/record</code>
+              {/* OK — quota */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-semibold uppercase text-gray-500">OK / EXHAUSTED</p>
+                  <TypePill type="quota" />
+                </div>
+                <FeatureButton
+                  featureSlug={QUOTA_VIDEOS}
+                  quotaSlug={QUOTA_VIDEOS}
+                  featureName="Videos"
+                  onExecute={() => alert("✅ videos quota OK — upload executed")}
+                  variant="default"
+                  size="sm"
+                >
+                  Upload Video
+                </FeatureButton>
+                <p className="text-xs text-gray-400">Zap icon if quota exhausted → opens upgrade dialog.</p>
+              </div>
+
+              {/* NOT_INCLUDED */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-semibold uppercase text-gray-500">NOT_INCLUDED</p>
+                  <TypePill type="none" />
+                </div>
+                <FeatureButton
+                  featureSlug={NOT_IN_PLAN}
+                  featureName="Enterprise SSO"
+                  onExecute={() => alert("executed")}
+                  variant="outline"
+                  size="sm"
+                  denialDescription="Enterprise SSO lets your team log in via Okta, Azure AD, or Google Workspace. Available on Enterprise plans."
+                >
+                  Configure SSO
+                </FeatureButton>
+                <p className="text-xs text-gray-400">Crown icon + tooltip. Click → FeatureAccessDeniedDialog.</p>
+              </div>
+
+              {/* NOT_PERMITTED */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-semibold uppercase text-gray-500">NOT_PERMITTED</p>
+                </div>
+                <FeatureButton
+                  featureSlug={FEATURE_ANALYTICS}
+                  featureName="Analytics Export"
+                  hasPermission={false}
+                  onExecute={() => alert("executed")}
+                  variant="outline"
+                  size="sm"
+                >
+                  Export Data
+                </FeatureButton>
+                <p className="text-xs text-gray-400">Lock icon. Disabled. Tooltip: contact workspace admin.</p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded bg-gray-50 p-3 text-xs text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              <strong>FeatureAccessDeniedDialog</strong> — Crown (NOT_INCLUDED) → upgrade CTA · Zap (EXHAUSTED) →
+              increase quota · Lock (NOT_PERMITTED) → contact admin. Registered in <code>dialogs/setup.ts</code>, opened
+              via <code>useAppDialogManager</code>.
+            </div>
+          </SubSection>
+
+          {/* 5.4 useFeatureGate raw */}
+          <SubSection
+            title="5.4 useFeatureGate — raw state for every real slug"
+            code="const { state } = useFeatureGate(slug, options?)"
+          >
+            <div className="grid gap-2 sm:grid-cols-3 md:grid-cols-5">
+              {[
+                { slug: FEATURE_ANALYTICS, state: stateAnalytics, type: "feature" as const },
+                { slug: LIMIT_MAX_TEST, state: stateMaxTest, type: "limit" as const },
+                { slug: LIMIT_MAX_USERS, state: stateMaxUsers, type: "limit" as const },
+                { slug: QUOTA_VIDEOS, state: stateVideos, type: "quota" as const },
+                { slug: NOT_IN_PLAN, state: stateNotInPlan, type: "none" as const },
+              ].map(({ slug, state, type }) => (
+                <div
+                  key={slug}
+                  className="rounded border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900"
+                >
+                  <p className="mb-1 font-mono text-xs text-gray-600 dark:text-gray-400">{slug}</p>
+                  <TypePill type={type} />
+                  <div className="mt-2">
+                    <GateBadge state={state} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <pre className="mt-3 overflow-x-auto rounded bg-gray-100 p-3 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+              {`// Feature flag
+const { state } = useFeatureGate("analytics");
+
+// Hard limit (no quotaSlug — SDK checks count vs cap)
+const { state } = useFeatureGate("max-test");
+const { state } = useFeatureGate("max-users");
+
+// Quota (pass quotaSlug — SDK checks consumed vs included)
+const { state } = useFeatureGate("videos", { quotaSlug: "videos" });
+
+// States
+FEATURE_STATES.OK           → allow action
+FEATURE_STATES.EXHAUSTED    → quota used up (QUOTA only) → read-only or overage prompt
+FEATURE_STATES.NOT_INCLUDED → not in plan → upgrade CTA
+FEATURE_STATES.NOT_PERMITTED → no role permission → contact admin
+FEATURE_STATES.LOADING      → subscription data loading`}
+            </pre>
+          </SubSection>
+        </SectionCard>
+
+        {/* ── SECTION 6: Usage Tracking (Quotas only) ─────────────────────── */}
+        <SectionCard
+          title="6. Usage Tracking — Quotas only"
+          subtitle="Record and check usage for videos quota. Limits (max-test, max-users) are hard caps — SDK enforces them at gate time, no usage recording needed."
+        >
+          {!workspaceId && (
+            <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+              ⚠ No workspace selected — hooks paused until workspaceId is available.
+            </div>
+          )}
+
+          <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-800 dark:bg-indigo-900/20">
+            <p className="font-semibold text-indigo-800 dark:text-indigo-200">Which slugs apply here?</p>
+            <ul className="mt-1 space-y-1 text-xs text-indigo-700 dark:text-indigo-300">
+              <li>
+                ✅ <strong>videos</strong> (quota) — record each video upload; SDK tracks consumed vs included (2/month)
+              </li>
+              <li>
+                ❌ <strong>max-test</strong> (limit) — hard cap, SDK enforces at gate time; do not call{" "}
+                <code>record()</code>
+              </li>
+              <li>
+                ❌ <strong>max-users</strong> (limit) — same as above; enforce via FeatureGate, not usage API
+              </li>
+            </ul>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Record */}
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-900/20">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-purple-700 dark:text-purple-400">
+                1. Record Usage
               </p>
-              <div className="mb-2 space-y-2">
+              <p className="mb-3 text-xs text-purple-600 dark:text-purple-300">POST /api/saas/usage/record</p>
+              <div className="mb-3 space-y-2">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-purple-800 dark:text-purple-300">
-                    Quota Slug
+                    Quota slug
                   </label>
-                  <input
-                    type="text"
-                    value={recordQuotaSlug}
-                    onChange={e => setRecordQuotaSlug(e.target.value)}
-                    placeholder="e.g. emails"
+                  <select
+                    value={QUOTA_VIDEOS}
+                    disabled
                     className="w-full rounded border border-purple-300 bg-white px-2 py-1 text-sm dark:border-purple-600 dark:bg-gray-700 dark:text-gray-100"
-                  />
+                  >
+                    <option value={QUOTA_VIDEOS}>videos (quota)</option>
+                  </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-purple-800 dark:text-purple-300">
@@ -1078,8 +915,8 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
                   <input
                     type="number"
                     min={1}
-                    value={recordQuantity}
-                    onChange={e => setRecordQuantity(Number(e.target.value))}
+                    value={recordQty}
+                    onChange={e => setRecordQty(Number(e.target.value))}
                     className="w-full rounded border border-purple-300 bg-white px-2 py-1 text-sm dark:border-purple-600 dark:bg-gray-700 dark:text-gray-100"
                   />
                 </div>
@@ -1088,99 +925,78 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
                 <button
                   onClick={() =>
                     workspaceId &&
-                    record({ workspaceId, quotaSlug: recordQuotaSlug, quantity: recordQuantity, source: "test-page" })
+                    record({ workspaceId, quotaSlug: QUOTA_VIDEOS, quantity: recordQty, source: "test-page" })
                   }
-                  disabled={recordLoading || !workspaceId}
-                  className="flex-1 rounded bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                  disabled={recLoading || !workspaceId}
+                  className="flex-1 rounded bg-purple-600 py-1.5 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
                 >
-                  {recordLoading ? "Recording..." : "Record"}
+                  {recLoading ? "Recording…" : "Record"}
                 </button>
-                {recordData && (
+                {recData && (
                   <button
-                    onClick={resetRecord}
-                    className="rounded border border-purple-300 px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-100 dark:text-purple-300 dark:hover:bg-purple-900"
+                    onClick={resetRec}
+                    className="rounded border border-purple-300 px-2 py-1.5 text-xs text-purple-700 hover:bg-purple-100 dark:text-purple-300"
                   >
                     Clear
                   </button>
                 )}
               </div>
-              {recordError && (
-                <div className="mt-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                  Error: {recordError}
-                </div>
-              )}
-              {recordData && (
-                <div
-                  className={`mt-2 rounded p-2 text-xs ${recordData.success ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"}`}
+              {recError && <p className="mt-2 text-xs text-red-600">{recError}</p>}
+              {recData && (
+                <pre
+                  className={`mt-2 overflow-auto rounded p-2 text-xs ${recData.success ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"}`}
                 >
-                  <pre className="overflow-auto whitespace-pre-wrap">{JSON.stringify(recordData, null, 2)}</pre>
-                </div>
+                  {JSON.stringify(recData, null, 2)}
+                </pre>
               )}
             </div>
 
-            {/* Single Quota Status */}
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
-              <h3 className="mb-3 font-semibold text-blue-900 dark:text-blue-200">2. Quota Status</h3>
-              <p className="mb-3 text-xs text-blue-700 dark:text-blue-300">
-                GET <code>/api/saas/usage/status</code>
+            {/* Quota Status */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-400">
+                2. Quota Status
               </p>
-              <div className="mb-3 space-y-2">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-blue-800 dark:text-blue-300">Quota Slug</label>
-                  <input
-                    type="text"
-                    value={statusQuotaSlug}
-                    onChange={e => setStatusQuotaSlug(e.target.value)}
-                    placeholder="e.g. emails"
-                    className="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
-                  />
-                </div>
+              <p className="mb-3 text-xs text-blue-600 dark:text-blue-300">GET /api/saas/usage/status</p>
+              <div className="mb-3">
+                <label className="mb-1 block text-xs font-medium text-blue-800 dark:text-blue-300">Quota slug</label>
+                <select
+                  value={statusSlug}
+                  onChange={e => setStatusSlug(e.target.value)}
+                  className="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+                >
+                  <option value={QUOTA_VIDEOS}>videos (quota)</option>
+                </select>
               </div>
               <button
                 onClick={refetchStatus}
                 disabled={statusLoading || !workspaceId}
-                className="w-full rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="w-full rounded bg-blue-600 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {statusLoading ? "Fetching..." : "Fetch Status"}
+                {statusLoading ? "Fetching…" : "Fetch Status"}
               </button>
-              {statusError && (
-                <div className="mt-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                  Error: {statusError}
-                </div>
-              )}
+              {statusError && <p className="mt-2 text-xs text-red-600">{statusError}</p>}
               {quotaStatus && (
-                <div className="mt-2 space-y-1 rounded bg-white p-3 text-xs dark:bg-gray-700">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Slug</span>
+                <div className="mt-3 space-y-1 rounded bg-white p-3 text-xs dark:bg-gray-700">
+                  <Row label="Slug">
                     <span className="font-mono font-medium">{quotaStatus.quotaSlug}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Consumed</span>
+                  </Row>
+                  <Row label="Consumed">
                     <span className="font-medium">{quotaStatus.consumed}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Included (limit)</span>
+                  </Row>
+                  <Row label="Included">
                     <span className="font-medium">{quotaStatus.included}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Available</span>
+                  </Row>
+                  <Row label="Available">
                     <span className="font-medium">{quotaStatus.available}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Overage</span>
-                    <span className="font-medium">{quotaStatus.overage}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Has Overage</span>
-                    <span
-                      className={`font-medium ${quotaStatus.hasOverage ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}
-                    >
-                      {quotaStatus.hasOverage ? "Yes" : "No"}
+                  </Row>
+                  <Row label="Overage">
+                    <span className={`font-medium ${quotaStatus.hasOverage ? "text-red-600" : "text-green-600"}`}>
+                      {quotaStatus.hasOverage ? `Yes (+${quotaStatus.overage})` : "No"}
                     </span>
-                  </div>
+                  </Row>
                   {quotaStatus.included > 0 && (
                     <div className="mt-2">
-                      <div className="mb-1 flex justify-between text-gray-500 dark:text-gray-400">
+                      <div className="mb-1 flex justify-between text-gray-400">
                         <span>Usage</span>
                         <span>{Math.round((quotaStatus.consumed / quotaStatus.included) * 100)}%</span>
                       </div>
@@ -1197,41 +1013,37 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
             </div>
 
             {/* All Quotas */}
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
-              <h3 className="mb-3 font-semibold text-green-900 dark:text-green-200">3. All Quotas</h3>
-              <p className="mb-3 text-xs text-green-700 dark:text-green-300">
-                GET <code>/api/saas/usage/all</code>
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-green-700 dark:text-green-400">
+                3. All Quotas
               </p>
+              <p className="mb-3 text-xs text-green-600 dark:text-green-300">GET /api/saas/usage/all</p>
               <button
-                onClick={refetchAllQuotas}
-                disabled={allQuotasLoading || !workspaceId}
-                className="w-full rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                onClick={refetchAll}
+                disabled={allLoading || !workspaceId}
+                className="w-full rounded bg-green-600 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
               >
-                {allQuotasLoading ? "Fetching..." : "Fetch All Quotas"}
+                {allLoading ? "Fetching…" : "Fetch All"}
               </button>
-              {allQuotasError && (
-                <div className="mt-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                  Error: {allQuotasError}
-                </div>
-              )}
+              {allError && <p className="mt-2 text-xs text-red-600">{allError}</p>}
               {allQuotas && (
-                <div className="mt-2 space-y-2">
+                <div className="mt-3 space-y-2">
                   {Object.keys(allQuotas).length === 0 ? (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">No quotas found for this workspace.</p>
+                    <p className="text-xs text-gray-400">No quota usage recorded yet.</p>
                   ) : (
                     Object.entries(allQuotas).map(([slug, quota]) => (
                       <div key={slug} className="rounded bg-white p-2 text-xs dark:bg-gray-700">
                         <div className="mb-1 flex items-center justify-between">
-                          <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">{slug}</span>
+                          <span className="font-mono font-semibold">{slug}</span>
                           <span
-                            className={`rounded px-1.5 py-0.5 text-xs font-medium ${quota.available <= 0 ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : quota.hasOverage ? "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"}`}
+                            className={`rounded px-1.5 py-0.5 text-xs font-medium ${quota.available <= 0 ? "bg-red-100 text-red-700" : quota.hasOverage ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}
                           >
                             {quota.available <= 0 ? "Exhausted" : quota.hasOverage ? "Overage" : "OK"}
                           </span>
                         </div>
-                        <div className="text-gray-500 dark:text-gray-400">
+                        <div className="text-gray-500">
                           {quota.consumed} / {quota.included}
-                          {quota.available > 0 && ` (${quota.available} left)`}
+                          {quota.available > 0 ? ` (${quota.available} left)` : ""}
                         </div>
                         {quota.included > 0 && (
                           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
@@ -1248,66 +1060,75 @@ ${enabledUserFeatureSlugs.length > 0 ? `const hasUserFeature = isFeatureEnabled(
               )}
             </div>
           </div>
-        </div>
+        </SectionCard>
 
-        {/* Summary */}
-        <div className="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-6 dark:bg-blue-900/20">
-          <h2 className="mb-3 text-xl font-semibold text-blue-900 dark:text-blue-200">📋 Quick Reference</h2>
-          <div className="space-y-3 text-blue-800 dark:text-blue-300">
+        {/* ── Quick Reference ─────────────────────────────────────────────── */}
+        <div className="rounded-xl border-l-4 border-blue-500 bg-blue-50 p-5 dark:bg-blue-900/20">
+          <h2 className="mb-3 text-sm font-bold text-blue-900 dark:text-blue-200">Quick Reference — Your Plan Slugs</h2>
+          <div className="grid gap-4 text-xs text-blue-800 sm:grid-cols-2 md:grid-cols-4 dark:text-blue-300">
             <div>
-              <h3 className="mb-1 font-semibold">1. Fetch Subscription Status:</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• useSubscriptionContext() - Get subscription from context</li>
-                <li>• useSubscription(workspaceId) - Fetch subscription for workspace</li>
-                <li>• useSubscriptionManagement(workspaceId) - Combined subscription + plan group</li>
+              <p className="mb-1 font-bold">
+                analytics <TypePill type="feature" />
+              </p>
+              <ul className="space-y-0.5">
+                <li>Boolean flag — on/off per workspace</li>
+                <li>
+                  <code>useFeatureGate("analytics")</code>
+                </li>
+                <li>
+                  <code>&lt;FeatureGate featureSlug="analytics"&gt;</code>
+                </li>
+                <li>No quotaSlug needed</li>
               </ul>
             </div>
             <div>
-              <h3 className="mb-1 font-semibold">2. Check Features Allocation:</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• response.planVersion.features - Plan features (boolean flags)</li>
-                <li>• response.planVersion.limits - Plan limits (numeric values)</li>
-                <li>• response.planVersion.quotas - Plan quotas (usage-based)</li>
-                <li>• currentWorkspace.features - Workspace feature flags</li>
-                <li>• useUserFeatures().features - User feature flags</li>
+              <p className="mb-1 font-bold">
+                max-test, max-users <TypePill type="limit" />
+              </p>
+              <ul className="space-y-0.5">
+                <li>Hard caps (24 tests, 10 users)</li>
+                <li>
+                  <code>useFeatureGate("max-test")</code>
+                </li>
+                <li>SDK checks resource count vs cap</li>
+                <li>
+                  Do NOT call <code>record()</code> for limits
+                </li>
               </ul>
             </div>
             <div>
-              <h3 className="mb-1 font-semibold">3. Check Feature Availability:</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• WhenSubscription - Check active subscription</li>
-                <li>• WhenSubscriptionToPlans - Check specific plan</li>
-                <li>• WhenWorkspaceFeatureEnabled - Check workspace feature</li>
-                <li>• WhenUserFeatureEnabled - Check user feature</li>
-                <li>• WhenRoles / WhenWorkspaceRoles - Check user roles</li>
-                <li>• useUserFeatures().isFeatureEnabled() - Programmatic check</li>
+              <p className="mb-1 font-bold">
+                videos <TypePill type="quota" />
+              </p>
+              <ul className="space-y-0.5">
+                <li>2/month included, $2 overage/100</li>
+                <li>
+                  <code>useFeatureGate("videos", {'{ quotaSlug: "videos" }'})</code>
+                </li>
+                <li>EXHAUSTED state → overage prompt</li>
+                <li>
+                  Call <code>record()</code> on each upload
+                </li>
               </ul>
             </div>
             <div>
-              <h3 className="mb-1 font-semibold">4. Trial Status Gates:</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• useTrialStatus(workspaceId) - Get trial status data</li>
-                <li>• WhenTrialing - Render only when on trial</li>
-                <li>• WhenNotTrialing - Render when not on trial</li>
-                <li>• WhenTrialEnding daysThreshold - Render when trial ending soon</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="mb-1 font-semibold">5. Usage Tracking (Server-side Secure):</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• useServerRecordUsage() → record() — POST /api/saas/usage/record</li>
-                <li>• useServerQuotaStatus(workspaceId, quotaSlug) — GET /api/saas/usage/status</li>
-                <li>• useServerAllQuotas(workspaceId) — GET /api/saas/usage/all</li>
-                <li>• sessionId stays in HttpOnly cookie — never sent from browser</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="mb-1 font-semibold">6. Quota Gate HOCs (wrap feature code):</h3>
-              <ul className="ml-4 space-y-1 text-sm">
-                <li>• WhenQuotaAvailable slug — render when quota not exhausted</li>
-                <li>• WhenQuotaExhausted slug — render when quota is exhausted</li>
-                <li>• WhenQuotaOverage slug — render when in overage</li>
-                <li>• WhenQuotaThreshold slug threshold — render near quota limit</li>
+              <p className="mb-1 font-bold">Gate states</p>
+              <ul className="space-y-0.5">
+                <li>
+                  <code>ok</code> — allow
+                </li>
+                <li>
+                  <code>exhausted</code> — quota over (quotas only)
+                </li>
+                <li>
+                  <code>not_included</code> — upgrade required
+                </li>
+                <li>
+                  <code>not_permitted</code> — role blocked
+                </li>
+                <li>
+                  <code>loading</code> — wait
+                </li>
               </ul>
             </div>
           </div>

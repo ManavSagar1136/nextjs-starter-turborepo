@@ -6,6 +6,7 @@ import { useDebounce } from "@buildbase/ui/hooks/use-debounce";
 
 import {
   DEFAULT_MEDIA_LIBRARY_CONFIG,
+  resolvePermissions,
   type IAsset,
   type IAssetAction,
   type IAssetActionPayload,
@@ -198,6 +199,7 @@ export function MediaLibraryProvider({
         ...DEFAULT_MEDIA_LIBRARY_CONFIG.labels,
         ...configOverrides?.labels,
       },
+      permissions: resolvePermissions(configOverrides?.permissions),
     }),
     [configOverrides]
   );

@@ -23,7 +23,6 @@ export const Routes = {
    * Protected routes - Dashboard and admin features
    */
   dashboard: "/",
-  profile: "/profile",
   users: "/users",
   workspaces: "/workspaces",
 

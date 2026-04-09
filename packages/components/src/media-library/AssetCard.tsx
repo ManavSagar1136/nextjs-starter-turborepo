@@ -61,6 +61,16 @@ interface MenuItemConfig {
   requiresFolders?: boolean;
   requiresTags?: boolean;
   requiresPrivacyToggle?: boolean;
+  /** Hide when the user lacks write permission (canWrite=false). */
+  requiresWrite?: boolean;
+  /** Hide when the user lacks delete permission (canDeleteAssets=false). */
+  requiresDelete?: boolean;
+  /** Hide when the user lacks move permission (canMoveAssets=false). */
+  requiresMove?: boolean;
+  /** Hide when the user lacks tag management permission (canManageTags=false). */
+  requiresTagManagement?: boolean;
+  /** Hide when the user lacks privacy-toggle permission (canTogglePrivacy=false). */
+  requiresTogglePrivacy?: boolean;
 }
 
 function useAssetMenuItems(asset: IAsset, ongoingAction: IAssetAction | null) {
@@ -93,6 +103,7 @@ function useAssetMenuItems(asset: IAsset, ongoingAction: IAssetAction | null) {
         label: "Manage Tags",
         action: ASSET_ACTIONS.ASSIGN_TAGS,
         requiresTags: true,
+        requiresTagManagement: true,
       },
       {
         type: "item",
@@ -100,18 +111,21 @@ function useAssetMenuItems(asset: IAsset, ongoingAction: IAssetAction | null) {
         label: "Move to Folder",
         action: ASSET_ACTIONS.MOVE,
         requiresFolders: true,
+        requiresMove: true,
       },
       {
         type: "item",
         icon: Pencil,
         label: "Edit Metadata",
         action: ASSET_ACTIONS.EDIT_METADATA,
+        requiresWrite: true,
       },
       {
         type: "item",
         icon: Files,
         label: "Duplicate",
         action: ASSET_ACTIONS.DUPLICATE,
+        requiresWrite: true,
       },
       { type: "separator" },
       {
@@ -121,6 +135,7 @@ function useAssetMenuItems(asset: IAsset, ongoingAction: IAssetAction | null) {
         action: ASSET_ACTIONS.TOGGLE_PRIVACY,
         disabled: ongoingAction === ASSET_ACTIONS.TOGGLE_PRIVACY,
         requiresPrivacyToggle: true,
+        requiresTogglePrivacy: true,
       },
       { type: "separator" },
       {
@@ -129,16 +144,25 @@ function useAssetMenuItems(asset: IAsset, ongoingAction: IAssetAction | null) {
         label: "Delete",
         action: ASSET_ACTIONS.DELETE,
         className: "text-destructive focus:text-destructive",
+        requiresDelete: true,
       },
     ];
 
-    // Filter based on config
+    const perms = config.permissions;
+
+    // Filter based on config and permissions
     return items
       .filter(item => {
         if (item.type === "separator") return true;
         if (item.requiresFolders && !config.enableFolders) return false;
         if (item.requiresTags && !config.enableTags) return false;
         if (item.requiresPrivacyToggle && !config.enablePrivacyToggle) return false;
+        // Permission checks
+        if (item.requiresWrite && !perms.canWrite) return false;
+        if (item.requiresDelete && !perms.canDeleteAssets) return false;
+        if (item.requiresMove && !perms.canMoveAssets) return false;
+        if (item.requiresTagManagement && !perms.canManageTags) return false;
+        if (item.requiresTogglePrivacy && !perms.canTogglePrivacy) return false;
         return true;
       })
       .filter((item, index, array) => {

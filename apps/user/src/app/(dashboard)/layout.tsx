@@ -2,6 +2,7 @@ import { withServerAuth } from "@buildbase/helpers/hoc/withServerAuth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { Routes } from "@/data/routes";
 import { DashboardConfigProvider } from "@buildbase/components";
+import { SubscriptionStatusBanner } from "@/components/subscription/SubscriptionStatusBanner";
 
 const menuItemsConfig = [
   {
@@ -31,11 +32,6 @@ const menuItemsConfig = [
     url: "#",
     items: [
       {
-        title: "Profile",
-        url: Routes.profile,
-        iconName: "User",
-      },
-      {
         title: "API Keys",
         url: Routes.apiKeys,
         iconName: "KeyRound",
@@ -53,10 +49,10 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
         text: "User",
         href: Routes.dashboard,
       }}
-      profileRoute={Routes.profile}
       excludeRoutes={[Routes.login]}
       showTeamSwitcher={true}
     >
+      <SubscriptionStatusBanner />
       {children}
     </DashboardConfigProvider>
   );

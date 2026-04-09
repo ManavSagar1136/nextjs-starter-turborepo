@@ -132,6 +132,37 @@ export function isSessionExpiringSoon(session: SaaSSession): boolean {
   return Date.now() >= session.expiresAt - REFRESH_THRESHOLD_MS;
 }
 
+// ─── Server-Side Session Cache (for API-key / server-to-server calls) ────────
+
+/**
+ * Module-level cache for the server session.
+ * Avoids calling fetchNewSession on every API-key request.
+ * Valid for the lifetime of the Node.js process (reset on cold start).
+ */
+let _serverSessionCache: SaaSSession | null = null;
+
+/**
+ * Get (or refresh) the org-level server session without a cookie.
+ * Use this in middleware or route handlers that authenticate via API key
+ * and therefore have no `saas_session` cookie.
+ *
+ * The session is cached in memory and proactively refreshed before it expires.
+ *
+ * @example
+ * const session = await getServerSession();
+ * if (session) {
+ *   await recordUsage({ workspaceId, quotaSlug, quantity, sessionId: session.sessionId });
+ * }
+ */
+export async function getServerSession(baseUrl?: string): Promise<SaaSSession | null> {
+  if (_serverSessionCache && !isSessionExpiringSoon(_serverSessionCache)) {
+    return _serverSessionCache;
+  }
+  const session = await fetchNewSession(baseUrl);
+  _serverSessionCache = session;
+  return session;
+}
+
 // ─── Session Creation / Refresh ───────────────────────────────────────────────
 
 async function fetchNewSession(baseUrl?: string): Promise<SaaSSession | null> {

@@ -234,3 +234,15 @@ export type { UseSDKAuthReturn } from "./hooks/useSDKAuth";
 // Server-side proxy usage hooks (call your app's BE routes, not buildbase directly)
 // Named useServer* to distinguish from the SDK's built-in useRecordUsage / useAllQuotaUsage
 export * from "./hooks/useUsage";
+
+// Client-side limit check hook (reads from SubscriptionContextProvider)
+export * from "./hooks/useLimitCheck";
+
+// Client-side feature gate hook + FEATURE_STATES enum
+export * from "./hooks/useFeatureGate";
+export type { UseFeatureGateOptions, UseFeatureGateReturn, FeatureState } from "./hooks/useFeatureGate";
+
+// Plan slug constants — shared source of truth for client and server
+// Server-side (@buildbase/helpers/auth) re-exports from here to avoid duplication
+export * from "./plan-slugs";
+export type { PlanFeatureSlug, PlanLimitSlug, PlanQuotaSlug } from "./plan-slugs";

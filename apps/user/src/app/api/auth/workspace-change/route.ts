@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AuthenticatedUser, withAuth, createResponseWithAuthToken } from "@buildbase/helpers/auth";
-import { syncWorkspace, addUserToWorkspace, updateUserCurrentWorkspace, DEFAULT_ROLE } from "@buildbase/database/user";
+import {
+  syncWorkspace,
+  addUserToWorkspace,
+  updateUserCurrentWorkspace,
+  getWorkspaceMemberRole,
+  DEFAULT_ROLE,
+} from "@buildbase/database/user";
 
 /**
  * POST /api/auth/workspace-change
@@ -52,8 +58,16 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Workspace ID is required" }, { status: 400 });
     }
 
-    // Extract user role - use provided role or default
-    const userRole = role || DEFAULT_ROLE;
+    // Resolve user's workspace role.
+    // SDK provides role: string | null in OnWorkspaceChangeParams.
+    // If null, read the existing DB membership role to avoid overwriting it with DEFAULT_ROLE.
+    let userRole: string = role || DEFAULT_ROLE;
+    if (!role) {
+      const roleResult = await getWorkspaceMemberRole(userData.sdkUserId, workspaceId);
+      if (roleResult.role) {
+        userRole = roleResult.role;
+      }
+    }
 
     console.log(`[workspace-change] Processing workspace change:`, {
       workspaceId,
@@ -69,6 +83,8 @@ async function postHandler(request: NextRequest) {
       slug: workspace.slug,
       description: workspace.description,
       role: userRole,
+      ...(workspace.features !== undefined && { features: workspace.features }),
+      ...(workspace.limits !== undefined && { limits: workspace.limits }),
     });
 
     if (!workspaceSyncResult.success || !workspaceSyncResult.workspace) {

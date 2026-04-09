@@ -23,7 +23,6 @@ export const Routes = {
    * Protected routes - Dashboard and user features
    */
   dashboard: "/",
-  profile: "/profile",
   assets: "/assets",
   apiKeys: "/settings/api-keys",
 

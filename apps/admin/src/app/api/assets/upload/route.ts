@@ -39,7 +39,7 @@ async function handlePOST(request: NextRequest) {
     // For users: use workspaceId from session
     const ext = filename.split(".").pop() || "";
     const uniqueId = randomUUID();
-    const isAdmin = authenticatedUser.role === "admin";
+    const isAdmin = authenticatedUser.role === APP_ROLES.ADMIN;
     const pathPrefix = isAdmin ? "admin" : authenticatedUser.workspaceId || "admin";
     const path = `${pathPrefix}/${uniqueId}${ext ? `.${ext}` : ""}`;
 

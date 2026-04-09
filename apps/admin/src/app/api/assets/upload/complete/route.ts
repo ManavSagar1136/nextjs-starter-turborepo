@@ -60,7 +60,7 @@ async function handlePOST(request: NextRequest) {
 
     // For admin users: no workspace (or use admin workspace if needed)
     // For regular users: use workspace from session
-    const isAdmin = authenticatedUser.role === "admin";
+    const isAdmin = authenticatedUser.role === APP_ROLES.ADMIN;
 
     if (isAdmin) {
       // Admin uploads: no workspace association, or use admin workspace if needed

@@ -1,28 +1,92 @@
-## Getting Started
+# User App (`apps/user`)
 
-First, run the development server:
+The primary workspace-scoped Next.js app. Users log in here, manage their workspace, and interact with all plan-gated features.
+
+---
+
+## Development
 
 ```bash
 yarn dev
 ```
 
-Open [http://localhost:3101](http://localhost:3101) with your browser to see the result.
+Open [http://localhost:3101](http://localhost:3101) with your browser.
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-To create [API routes](https://nextjs.org/docs/app/building-your-application/routing/router-handlers) add an `api/` directory to the `app/` directory with a `route.ts` file. For individual endpoints, create a subfolder in the `api` directory, like `api/hello/route.ts` would map to [http://localhost:3101/api/hello](http://localhost:3101/api/hello).
+## Subscription Model
 
-## Learn More
+**There is no free plan.** New workspaces start with `null` features/limits in the database and are blocked from all plan-gated operations until a paid subscription or trial is active.
 
-To learn more about Next.js, take a look at the following resources:
+### Workspace lifecycle
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn/foundations/about-nextjs) - an interactive Next.js tutorial.
+| Event                      | `workspace.features`   | `workspace.limits`     | Plan-gated routes  |
+| -------------------------- | ---------------------- | ---------------------- | ------------------ |
+| `workspace:created`        | `null`                 | `null`                 | All blocked — 403  |
+| Trial / subscription start | Populated by Buildbase | Populated by Buildbase | Unblocked per plan |
+| Subscription cancelled     | `{}` (empty)           | `{}` (empty)           | All blocked — 403  |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Trials (7 or 14 days) are configured in the Buildbase dashboard. They fire the same
+`workspace:updated` event as a paid subscription — no code changes needed.
 
-## Deploy on Vercel
+### Client-side note
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_source=github.com&utm_medium=referral&utm_campaign=turborepo-readme) from the creators of Next.js.
+Client hooks (`useFeatureGate`, `useLimitCheck`) read from Buildbase's live `planVersion`.
+When there is no subscription, `planVersion` is `null` and these hooks are fail-open
+on the client (UI shows features as enabled). The server always enforces correctly.
+Add a subscription wall in your dashboard layout to surface the subscribe prompt:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```tsx
+// apps/user/src/app/(dashboard)/layout.tsx
+const { response } = useSubscriptionContext();
+if (!response?.planVersion) {
+  redirect("/billing");
+}
+```
+
+---
+
+## Plan Items
+
+| Type    | Constant                      | Slug            | Controls                               |
+| ------- | ----------------------------- | --------------- | -------------------------------------- |
+| Feature | `PLAN_FEATURES.API_ACCESS`    | `api-access`    | API key creation + programmatic access |
+| Feature | `PLAN_FEATURES.MEDIA_LIBRARY` | `media-library` | File upload + asset management         |
+| Limit   | `PLAN_LIMITS.MAX_API_KEYS`    | `max-api-keys`  | Max active API keys (null = unlimited) |
+| Quota   | `PLAN_QUOTAS.API_CALLS`       | `api-calls`     | Monthly API call budget (metered)      |
+| Quota   | `PLAN_QUOTAS.MEDIA_STORAGE`   | `media-storage` | Storage in MB per billing period       |
+
+See `PLAN_DESIGN.md` (repo root) for the full developer checklist and CLAUDE.md for the complete architectural playbook.
+
+---
+
+## Feature / Plan Gate Architecture
+
+| Layer  | Tool                                                              | Import                                |
+| ------ | ----------------------------------------------------------------- | ------------------------------------- |
+| Server | `withPermissionCheck`, `withPlanCheck`, `withQuotaCheck`          | `@buildbase/helpers/auth`                   |
+| Client | `useFeatureGate`, `useLimitCheck`, `FeatureGate`, `FeatureButton` | `@buildbase/saas-sdk`                       |
+| Roles  | `WORKSPACE_ROLES`, `WhenWorkspaceRoles`                           | `@buildbase/database/user`, `@buildbase/saas-sdk` |
+
+All plan slug constants are defined once in `packages/sass-sdk/src/plan-slugs.ts`.
+
+---
+
+## Key Directories
+
+```
+src/
+  app/
+    (dashboard)/          — Authenticated workspace pages
+    api/
+      auth/               — Auth, workspace, and session handlers
+      v1/                 — Versioned API endpoints (API keys, etc.)
+      saas/usage/         — Quota proxy routes (record, status, all)
+  components/
+    feature-gate/         — FeatureGate, FeatureButton, FeatureAccessDeniedDialog
+    providers/            — SaaSProvider, AppProviders
+  hooks/
+    useSDKAuth.ts         — Workspace-role-aware auth hook (isAdmin, isEditor, isViewer)
+    useInitWorkspace.ts   — Syncs workspaceId/workspaceRole from session on page load
+  store/                  — Redux slice (user state, workspaceId, workspaceRole)
+```

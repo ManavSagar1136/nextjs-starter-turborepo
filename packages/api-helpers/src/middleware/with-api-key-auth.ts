@@ -14,12 +14,28 @@
  *
  * // With required scope
  * export const POST = withApiKeyAuth(async (req, ctx) => { ... }, "products:write");
+ *
+ * // With scope + quota tracking (API_CALLS, 1 per request, block on exhausted)
+ * export const POST = withApiKeyAuth(
+ *   async (req, ctx) => { ... },
+ *   "products:write",
+ *   { quotaSlug: PLAN_QUOTAS.API_CALLS, quantity: 1, source: "api-v1", allowOverage: false }
+ * );
  * ```
+ *
+ * Quota flow (when quotaOptions is provided):
+ *   1. Pre-check quota status — returns 402 if exhausted and allowOverage=false
+ *   2. Run handler
+ *   3. Post-record usage (fire-and-forget) if handler returns 2xx
+ *
+ * Session is obtained from the server-side in-memory cache (getServerSession),
+ * so no per-request token exchange overhead.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { verifyApiKey } from "@buildbase/database";
 import { defaultRateLimiter } from "@buildbase/cache/factory";
+import { getServerSession, recordUsage, getQuotaStatus, type SaaSSession } from "@buildbase/saas-sdk";
 
 export interface ApiKeyContext {
   apiKeyId: string;
@@ -27,6 +43,20 @@ export interface ApiKeyContext {
   workspaceId: string;
   scopes: string[];
   rateLimitPerMinute: number;
+}
+
+export interface ApiKeyQuotaOptions {
+  /** Quota slug to check and record (e.g. PLAN_QUOTAS.API_CALLS). */
+  quotaSlug: string;
+  /** Units to record per request. Defaults to 1. */
+  quantity?: number;
+  /** Source tag recorded with usage (e.g. "api-v1"). */
+  source?: string;
+  /**
+   * When true, the request is allowed even when quota is exhausted (metered overage).
+   * When false (default), the request is blocked with 402.
+   */
+  allowOverage?: boolean;
 }
 
 type ApiRouteHandler = (
@@ -38,7 +68,7 @@ type ApiRouteHandler = (
 // rk_live_ prefix (8 chars) + 64 hex chars = 72 total
 const RAW_KEY_RE = /^rk_live_[0-9a-f]{64}$/;
 
-export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string) {
+export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string, quotaOptions?: ApiKeyQuotaOptions) {
   return async (req: NextRequest, routeCtx?: { params: Promise<Record<string, string>> | Record<string, string> }) => {
     const authHeader = req.headers.get("authorization");
     const apiKeyHeader = req.headers.get("x-api-key");
@@ -137,8 +167,58 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string)
       rateLimitPerMinute: result.rateLimitPerMinute,
     };
 
+    // ── Quota pre-check (if quota tracking is configured) ────────────────────
+    if (quotaOptions) {
+      const { quotaSlug, allowOverage = false, source } = quotaOptions;
+      const session = await getServerSession().catch(() => null);
+
+      if (session) {
+        const statusResult = await getQuotaStatus({
+          workspaceId: result.workspaceId,
+          quotaSlug,
+          sessionId: session.sessionId,
+        });
+
+        if (statusResult.success && statusResult.data) {
+          const { available, hasOverage } = statusResult.data;
+          if (!allowOverage && available <= 0 && !hasOverage) {
+            return NextResponse.json(
+              {
+                error: "Quota Exhausted",
+                message: `You have used all included ${quotaSlug} for this billing period.`,
+                quotaSlug,
+                consumed: statusResult.data.consumed,
+                included: statusResult.data.included,
+                upgradeRequired: true,
+              },
+              { status: 402 }
+            );
+          }
+        }
+      }
+    }
+
     const params = routeCtx?.params instanceof Promise ? await routeCtx.params : routeCtx?.params;
     const response = await handler(req, ctx, params);
+
+    // ── Quota post-record (fire-and-forget after 2xx) ────────────────────────
+    if (quotaOptions && response.status >= 200 && response.status < 300) {
+      const { quotaSlug, quantity = 1, source } = quotaOptions;
+      getServerSession()
+        .then((session: SaaSSession | null) => {
+          if (!session) return;
+          return recordUsage({
+            workspaceId: result.workspaceId,
+            quotaSlug,
+            quantity,
+            sessionId: session.sessionId,
+            source,
+          });
+        })
+        .catch((err: unknown) =>
+          console.error(`[withApiKeyAuth] Failed to record quota "${quotaOptions.quotaSlug}":`, err)
+        );
+    }
 
     // Add rate limit headers to successful responses
     if (response instanceof NextResponse || response instanceof Response) {

@@ -52,9 +52,10 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
                 name: data.user.name || null,
                 image: data.user.image || null,
                 role: data.user.role || null,
-                sdkUserId: userId, // SDK user ID stored for API calls and consistency
+                sdkUserId: userId,
                 workspaceId: data.user.workspaceId || data.user.currentWorkspaceId || null,
                 workspaceName: data.user.workspaceName || null,
+                workspaceRole: (data.user as any).workspaceRole || null,
               })
             );
 
@@ -72,7 +73,34 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
         console.log("*** eventType", eventType);
         console.log("*** data", data);
 
-        // Handle workspace created, updated, deleted, user-added, user-removed, and user-role-changed events
+        // ─── user:created / user:updated ─────────────────────────────────────
+        // Sync user profile to DB and refresh JWT if the event is for the current user.
+        if (eventType === "user:created" || eventType === "user:updated") {
+          const userEventData = data as { user: any; previousUser?: any };
+          if (userEventData.user) {
+            API.auth
+              .handleUserEvent({
+                eventType: eventType as "user:created" | "user:updated",
+                user: userEventData.user,
+                previousUser: userEventData.previousUser,
+              })
+              .then(result => {
+                if (result.success) {
+                  console.log(
+                    `[SaaSProvider] User ${eventType === "user:created" ? "created" : "updated"} synced successfully`
+                  );
+                } else {
+                  console.error(`[SaaSProvider] Failed to sync user event:`, result.error);
+                }
+              })
+              .catch(error => {
+                console.error(`[SaaSProvider] Error handling ${eventType}:`, error);
+              });
+          }
+          return;
+        }
+
+        // ─── workspace events ─────────────────────────────────────────────────
         // Note: workspace:changed is handled by onWorkspaceChange callback, not here
         if (
           eventType === "workspace:created" ||
@@ -157,7 +185,12 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
               .handleWorkspaceEvent(payload)
               .then(result => {
                 if (result.success) {
-                  // Token is managed via HTTP-only cookies, no need to store in localStorage
+                  // If the current user's workspace role changed, update Redux immediately
+                  // so UI (profile badge, permission checks) reflects the new role without a page reload.
+                  if (eventType === "workspace:user-role-changed" && newRole) {
+                    dispatch(updateUser({ workspaceRole: newRole }));
+                  }
+
                   const actionMap: Record<string, string> = {
                     "workspace:created": "created",
                     "workspace:updated": "updated",
@@ -201,12 +234,13 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
             throw new Error(result.error || "Failed to change workspace");
           }
 
-          // Update workspaceId in Redux store from response
+          // Update workspace context in Redux store from response
           if (result.workspace) {
             dispatch(
               updateUser({
                 workspaceId: (result.workspace as any).id,
                 workspaceName: (result.workspace as any).name,
+                workspaceRole: (result.user as any)?.workspaceRole || null,
               })
             );
           }

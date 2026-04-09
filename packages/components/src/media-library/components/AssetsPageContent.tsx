@@ -11,6 +11,7 @@
  */
 
 import { MediaLibrary } from "../MediaLibrary";
+import { useMediaLibrary } from "../context";
 import { useMediaLibraryDialogs } from "../hooks/use-media-library-dialogs";
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import type { IFolderTreeItem, ITag } from "../types";
@@ -110,20 +111,23 @@ export function AssetsPageContent({
     tagsQuery,
   });
 
+  const { config } = useMediaLibrary();
+  const perms = config.permissions;
+
   return (
     <MediaLibrary
       className={className}
-      onUpload={openUpload}
-      onCreateFolder={() => openCreateFolder()}
-      onEditFolder={openEditFolder}
-      onDeleteFolder={handleDeleteFolder}
-      onMoveFolder={openMoveFolder}
-      onBulkDelete={handleBulkDelete}
-      onBulkMove={handleBulkMove}
-      onBulkAssignTags={handleBulkAssignTags}
-      onCreateTag={openCreateTag}
-      onEditTag={openEditTag}
-      onDeleteTag={handleDeleteTag}
+      onUpload={perms.canUpload ? openUpload : undefined}
+      onCreateFolder={perms.canManageFolders ? () => openCreateFolder() : undefined}
+      onEditFolder={perms.canManageFolders ? openEditFolder : undefined}
+      onDeleteFolder={perms.canManageFolders ? handleDeleteFolder : undefined}
+      onMoveFolder={perms.canManageFolders ? openMoveFolder : undefined}
+      onBulkDelete={perms.canBulkActions && perms.canDeleteAssets ? handleBulkDelete : undefined}
+      onBulkMove={perms.canBulkActions && perms.canMoveAssets ? handleBulkMove : undefined}
+      onBulkAssignTags={perms.canBulkActions && perms.canManageTags ? handleBulkAssignTags : undefined}
+      onCreateTag={perms.canManageTags ? openCreateTag : undefined}
+      onEditTag={perms.canManageTags ? openEditTag : undefined}
+      onDeleteTag={perms.canManageTags ? handleDeleteTag : undefined}
     />
   );
 }

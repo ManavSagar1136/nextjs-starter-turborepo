@@ -5,10 +5,11 @@ export interface UserState {
   email: string | null;
   name: string | null;
   image: string | null;
-  role: string | null;
+  role: string | null; // APP_ROLE: "admin" | "user"
   sdkUserId: string | null;
   workspaceId: string | null;
   workspaceName: string | null;
+  workspaceRole: string | null; // WORKSPACE_ROLE: "admin" | "editor" | "viewer"
 }
 
 const initialState: UserState = {
@@ -20,6 +21,7 @@ const initialState: UserState = {
   sdkUserId: null,
   workspaceId: null,
   workspaceName: null,
+  workspaceRole: null,
 };
 
 const userSlice = createSlice({

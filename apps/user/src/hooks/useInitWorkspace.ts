@@ -18,16 +18,17 @@ export function useInitWorkspace() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // Only fetch if user is authenticated but workspaceId is missing
-    if (user.id && !user.workspaceId) {
+    // Fetch session if workspaceId or workspaceRole is missing so the store stays in sync after page refresh
+    if (user.id && (!user.workspaceId || !user.workspaceRole)) {
       API.auth
         .getSession()
         .then(session => {
-          if (session.authenticated && session.user?.workspaceId) {
+          if (session.authenticated && session.user) {
             dispatch(
               updateUser({
-                workspaceId: session.user.workspaceId,
+                workspaceId: session.user.workspaceId || null,
                 workspaceName: session.user.workspaceName || null,
+                workspaceRole: session.user.workspaceRole || null,
               })
             );
           }
@@ -36,5 +37,5 @@ export function useInitWorkspace() {
           console.error("Failed to initialize workspace:", error);
         });
     }
-  }, [user.id, user.workspaceId, dispatch]);
+  }, [user.id, user.workspaceId, user.workspaceRole, dispatch]);
 }

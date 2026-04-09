@@ -89,16 +89,23 @@ export const syncAllWorkspaces = async (
         }
       }
 
-      // Update user's current workspace if provided
+      // Update user's current workspace if provided — only if the workspace is still active.
+      // Soft-deleted workspaces (isActive=false) remain in DB but must not be set as current.
       if (defaultWorkspaceId) {
         const defaultWorkspace = await tx.workspace.findUnique({
           where: { sdkWorkspaceId: defaultWorkspaceId },
         });
 
-        if (defaultWorkspace) {
+        if (defaultWorkspace && defaultWorkspace.isActive) {
           await tx.user.update({
             where: { sdkUserId },
             data: { currentWorkspaceId: defaultWorkspace.id },
+          });
+        } else if (defaultWorkspace && !defaultWorkspace.isActive) {
+          // Workspace was deleted — clear the stale pointer
+          await tx.user.updateMany({
+            where: { sdkUserId, currentWorkspaceId: defaultWorkspace.id },
+            data: { currentWorkspaceId: null },
           });
         }
       }

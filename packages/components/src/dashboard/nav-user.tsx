@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@buildbase/ui/components/ui/avatar";
@@ -21,9 +20,10 @@ import { useSDKAuth } from "@buildbase/saas-sdk";
 
 export interface NavUserProps {
   /**
-   * Profile route path
+   * Whether to show the Profile menu item. Defaults to true.
+   * Set to false for apps where profile is managed elsewhere (e.g. admin app).
    */
-  profileRoute: string;
+  showProfile?: boolean;
   /**
    * Optional custom logout handler
    * If provided, this will be used instead of the SDK's signOut
@@ -40,41 +40,32 @@ export interface NavUserProps {
  *
  * @example
  * ```tsx
- * <NavUser profileRoute="/profile" />
+ * <NavUser />
  *
  * // Or with custom logout handler
  * <NavUser
- *   profileRoute="/profile"
  *   onLogout={async () => {
- *     // Custom logout logic
  *     await customLogout();
  *   }}
  * />
  * ```
  */
-export function NavUser({ profileRoute, onLogout }: NavUserProps) {
+export function NavUser({ onLogout, showProfile = true }: NavUserProps) {
   const { isMobile } = useSidebar();
-  const router = useRouter();
   const { isLoading, isAuthenticated, user } = useAuth();
-  const { signOut } = useSDKAuth();
+  const { signOut, openWorkspaceSettings } = useSDKAuth();
 
   const handleSignOut = useCallback(async () => {
     if (onLogout) {
-      // Use custom logout handler if provided
       await onLogout();
     } else {
-      // Use SDK's signOut which triggers onSignOut callback in SaaSProvider
-      // This handles: Redux cleanup, API logout, and page reload
       await signOut();
     }
   }, [onLogout, signOut]);
 
-  const handleNavigateToProfile = useCallback(() => {
-    if (!profileRoute) {
-      throw new Error("No profile route provided");
-    }
-    router.push(profileRoute);
-  }, [profileRoute, router]);
+  const handleOpenProfile = useCallback(() => {
+    openWorkspaceSettings("profile");
+  }, [openWorkspaceSettings]);
 
   if (isLoading) {
     return (
@@ -129,10 +120,12 @@ export function NavUser({ profileRoute, onLogout }: NavUserProps) {
                   </div>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuItem className="gap-2 p-2" onClick={handleNavigateToProfile}>
-                <User className="size-4" />
-                Profile
-              </DropdownMenuItem>
+              {showProfile && (
+                <DropdownMenuItem className="gap-2 p-2" onClick={handleOpenProfile}>
+                  <User className="size-4" />
+                  Profile
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuItem className="gap-2" onClick={handleSignOut}>
               <LogOut className="size-4" />

@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AuthenticatedUser, withAuth } from "@buildbase/helpers/auth";
-import { syncWorkspace, syncUser, addUserToWorkspace, DEFAULT_ROLE, WORKSPACE_ROLES } from "@buildbase/database/user";
+import {
+  syncWorkspace,
+  syncUser,
+  addUserToWorkspace,
+  deleteWorkspace,
+  removeUserFromWorkspace,
+  updateWorkspaceMemberRole,
+  getWorkspaceMemberRole,
+  getWorkspaceBySdkId,
+  DEFAULT_ROLE,
+  WORKSPACE_ROLES,
+} from "@buildbase/database/user";
 import { createResponseWithAuthToken } from "@buildbase/helpers/auth";
-import { prisma } from "@buildbase/database";
 
 async function postHandler(request: NextRequest) {
   try {
@@ -60,7 +70,6 @@ async function postHandler(request: NextRequest) {
 
     // For workspace:deleted, if workspace is not provided, check if the body itself is the workspace
     if (!workspaceId && eventType === "workspace:deleted") {
-      // Sometimes the workspace data might be at the root level
       workspaceId = body.id || body._id || body.workspaceId;
       if (workspaceId) {
         console.log(`[workspace-event] Found workspace ID at root level for deleted event:`, workspaceId);
@@ -81,94 +90,200 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({ error: "Workspace ID is required" }, { status: 400 });
     }
 
-    // For workspace:deleted, handle deletion directly (skip normal sync)
+    // ─── workspace:deleted ────────────────────────────────────────────────────
     if (eventType === "workspace:deleted") {
       try {
         console.log(`[workspace-event] Handling workspace:deleted for workspace ID:`, workspaceId);
 
-        // Find the workspace in our database
-        const existingWorkspace = await prisma.workspace.findUnique({
-          where: { sdkWorkspaceId: workspaceId },
-        });
+        // Only workspace admins call deleteWorkspace — non-admins just refresh their JWT.
+        // Check role before calling deleteWorkspace; after deletion the membership is gone.
+        const callerRoleResult = userData.sdkUserId
+          ? await getWorkspaceMemberRole(userData.sdkUserId, workspaceId)
+          : { role: null };
+        const isWorkspaceAdmin = callerRoleResult.role === WORKSPACE_ROLES.ADMIN;
 
-        console.log(`[workspace-event] Existing workspace found:`, !!existingWorkspace);
-
-        if (!existingWorkspace) {
-          // Workspace doesn't exist in our DB, nothing to delete
-          return NextResponse.json({
-            success: true,
-            message: "Workspace not found in database, nothing to delete",
-          });
+        if (isWorkspaceAdmin) {
+          // deleteWorkspace is idempotent — "not found" just means another caller already ran it.
+          // Do NOT return early here; fall through to JWT refresh so the admin's token is also cleared.
+          await deleteWorkspace(workspaceId);
         }
 
-        // Mark workspace as inactive (soft delete)
-        await prisma.workspace.update({
-          where: { sdkWorkspaceId: workspaceId },
-          data: {
-            isActive: false,
-            updatedAt: new Date(),
-          },
-        });
-
-        // Mark all workspace memberships as inactive
-        await prisma.workspaceMember.updateMany({
-          where: { workspaceId: existingWorkspace.id },
-          data: {
-            isActive: false,
-            removedAt: new Date(),
-            updatedAt: new Date(),
-          },
-        });
-
-        // If this was the current user's active workspace, clear it and update token
-        const isCurrentWorkspace = userData.workspaceId === workspaceId;
-        if (isCurrentWorkspace && userData.sdkUserId) {
-          // Clear current workspace preference
-          await prisma.user.updateMany({
-            where: { sdkUserId: userData.sdkUserId },
-            data: {
-              currentWorkspaceId: null,
-            },
-          });
-
-          // Create response with updated token (without workspace reference)
+        // All users (admin + non-admin) refresh JWT if this was their active workspace.
+        // Use JWT state — deleteWorkspace may have already cleared DB state.
+        if (userData.workspaceId === workspaceId) {
           return createResponseWithAuthToken(
             {
               success: true,
-              user: {
-                ...userData,
-                workspaceId: undefined,
-                workspaceName: undefined,
-              },
+              user: { ...userData, workspaceId: undefined, workspaceName: undefined },
               message: "Workspace deleted and token updated successfully",
             },
-            {
-              ...userData,
-              workspaceId: undefined,
-              workspaceName: undefined,
-            }
+            { ...userData, workspaceId: undefined, workspaceName: undefined }
           );
         }
 
-        return NextResponse.json({
-          success: true,
-          message: "Workspace deleted and synced successfully",
-        });
+        return NextResponse.json({ success: true, message: "Workspace deleted and synced successfully" });
       } catch (error) {
         console.error("Error deleting workspace:", error);
         return NextResponse.json({ error: "Failed to delete workspace" }, { status: 500 });
       }
     }
 
-    // Sync workspace to database (upsert will create if doesn't exist)
-    // This MUST succeed before we can add users to the workspace
-    console.log(`[workspace-event] Syncing workspace ${workspaceId} for event ${eventType}`);
-    let workspaceSyncResult = await syncWorkspace({
+    // ─── workspace:created ────────────────────────────────────────────────────
+    // Handled BEFORE the admin guard: the workspace doesn't exist in DB yet when this
+    // event fires, so getWorkspaceMemberRole would return null and the guard would
+    // incorrectly block the entire sync. The creator is always the workspace admin —
+    // trust workspace.createdBy from the SDK payload.
+    if (eventType === "workspace:created") {
+      // Extract subscriptionStatus from Buildbase workspace payload.
+      // workspace.subscription may be an ISubscription object or just an ID string.
+      const rawSubscription = workspace.subscription;
+      const subscriptionStatus =
+        rawSubscription && typeof rawSubscription === "object"
+          ? ((rawSubscription as any).subscriptionStatus ?? null)
+          : null;
+
+      const workspacePayloadCreated = {
+        id: workspaceId,
+        name: workspace.name || `Workspace ${workspaceId}`,
+        image: workspace.image,
+        slug: workspace.slug,
+        // subscriptionStatus is the authoritative check in withPlanCheck.
+        // null = no subscription yet = all plan-gated routes blocked.
+        subscriptionStatus,
+        features: workspace.features ?? null,
+        limits: workspace.limits ?? null,
+      };
+
+      let createdWorkspace = (await syncWorkspace(workspacePayloadCreated)).workspace;
+      if (!createdWorkspace) {
+        createdWorkspace = (await syncWorkspace(workspacePayloadCreated)).workspace;
+      }
+
+      const workspaceUsers = workspace.users || [];
+      const normalizedUsers: Array<{ _id?: string; id?: string; name?: string; email?: string; image?: string }> =
+        workspaceUsers.map((u: any) => (typeof u === "string" ? { _id: u, id: u } : u));
+
+      if (normalizedUsers.length > 0) {
+        const createdBy = workspace.createdBy;
+        const creatorId = typeof createdBy === "string" ? createdBy : createdBy?._id || createdBy?.id;
+
+        for (const workspaceUser of normalizedUsers) {
+          try {
+            const sdkUserId = workspaceUser._id || workspaceUser.id;
+            if (!sdkUserId) {
+              console.error("Invalid user data:", workspaceUser);
+              continue;
+            }
+
+            const userRole: string = sdkUserId === creatorId ? WORKSPACE_ROLES.ADMIN : DEFAULT_ROLE;
+
+            await syncUser(
+              { id: sdkUserId, email: workspaceUser.email, name: workspaceUser.name, image: workspaceUser.image },
+              false
+            );
+
+            const membershipResult = await addUserToWorkspace(sdkUserId, workspaceId, userRole);
+            if (!membershipResult.success) {
+              console.warn(
+                `[workspace-event] Failed to add user ${sdkUserId} to workspace ${workspaceId}:`,
+                membershipResult.error
+              );
+              // Emergency: workspace may not exist yet — try one more sync
+              const errorMsg = membershipResult.error?.toString() || "";
+              if (errorMsg.includes("workspace not found") || errorMsg.includes("Workspace not found")) {
+                const emergencySync = await syncWorkspace(workspacePayloadCreated);
+                if (emergencySync.success && emergencySync.workspace) {
+                  createdWorkspace = emergencySync.workspace;
+                  await addUserToWorkspace(sdkUserId, workspaceId, userRole);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`Error syncing workspace user ${workspaceUser._id || workspaceUser.id}:`, error);
+          }
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        workspace: createdWorkspace,
+        message: "Workspace created and synced successfully",
+      });
+    }
+
+    // ─── Workspace admin guard ────────────────────────────────────────────────
+    // Only workspace admins perform full DB sync. Viewers/editors only refresh their
+    // own JWT for events that directly affect their session — the admin's call already
+    // handles all DB state for the workspace.
+    const callerRoleResult = userData.sdkUserId
+      ? await getWorkspaceMemberRole(userData.sdkUserId, workspaceId)
+      : { role: null };
+    const isWorkspaceAdmin = callerRoleResult.role === WORKSPACE_ROLES.ADMIN;
+
+    if (!isWorkspaceAdmin) {
+      console.log(
+        `[workspace-event] Non-admin caller (role: ${callerRoleResult.role ?? "none"}) for event ${eventType} — skipping DB sync, refreshing JWT only if needed`
+      );
+
+      // workspace:updated — refresh JWT name if this is the caller's active workspace
+      if (eventType === "workspace:updated" && userData.workspaceId === workspaceId) {
+        const updatedUserData = {
+          ...userData,
+          workspaceName: workspace.name || userData.workspaceName,
+        };
+        return createResponseWithAuthToken(
+          { success: true, message: "Workspace updated, token refreshed" },
+          updatedUserData
+        );
+      }
+
+      // workspace:user-removed — clear JWT workspace if the caller was removed from their active workspace
+      if (
+        eventType === "workspace:user-removed" &&
+        userData.sdkUserId === userId &&
+        userData.workspaceId === workspaceId
+      ) {
+        return createResponseWithAuthToken(
+          { success: true, message: "Removed from workspace, token updated" },
+          { ...userData, workspaceId: undefined, workspaceName: undefined }
+        );
+      }
+
+      // workspace:user-role-changed — update JWT workspace role only if it's the caller's own role in their active workspace
+      if (
+        eventType === "workspace:user-role-changed" &&
+        userData.sdkUserId === userId &&
+        userData.workspaceId === workspaceId
+      ) {
+        return createResponseWithAuthToken(
+          { success: true, message: "Role updated, token refreshed" },
+          { ...userData, workspaceRole: newRole } // workspace-level role — never overwrite APP_ROLE (userData.role)
+        );
+      }
+
+      // workspace:user-added — admin handles all DB ops; the added user gets context via workspace:change
+      return NextResponse.json({ success: true, message: "Event acknowledged" });
+    }
+
+    // ─── Admin path: full DB sync ─────────────────────────────────────────────
+    // Persist subscriptionStatus + features/limits on workspace:updated so plan
+    // enforcement always reflects the current Buildbase subscription state.
+    const rawSub = workspace.subscription;
+    const resolvedSubscriptionStatus =
+      rawSub && typeof rawSub === "object" ? ((rawSub as any).subscriptionStatus ?? null) : null;
+
+    const workspacePayload = {
       id: workspaceId,
       name: workspace.name || `Workspace ${workspaceId}`,
       image: workspace.image,
       slug: workspace.slug,
-    });
+      subscriptionStatus: resolvedSubscriptionStatus,
+      ...(workspace.features !== undefined && { features: workspace.features }),
+      ...(workspace.limits !== undefined && { limits: workspace.limits }),
+    };
+
+    console.log(`[workspace-event] Syncing workspace ${workspaceId} for event ${eventType}`);
+    let workspaceSyncResult = await syncWorkspace(workspacePayload);
 
     console.log(`[workspace-event] Initial sync result:`, {
       success: workspaceSyncResult.success,
@@ -176,15 +291,10 @@ async function postHandler(request: NextRequest) {
       error: workspaceSyncResult.error,
     });
 
-    // If workspace sync failed, retry it before proceeding
+    // Retry once if initial sync failed
     if (!workspaceSyncResult.success || !workspaceSyncResult.workspace) {
       console.warn(`[workspace-event] Initial workspace sync failed, retrying... Error:`, workspaceSyncResult.error);
-      workspaceSyncResult = await syncWorkspace({
-        id: workspaceId,
-        name: workspace.name || `Workspace ${workspaceId}`,
-        image: workspace.image,
-        slug: workspace.slug,
-      });
+      workspaceSyncResult = await syncWorkspace(workspacePayload);
       console.log(`[workspace-event] Retry sync result:`, {
         success: workspaceSyncResult.success,
         hasWorkspace: !!workspaceSyncResult.workspace,
@@ -192,26 +302,19 @@ async function postHandler(request: NextRequest) {
       });
     }
 
-    // If workspace still doesn't exist, try to fetch it from database
+    // If still not synced, fall back to a DB fetch
     let finalWorkspace = workspaceSyncResult.workspace;
     if (!finalWorkspace) {
       try {
         console.log(`[workspace-event] Workspace not in sync result, checking database...`);
-        const fetchedWorkspace = await prisma.workspace.findUnique({
-          where: { sdkWorkspaceId: workspaceId },
-        });
-        if (fetchedWorkspace) {
+        const fetchResult = await getWorkspaceBySdkId(workspaceId);
+        if (fetchResult.workspace) {
           console.log(`[workspace-event] Found workspace in database`);
-          finalWorkspace = fetchedWorkspace;
+          finalWorkspace = fetchResult.workspace;
         } else {
-          // Last resort: try one more time to create the workspace
+          // Last resort: one more sync attempt
           console.warn(`[workspace-event] Workspace not found in database, attempting final sync...`);
-          const finalSyncResult = await syncWorkspace({
-            id: workspaceId,
-            name: workspace.name || `Workspace ${workspaceId}`,
-            image: workspace.image,
-            slug: workspace.slug,
-          });
+          const finalSyncResult = await syncWorkspace(workspacePayload);
           console.log(`[workspace-event] Final sync result:`, {
             success: finalSyncResult.success,
             hasWorkspace: !!finalSyncResult.workspace,
@@ -220,161 +323,46 @@ async function postHandler(request: NextRequest) {
           if (finalSyncResult.success && finalSyncResult.workspace) {
             finalWorkspace = finalSyncResult.workspace;
           } else {
-            console.error(
-              `[workspace-event] Failed to create workspace after multiple attempts. Error:`,
-              finalSyncResult.error
-            );
-            // Don't return error - continue and try to create workspace during user sync
+            console.error(`[workspace-event] Failed to create workspace after multiple attempts.`);
             console.warn(`[workspace-event] Continuing anyway - workspace may be created during user sync`);
           }
         }
       } catch (error) {
         console.error(`[workspace-event] Error fetching workspace:`, error);
-        // Don't return error - continue and try to create workspace during user sync
         console.warn(`[workspace-event] Continuing anyway - workspace may be created during user sync`);
       }
     } else {
       console.log(`[workspace-event] Workspace successfully synced:`, finalWorkspace.id);
     }
 
-    // Normalize users - handle both array of objects and array of IDs
-    const workspaceUsers = workspace.users || [];
-    const normalizedUsers: Array<{
-      _id?: string;
-      id?: string;
-      name?: string;
-      email?: string;
-      image?: string;
-      role?: string;
-    }> = workspaceUsers.map((user: any) => {
-      if (typeof user === "string") {
-        return { _id: user, id: user };
-      }
-      return user;
-    });
-
-    // Sync all users in the workspace
-    // Now that we've ensured the workspace exists, we can safely add users
-    if (normalizedUsers.length > 0) {
-      for (const workspaceUser of normalizedUsers) {
-        try {
-          const sdkUserId = workspaceUser._id || workspaceUser.id;
-          if (!sdkUserId) {
-            console.error("Invalid user data:", workspaceUser);
-            continue;
-          }
-
-          // Determine user role
-          let userRole = workspaceUser.role || DEFAULT_ROLE;
-
-          // For workspace:created, check if user is the creator
-          if (eventType === "workspace:created") {
-            const createdBy = workspace.createdBy;
-            const creatorId = typeof createdBy === "string" ? createdBy : createdBy?._id || createdBy?.id;
-            if (sdkUserId === creatorId) {
-              userRole = WORKSPACE_ROLES.ADMIN;
-            }
-          }
-
-          // Sync user to database - DO NOT update user's base role during workspace events
-          // Workspace membership role is stored separately in WorkspaceMember model
-          await syncUser(
-            {
-              id: sdkUserId,
-              email: workspaceUser.email,
-              name: workspaceUser.name,
-              image: workspaceUser.image,
-              // role is intentionally omitted - user's base role should not be updated during workspace events
-            },
-            false
-          ); // Explicitly set updateRole to false
-
-          // Add user to workspace
-          const membershipResult = await addUserToWorkspace(sdkUserId, workspaceId, userRole);
-          if (!membershipResult.success) {
-            console.warn(
-              `[workspace-event] Failed to add user ${sdkUserId} to workspace ${workspaceId}:`,
-              membershipResult.error
-            );
-            // If workspace doesn't exist, try to create it now
-            const errorMsg = membershipResult.error?.toString() || "";
-            if (errorMsg.includes("workspace not found") || errorMsg.includes("Workspace not found")) {
-              console.log(`[workspace-event] Workspace not found when adding user, attempting to create...`);
-              const emergencySyncResult = await syncWorkspace({
-                id: workspaceId,
-                name: workspace.name || `Workspace ${workspaceId}`,
-                image: workspace.image,
-                slug: workspace.slug,
-              });
-              if (emergencySyncResult.success && emergencySyncResult.workspace) {
-                console.log(`[workspace-event] Workspace created during user sync, retrying add user...`);
-                finalWorkspace = emergencySyncResult.workspace;
-                // Retry adding user to workspace
-                await addUserToWorkspace(sdkUserId, workspaceId, userRole);
-              }
-            }
-          }
-        } catch (error) {
-          const userId = workspaceUser._id || workspaceUser.id;
-          console.error(`Error syncing workspace user ${userId}:`, error);
-          // Continue with other users even if one fails
-        }
-      }
-    }
-
-    // Ensure we have the workspace before proceeding
-    // If we still don't have it, try one final fetch
-    if (!finalWorkspace) {
-      try {
-        const fetchedWorkspace = await prisma.workspace.findUnique({
-          where: { sdkWorkspaceId: workspaceId },
-        });
-        if (fetchedWorkspace) {
-          console.log(`[workspace-event] Found workspace after user sync`);
-          finalWorkspace = fetchedWorkspace;
-        } else {
-          console.error(`[workspace-event] Workspace ${workspaceId} still not found after all attempts`);
-        }
-      } catch (error) {
-        console.error(`[workspace-event] Error in final workspace fetch:`, error);
-      }
-    }
-
-    // For workspace:updated, check if we need to update token
+    // ─── workspace:updated ────────────────────────────────────────────────────
     if (eventType === "workspace:updated") {
-      // Find current user's role in this workspace
+      // Read workspace role from DB — IUser[].role is APP_ROLE, not workspace role.
       let currentUserRole = userData.role || DEFAULT_ROLE;
 
-      const currentUserInWorkspace = normalizedUsers.find((u: any) => {
-        const userId = u._id || u.id;
-        return userId === userData.sdkUserId;
-      });
-
-      if (currentUserInWorkspace) {
-        currentUserRole = currentUserInWorkspace.role || currentUserRole;
-      }
-
-      // Ensure current user is added to workspace
-      if (userData.sdkUserId) {
-        const membershipResult = await addUserToWorkspace(userData.sdkUserId, workspaceId, currentUserRole);
-
-        if (!membershipResult.success) {
-          console.error("Failed to add user to workspace:", membershipResult.error);
+      if (userData.sdkUserId && finalWorkspace) {
+        const roleResult = await getWorkspaceMemberRole(userData.sdkUserId, workspaceId);
+        if (roleResult.role) {
+          currentUserRole = roleResult.role;
         }
       }
 
-      // Check if this is the current user's active workspace
+      // Keep current user's membership active (workspace metadata changed, not role)
+      if (userData.sdkUserId) {
+        const membershipResult = await addUserToWorkspace(userData.sdkUserId, workspaceId, currentUserRole);
+        if (!membershipResult.success) {
+          console.error("Failed to update user workspace membership:", membershipResult.error);
+        }
+      }
+
       const isCurrentWorkspace = userData.workspaceId === workspaceId;
 
-      // Recreate token if it's the current workspace (workspace name/role might have changed)
       if (isCurrentWorkspace) {
-        // Create response with updated token
         const updatedUserData = {
           ...userData,
           workspaceName: workspace.name || userData.workspaceName,
-          role: currentUserRole,
+          workspaceRole: currentUserRole, // workspace-level role — never overwrite APP_ROLE (userData.role)
         };
-
         return createResponseWithAuthToken(
           {
             success: true,
@@ -386,7 +374,6 @@ async function postHandler(request: NextRequest) {
         );
       }
 
-      // For workspace:updated when it's not the current workspace, just return success
       return NextResponse.json({
         success: true,
         workspace: finalWorkspace || workspaceSyncResult.workspace,
@@ -394,16 +381,7 @@ async function postHandler(request: NextRequest) {
       });
     }
 
-    // For workspace:created, just return success (no token recreation needed)
-    if (eventType === "workspace:created") {
-      return NextResponse.json({
-        success: true,
-        workspace: finalWorkspace || workspaceSyncResult.workspace,
-        message: "Workspace created and synced successfully",
-      });
-    }
-
-    // For workspace:user-added, handle user addition to workspace
+    // ─── workspace:user-added ─────────────────────────────────────────────────
     if (eventType === "workspace:user-added") {
       console.log(
         `[workspace-event] Handling workspace:user-added. userId: ${userId}, workspaceId: ${workspaceId}, role: ${role}`
@@ -418,68 +396,33 @@ async function postHandler(request: NextRequest) {
       // Ensure workspace exists
       if (!finalWorkspace) {
         console.warn(`[workspace-event] Workspace not found for user-added event, attempting to sync...`);
-        const workspaceSyncResult = await syncWorkspace({
-          id: workspaceId,
-          name: workspace.name || `Workspace ${workspaceId}`,
-          image: workspace.image,
-          slug: workspace.slug,
-        });
-
-        if (workspaceSyncResult.success && workspaceSyncResult.workspace) {
-          finalWorkspace = workspaceSyncResult.workspace;
+        const retrySync = await syncWorkspace(workspacePayload);
+        if (retrySync.success && retrySync.workspace) {
+          finalWorkspace = retrySync.workspace;
         } else {
-          // Try to fetch from database
-          try {
-            const fetchedWorkspace = await prisma.workspace.findUnique({
-              where: { sdkWorkspaceId: workspaceId },
-            });
-            if (fetchedWorkspace) {
-              finalWorkspace = fetchedWorkspace;
-            } else {
-              return NextResponse.json({ error: "Workspace not found and could not be created" }, { status: 404 });
-            }
-          } catch (error) {
-            console.error(`[workspace-event] Error fetching workspace:`, error);
-            return NextResponse.json({ error: "Failed to sync workspace" }, { status: 500 });
+          const fetchResult = await getWorkspaceBySdkId(workspaceId);
+          if (fetchResult.workspace) {
+            finalWorkspace = fetchResult.workspace;
+          } else {
+            return NextResponse.json({ error: "Workspace not found and could not be created" }, { status: 404 });
           }
         }
       }
 
-      // Get user data from workspace.users array or use the provided userId
-      const workspaceUsers = workspace.users || [];
-      const targetUser = workspaceUsers.find((u: any) => {
-        const uId = u._id || u.id;
-        return uId === userId;
-      });
+      // Sync user profile (DO NOT pass role — IUser.role is APP_ROLE, not workspace role)
+      const targetUser = (workspace.users || []).find((u: any) => (u._id || u.id) === userId);
+      await syncUser(
+        {
+          id: userId,
+          email: targetUser?.email,
+          name: targetUser?.name,
+          image: targetUser?.image,
+        },
+        false
+      );
 
-      // Sync the user to database - DO NOT update user's base role during workspace events
-      if (targetUser) {
-        await syncUser(
-          {
-            id: userId,
-            email: targetUser.email,
-            name: targetUser.name,
-            image: targetUser.image,
-            // role is intentionally omitted - user's base role should not be updated during workspace events
-          },
-          false
-        ); // Explicitly set updateRole to false
-      } else {
-        // If user not in workspace.users, still try to sync with minimal data
-        await syncUser(
-          {
-            id: userId,
-            email: undefined,
-            name: undefined,
-            image: undefined,
-            // role is intentionally omitted - will default to APP_ROLES.USER on creation
-          },
-          false
-        ); // Do not update role during workspace events
-      }
-
-      // Add user to workspace with the specified role
-      const userRole = role || targetUser?.role || DEFAULT_ROLE;
+      // role from event body is the workspace role set by admin
+      const userRole = role || DEFAULT_ROLE;
       const membershipResult = await addUserToWorkspace(userId, workspaceId, userRole);
 
       if (!membershipResult.success) {
@@ -498,7 +441,7 @@ async function postHandler(request: NextRequest) {
       });
     }
 
-    // For workspace:user-removed, handle user removal from workspace
+    // ─── workspace:user-removed ───────────────────────────────────────────────
     if (eventType === "workspace:user-removed") {
       console.log(`[workspace-event] Handling workspace:user-removed for user ${userId} from workspace ${workspaceId}`);
 
@@ -507,90 +450,36 @@ async function postHandler(request: NextRequest) {
       }
 
       try {
-        // Get user and workspace by their SDK IDs
-        const user = await prisma.user.findUnique({
-          where: { sdkUserId: userId },
-        });
+        const result = await removeUserFromWorkspace(userId, workspaceId);
 
-        if (!user) {
-          return NextResponse.json({ error: "User not found" }, { status: 404 });
+        if (!result.success) {
+          const notFound = result.error === "User not found" || result.error === "Workspace not found";
+          return NextResponse.json(
+            { error: result.error || "Failed to remove user" },
+            { status: notFound ? 404 : 500 }
+          );
         }
 
-        // Find workspace
-        const targetWorkspace =
-          finalWorkspace ||
-          (await prisma.workspace.findUnique({
-            where: { sdkWorkspaceId: workspaceId },
-          }));
+        const targetWorkspace = finalWorkspace || result.workspace;
 
-        if (!targetWorkspace) {
-          return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-        }
-
-        // Find the workspace membership
-        const membership = await prisma.workspaceMember.findUnique({
-          where: {
-            userId_workspaceId: {
-              userId: user.id,
-              workspaceId: targetWorkspace.id,
-            },
-          },
-        });
-
-        if (!membership) {
-          // Membership doesn't exist, nothing to remove
-          return NextResponse.json({
-            success: true,
-            message: "User was not a member of the workspace",
-          });
-        }
-
-        // Soft delete the membership (mark as inactive)
-        await prisma.workspaceMember.update({
-          where: {
-            userId_workspaceId: {
-              userId: user.id,
-              workspaceId: targetWorkspace.id,
-            },
-          },
-          data: {
-            isActive: false,
-            removedAt: new Date(),
-            updatedAt: new Date(),
-          },
-        });
-
-        // If this was the user's current workspace, clear it
+        // Use JWT state to decide if the calling user's token needs refreshing.
+        // result.wasCurrentWorkspace may be false if a previous caller already cleared the DB state,
+        // so we check what the calling user's JWT says their active workspace is.
         if (userData.sdkUserId === userId && userData.workspaceId === workspaceId) {
-          await prisma.user.update({
-            where: { sdkUserId: userId },
-            data: {
-              currentWorkspaceId: null,
+          return createResponseWithAuthToken(
+            {
+              success: true,
+              workspace: targetWorkspace,
+              message: "User removed from workspace and token updated successfully",
             },
-          });
-
-          // If it's the current authenticated user, update their token
-          if (userData.sdkUserId === userId) {
-            // Create response with updated token (without workspace reference)
-            return createResponseWithAuthToken(
-              {
-                success: true,
-                workspace: targetWorkspace,
-                message: "User removed from workspace and token updated successfully",
-              },
-              {
-                ...userData,
-                workspaceId: undefined,
-                workspaceName: undefined,
-              }
-            );
-          }
+            { ...userData, workspaceId: undefined, workspaceName: undefined }
+          );
         }
 
         return NextResponse.json({
           success: true,
           workspace: targetWorkspace,
-          message: "User removed from workspace successfully",
+          message: result.message || "User removed from workspace successfully",
         });
       } catch (error) {
         console.error(`[workspace-event] Error removing user from workspace:`, error);
@@ -598,7 +487,7 @@ async function postHandler(request: NextRequest) {
       }
     }
 
-    // For workspace:user-role-changed, handle user role update in workspace
+    // ─── workspace:user-role-changed ──────────────────────────────────────────
     if (eventType === "workspace:user-role-changed") {
       console.log(
         `[workspace-event] Handling workspace:user-role-changed for user ${userId} in workspace ${workspaceId}. Previous role: ${previousRole}, New role: ${newRole}`
@@ -619,70 +508,34 @@ async function postHandler(request: NextRequest) {
       }
 
       try {
-        // Get user and workspace by their SDK IDs
-        const user = await prisma.user.findUnique({
-          where: { sdkUserId: userId },
-        });
+        const result = await updateWorkspaceMemberRole(userId, workspaceId, newRole);
 
-        if (!user) {
-          return NextResponse.json({ error: "User not found" }, { status: 404 });
+        if (!result.success) {
+          return NextResponse.json(
+            { error: result.error || "Failed to update role" },
+            { status: result.error === "User not found" || result.error === "Workspace not found" ? 404 : 500 }
+          );
         }
 
-        // Find workspace
-        const targetWorkspace =
-          finalWorkspace ||
-          (await prisma.workspace.findUnique({
-            where: { sdkWorkspaceId: workspaceId },
-          }));
+        const targetWorkspace = finalWorkspace;
 
-        if (!targetWorkspace) {
-          return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-        }
-
-        // Find or create the workspace membership directly (avoid using addUserToWorkspace which has default role)
-        // Use upsert to handle both create and update in a single atomic operation
-        const updatedMembership = await prisma.workspaceMember.upsert({
-          where: {
-            userId_workspaceId: {
-              userId: user.id,
-              workspaceId: targetWorkspace.id,
-            },
-          },
-          update: {
-            role: newRole, // Directly set the new role without any intermediate default
-            isActive: true, // Ensure membership is active
-            removedAt: null, // Clear removal timestamp if it was set
-            updatedAt: new Date(),
-          },
-          create: {
-            userId: user.id,
-            workspaceId: targetWorkspace.id,
-            role: newRole, // Directly set the new role without any intermediate default
-            isActive: true,
-          },
-        });
-
-        // If this is the current authenticated user and it's their active workspace, update token
+        // If this is the affected user's own active workspace, refresh their JWT
         if (userData.sdkUserId === userId && userData.workspaceId === workspaceId) {
-          // Create response with updated token (with new role)
           return createResponseWithAuthToken(
             {
               success: true,
               workspace: targetWorkspace,
-              membership: updatedMembership,
+              membership: result.membership,
               message: "User role updated in workspace and token refreshed successfully",
             },
-            {
-              ...userData,
-              role: newRole,
-            }
+            { ...userData, workspaceRole: newRole } // workspace-level role — never overwrite APP_ROLE (userData.role)
           );
         }
 
         return NextResponse.json({
           success: true,
           workspace: targetWorkspace,
-          membership: updatedMembership,
+          membership: result.membership,
           message: "User role updated in workspace successfully",
         });
       } catch (error) {

@@ -29,7 +29,7 @@ import { AssetsQuerySync } from "./AssetsQuerySync";
 import { AssetsPageContent } from "./AssetsPageContent";
 import { createMediaLibraryHooks } from "../hooks/use-media-library-queries";
 import { useMediaLibraryDialogs } from "../hooks/use-media-library-dialogs";
-import type { IAsset, IMediaLibraryApi } from "../types";
+import type { IAsset, IMediaLibraryApi, MediaLibraryPermissions } from "../types";
 import { useDialogManager, COMMON_DIALOG_KEYS, type ConfirmationDialogProps } from "@buildbase/dialog-manager";
 
 // ============================================================================
@@ -45,13 +45,28 @@ export interface AssetsPageProps {
   className?: string;
   /** Optional workspace ID */
   workspaceId?: string | null;
+  /**
+   * Role-based write permissions. Defaults to fully permissive.
+   * Pass `{ canWrite: false }` for read-only viewers.
+   *
+   * @example
+   * const { isAdmin, isEditor } = useSDKAuth();
+   * <AssetsPage permissions={{ canWrite: isAdmin || isEditor }} />
+   */
+  permissions?: MediaLibraryPermissions;
 }
 
 // ============================================================================
 // Component
 // ============================================================================
 
-export function AssetsPage({ api, initialFolderId = null, className, workspaceId = null }: AssetsPageProps) {
+export function AssetsPage({
+  api,
+  initialFolderId = null,
+  className,
+  workspaceId = null,
+  permissions,
+}: AssetsPageProps) {
   // Create hooks using the shared factory - memoize to prevent recreation on every render
   // Pass workspaceId as default so all hooks use it
   const hooks = useMemo(() => createMediaLibraryHooks(api, workspaceId), [api, workspaceId]);
@@ -195,6 +210,7 @@ export function AssetsPage({ api, initialFolderId = null, className, workspaceId
       onEditAsset={handleEditAsset}
       onDuplicateAsset={handleDuplicateAsset}
       initialFolderId={initialFolderId}
+      config={permissions ? { permissions } : undefined}
     >
       <AssetsQuerySync setQueryParams={setQueryParams} />
       <AssetActionConnector hooks={hooks} dialogHandlersRef={dialogHandlersRef} workspaceId={workspaceId} />

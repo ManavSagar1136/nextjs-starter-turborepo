@@ -102,7 +102,6 @@ packages/*/yalc.lock
 /prd.json
 /progress.txt
 /ralph.sh
-/CLAUDE.md
 TESTING_PLAN.md
 
 # Ralph runtime files (inside scripts/ralph/)
