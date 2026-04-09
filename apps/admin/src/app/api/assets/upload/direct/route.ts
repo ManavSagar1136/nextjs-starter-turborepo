@@ -47,7 +47,7 @@ async function handlePOST(request: NextRequest) {
     // Build storage path
     const ext = file.name.split(".").pop() || "";
     const uniqueId = randomUUID();
-    const isAdmin = authenticatedUser.role === "admin";
+    const isAdmin = authenticatedUser.role === APP_ROLES.ADMIN;
     const pathPrefix = isAdmin ? "admin" : authenticatedUser.workspaceId || "admin";
     const path = `${pathPrefix}/${uniqueId}${ext ? `.${ext}` : ""}`;
 
