@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "remotion studio src/index.ts",
-    "build": "remotion render src/index.ts Demo out/demo.mp4",
+    "build": "echo 'Video app build skipped — run yarn render or yarn render:all explicitly'",
     "render": "remotion render src/index.ts Demo out/demo.mp4",
     "render:all": "remotion render src/index.ts DemoLandscape out/demo-landscape.mp4 && remotion render src/index.ts DemoSquare out/demo-square.mp4 && remotion render src/index.ts DemoStory out/demo-story.mp4",
     "check-types": "tsc --noEmit",

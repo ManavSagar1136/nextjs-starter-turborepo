@@ -97,11 +97,20 @@ export function useFeatureGate(featureSlug: string, options: UseFeatureGateOptio
     return buildReturn(FEATURE_STATES.LOADING, true);
   }
 
-  // Feature included check — null/undefined means plan data not loaded yet (fail-open)
-  const featureEnabled = response?.planVersion?.features?.[featureSlug];
+  // No active subscription → no features available (fail-closed)
+  // Check subscription directly — planVersion may be non-null even without a paid subscription
+  // (Buildbase may provide a default plan version for unsubscribed workspaces)
+  const ACTIVE_STATUSES = new Set(["active", "trialing"]);
+  const subscription = response?.subscription;
+  const hasActiveSubscription = subscription != null && ACTIVE_STATUSES.has(subscription.subscriptionStatus);
 
-  // If plan data is loaded and feature is explicitly false → not included
-  if (response?.planVersion && featureEnabled === false) {
+  if (!hasActiveSubscription) {
+    return buildReturn(FEATURE_STATES.NOT_INCLUDED, false);
+  }
+
+  // Active subscription — feature must be explicitly true on the plan version
+  const featureEnabled = response?.planVersion?.features?.[featureSlug];
+  if (featureEnabled !== true) {
     return buildReturn(FEATURE_STATES.NOT_INCLUDED, false);
   }
 
