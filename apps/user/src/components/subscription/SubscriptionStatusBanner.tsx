@@ -98,8 +98,8 @@ export function SubscriptionStatusBanner() {
     );
   }
 
-  // Cancellation scheduled
-  if (isCanceled && !subscription.cancelAtPeriodEnd && dismissed !== "canceled") {
+  // Cancellation scheduled — active subscription set to cancel at period end
+  if (isCanceled && subscription.cancelAtPeriodEnd && dismissed !== "canceled") {
     const endDate = subscription.stripeCurrentPeriodEnd
       ? new Date(subscription.stripeCurrentPeriodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric" })
       : "end of period";
