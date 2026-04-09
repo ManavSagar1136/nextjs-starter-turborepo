@@ -134,13 +134,24 @@ async function postHandler(request: NextRequest) {
     // incorrectly block the entire sync. The creator is always the workspace admin —
     // trust workspace.createdBy from the SDK payload.
     if (eventType === "workspace:created") {
+      // Extract subscriptionStatus from Buildbase workspace payload.
+      // workspace.subscription may be an ISubscription object or just an ID string.
+      const rawSubscription = workspace.subscription;
+      const subscriptionStatus =
+        rawSubscription && typeof rawSubscription === "object"
+          ? ((rawSubscription as any).subscriptionStatus ?? null)
+          : null;
+
       const workspacePayloadCreated = {
         id: workspaceId,
         name: workspace.name || `Workspace ${workspaceId}`,
         image: workspace.image,
         slug: workspace.slug,
-        ...(workspace.features !== undefined && { features: workspace.features }),
-        ...(workspace.limits !== undefined && { limits: workspace.limits }),
+        // subscriptionStatus is the authoritative check in withPlanCheck.
+        // null = no subscription yet = all plan-gated routes blocked.
+        subscriptionStatus,
+        features: workspace.features ?? null,
+        limits: workspace.limits ?? null,
       };
 
       let createdWorkspace = (await syncWorkspace(workspacePayloadCreated)).workspace;
@@ -255,12 +266,18 @@ async function postHandler(request: NextRequest) {
     }
 
     // ─── Admin path: full DB sync ─────────────────────────────────────────────
-    // Include features/limits so plan data is persisted on workspace:updated
+    // Persist subscriptionStatus + features/limits on workspace:updated so plan
+    // enforcement always reflects the current Buildbase subscription state.
+    const rawSub = workspace.subscription;
+    const resolvedSubscriptionStatus =
+      rawSub && typeof rawSub === "object" ? ((rawSub as any).subscriptionStatus ?? null) : null;
+
     const workspacePayload = {
       id: workspaceId,
       name: workspace.name || `Workspace ${workspaceId}`,
       image: workspace.image,
       slug: workspace.slug,
+      subscriptionStatus: resolvedSubscriptionStatus,
       ...(workspace.features !== undefined && { features: workspace.features }),
       ...(workspace.limits !== undefined && { limits: workspace.limits }),
     };

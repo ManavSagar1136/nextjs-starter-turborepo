@@ -3,6 +3,7 @@ export { syncWorkspace } from "./sync-workspace";
 export { syncUser } from "./sync-user";
 export { getWorkspaceWithMembers } from "./get-workspace-with-members";
 export { getWorkspaceBySdkId } from "./get-workspace-by-sdk-id";
+export { getWorkspacePlan } from "./get-workspace-plan";
 export { getUserWithWorkspaces } from "./get-user-with-workspaces";
 export { addUserToWorkspace } from "./add-user-to-workspace";
 export { updateUserCurrentWorkspace } from "./update-user-current-workspace";

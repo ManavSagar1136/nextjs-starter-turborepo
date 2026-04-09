@@ -8,7 +8,12 @@ model Workspace {
   description    String? // Workspace description
   isActive       Boolean @default(true) // Soft delete flag
 
-  // Plan enforcement — synced from Buildbase SDK on subscription change
+  // Subscription — synced from Buildbase SDK on subscription change
+  // subscriptionStatus: 'active' | 'trialing' | 'canceled' | 'past_due' | 'paused' | 'incomplete' | 'unpaid' | null
+  // null = no subscription has ever been created for this workspace
+  subscriptionStatus String? // Buildbase subscription status (authoritative subscription check)
+
+  // Plan enforcement — synced alongside subscriptionStatus on workspace:updated
   // features: { [slug: string]: boolean }  e.g. { "api-access": true }
   // limits:   { [slug: string]: number | null }  null = unlimited
   features Json? // feature flags from subscription plan

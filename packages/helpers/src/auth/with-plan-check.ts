@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@buildbase/database";
+import { getWorkspacePlan } from "@buildbase/database/user";
 
 /**
  * Options for withPlanCheck middleware.
@@ -64,11 +64,7 @@ export function withPlanCheck<T extends any[]>(
       return handler(request, ...args);
     }
 
-    // Fetch only the plan snapshot fields — avoids loading relations
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: dbWorkspaceId },
-      select: { features: true, limits: true },
-    });
+    const { workspace } = await getWorkspacePlan(dbWorkspaceId);
 
     if (!workspace) {
       return NextResponse.json({ error: "Not Found", message: "Workspace not found" }, { status: 404 });
@@ -77,12 +73,26 @@ export function withPlanCheck<T extends any[]>(
     const features = (workspace.features ?? {}) as Record<string, boolean>;
     const limits = (workspace.limits ?? {}) as Record<string, number | null>;
 
+    // Use subscriptionStatus as the authoritative subscription check.
+    // 'active' and 'trialing' = workspace has an active paid plan or trial.
+    // Any other status (canceled, past_due, paused, null, etc.) = no access.
+    const ACTIVE_STATUSES = new Set(["active", "trialing"]);
+    const hasSubscription = workspace.subscriptionStatus != null && ACTIVE_STATUSES.has(workspace.subscriptionStatus);
+
     // ── Feature check ────────────────────────────────────────────────────────
     if (options.feature) {
-      // If features object has no data yet (subscription not synced), let through.
-      // Once a subscription is assigned, syncWorkspace will populate it.
-      const hasData = Object.keys(features).length > 0;
-      if (hasData && features[options.feature] !== true) {
+      if (!hasSubscription) {
+        return NextResponse.json(
+          {
+            error: "No Active Subscription",
+            message: "An active subscription or trial is required to use this feature.",
+            subscriptionStatus: workspace.subscriptionStatus ?? "none",
+            upgradeRequired: true,
+          },
+          { status: 403 }
+        );
+      }
+      if (features[options.feature] !== true) {
         return NextResponse.json(
           {
             error: "Feature Not Available",
@@ -99,13 +109,23 @@ export function withPlanCheck<T extends any[]>(
     if (options.limit) {
       const { slug, countFn } = options.limit;
 
-      // If limits object has no data yet (subscription not synced), let through.
-      const hasData = Object.keys(limits).length > 0;
-      if (hasData && slug in limits) {
+      if (!hasSubscription) {
+        return NextResponse.json(
+          {
+            error: "No Active Subscription",
+            message: "An active subscription or trial is required to use this feature.",
+            subscriptionStatus: workspace.subscriptionStatus ?? "none",
+            upgradeRequired: true,
+          },
+          { status: 403 }
+        );
+      }
+
+      if (slug in limits) {
         const max = limits[slug];
 
         if (max !== null && max !== undefined) {
-          // null/undefined = unlimited
+          // null = unlimited on this plan tier — skip count check
           const current = await countFn(dbWorkspaceId);
 
           if (current >= max) {
@@ -123,6 +143,7 @@ export function withPlanCheck<T extends any[]>(
           }
         }
       }
+      // slug not in limits AND subscription exists → this plan has no ceiling for this resource
     }
 
     return handler(request, ...args);
