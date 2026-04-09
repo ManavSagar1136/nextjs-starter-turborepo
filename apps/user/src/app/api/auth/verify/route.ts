@@ -51,9 +51,10 @@ export async function POST(request: NextRequest) {
     if (workspaces && Array.isArray(workspaces) && workspaces.length > 0) {
       // Transform workspaces to SDKWorkspaceData format
       const workspaceData: SDKWorkspaceData[] = workspaces.map((ws: any) => {
-        // Find user's role in this workspace
-        const userInWorkspace = ws.users?.find((u: any) => u._id === userData.id || u.id === userData.id);
-        const userRole = userInWorkspace?.role || ws.role || WORKSPACE_ROLES.VIEWER;
+        // Prefer ws.role (SDK-provided workspace role for this user) over ws.users[].role.
+        // IUser.role in the users array is the APP_ROLE ("user"/"admin"), not the workspace role.
+        // Using it here would corrupt every member's workspace role on every login.
+        const userRole = ws.role || WORKSPACE_ROLES.VIEWER;
 
         return {
           id: ws.id || ws._id || ws.workspaceId,
