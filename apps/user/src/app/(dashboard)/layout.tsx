@@ -2,6 +2,7 @@ import { withServerAuth } from "@buildbase/helpers/hoc/withServerAuth";
 import { APP_ROLES } from "@buildbase/database/user";
 import { Routes } from "@/data/routes";
 import { DashboardConfigProvider } from "@buildbase/components";
+import { SubscriptionStatusBanner } from "@/components/subscription/SubscriptionStatusBanner";
 
 const menuItemsConfig = [
   {
@@ -57,6 +58,7 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
       excludeRoutes={[Routes.login]}
       showTeamSwitcher={true}
     >
+      <SubscriptionStatusBanner />
       {children}
     </DashboardConfigProvider>
   );
