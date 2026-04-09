@@ -30,7 +30,8 @@
   "dependencies": {
     "@buildbase/cache": "*",
     "@buildbase/database": "*",
-    "@buildbase/env": "*"
+    "@buildbase/env": "*",
+    "@buildbase/saas-sdk": "*"
   },
   "devDependencies": {
     "@buildbase/eslint-config": "*",

@@ -35,7 +35,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyApiKey } from "@buildbase/database";
 import { defaultRateLimiter } from "@buildbase/cache/factory";
-import { getServerSession, recordUsage, getQuotaStatus } from "@buildbase/saas-sdk";
+import { getServerSession, recordUsage, getQuotaStatus, type SaaSSession } from "@buildbase/saas-sdk";
 
 export interface ApiKeyContext {
   apiKeyId: string;
@@ -205,7 +205,7 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string,
     if (quotaOptions && response.status >= 200 && response.status < 300) {
       const { quotaSlug, quantity = 1, source } = quotaOptions;
       getServerSession()
-        .then(session => {
+        .then((session: SaaSSession | null) => {
           if (!session) return;
           return recordUsage({
             workspaceId: result.workspaceId,
