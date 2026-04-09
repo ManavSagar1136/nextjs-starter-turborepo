@@ -783,7 +783,6 @@ export default function TestSubscriptionHocsPage() {
                   variant="outline"
                   size="sm"
                   denialDescription="Enterprise SSO lets your team log in via Okta, Azure AD, or Google Workspace. Available on Enterprise plans."
-                  upgradePath="/settings/billing"
                 >
                   Configure SSO
                 </FeatureButton>

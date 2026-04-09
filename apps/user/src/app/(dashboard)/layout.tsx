@@ -32,11 +32,6 @@ const menuItemsConfig = [
     url: "#",
     items: [
       {
-        title: "Profile",
-        url: Routes.profile,
-        iconName: "User",
-      },
-      {
         title: "API Keys",
         url: Routes.apiKeys,
         iconName: "KeyRound",
@@ -54,7 +49,6 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
         text: "User",
         href: Routes.dashboard,
       }}
-      profileRoute={Routes.profile}
       excludeRoutes={[Routes.login]}
       showTeamSwitcher={true}
     >

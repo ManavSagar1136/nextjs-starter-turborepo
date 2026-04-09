@@ -30,10 +30,6 @@ interface DashboardConfigProviderProps extends Omit<DashboardLayoutProps, "menuI
    */
   menuItemsConfig: MenuItemConfig[];
   /**
-   * Profile route path (required)
-   */
-  profileRoute: string;
-  /**
    * Optional custom logout handler
    * If not provided, SDK's signOut will be used (triggers onSignOut callback in SaaSProvider)
    */

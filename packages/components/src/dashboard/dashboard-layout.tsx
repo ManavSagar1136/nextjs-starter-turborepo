@@ -25,10 +25,6 @@ import type { DashboardLayoutProps } from "./types";
 
 export interface DashboardLayoutComponentProps extends DashboardLayoutProps {
   /**
-   * Profile route path
-   */
-  profileRoute: string;
-  /**
    * Optional custom logout handler
    * If provided, this will be used instead of the SDK's signOut
    * Otherwise, the SDK's signOut will be used (which triggers onSignOut callback in SaaSProvider)
@@ -75,7 +71,6 @@ export function DashboardLayout({
   className,
   sidebarClassName,
   contentClassName,
-  profileRoute,
   onLogout,
 }: DashboardLayoutComponentProps) {
   return (
@@ -107,7 +102,7 @@ export function DashboardLayout({
         </SidebarContent>
         <SidebarFooter>
           <ThemeToggle />
-          <NavUser profileRoute={profileRoute} onLogout={onLogout} />
+          <NavUser onLogout={onLogout} />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className={contentClassName || "flex h-[calc(100dvh-theme(spacing.14))] flex-col overflow-hidden"}>

@@ -133,7 +133,6 @@ async function ProtectedLayout({ children }: { children: React.ReactNode }) {
         text: "Admin",
         href: Routes.dashboard,
       }}
-      profileRoute={Routes.profile}
       excludeRoutes={[Routes.login]}
     >
       {children}
