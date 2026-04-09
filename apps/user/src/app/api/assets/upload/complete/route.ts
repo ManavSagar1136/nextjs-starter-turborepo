@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withPermissionCheck, withPlanCheck, withQuotaCheck, PLAN_FEATURES, PLAN_QUOTAS } from "@buildbase/helpers/auth";
+import { withPermissionCheck, withPlanCheck, PLAN_FEATURES } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getStorage } from "@buildbase/storage";
 import { AssetsRepository } from "@buildbase/database/assets";
@@ -103,22 +103,16 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// POST: Allow admins and editors to complete asset uploads
-// withPlanCheck — requires media-library feature gate
-// withQuotaCheck — records media storage (MB) used after a successful upload
-export const POST = withPermissionCheck(
-  withPlanCheck(
-    withQuotaCheck(handlePOST, {
-      quotaSlug: PLAN_QUOTAS.MEDIA_STORAGE,
-      // Record 1 MB unit per upload as a baseline; override quantity with actual
-      // file size (in MB) if the upload size is available via req.clone().json().
-      quantity: 1,
-      source: "upload",
-      allowOverage: true, // paid plans bill for storage overage; free plans block at quota limit
-    }),
-    {
-      feature: PLAN_FEATURES.MEDIA_LIBRARY,
-    }
-  ),
-  [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]
-);
+/**
+ * POST /api/assets/upload/complete
+ *
+ * Storage quota was already PRE-CHARGED at /api/assets/upload (signed URL step).
+ * No quota recording here — only the feature gate check remains.
+ *
+ * The pre-charge at /upload is automatically reverted by withQuotaCheck if
+ * this endpoint returns a non-2xx response.
+ */
+export const POST = withPermissionCheck(withPlanCheck(handlePOST, { feature: PLAN_FEATURES.MEDIA_LIBRARY }), [
+  WORKSPACE_ROLES.ADMIN,
+  WORKSPACE_ROLES.EDITOR,
+]);

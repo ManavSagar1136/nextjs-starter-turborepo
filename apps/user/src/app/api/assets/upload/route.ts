@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withPermissionCheck } from "@buildbase/helpers/auth";
+import { withPermissionCheck, withPlanCheck, withQuotaCheck, PLAN_FEATURES, PLAN_QUOTAS } from "@buildbase/helpers/auth";
 import { WORKSPACE_ROLES } from "@buildbase/database/user";
 import { getStorage } from "@buildbase/storage";
-import { AssetsRepository } from "@buildbase/database/assets";
 import { randomUUID } from "crypto";
 
 /**
@@ -56,6 +55,8 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
       data: {
         url: signedUrl,
         path,
+        // Echo back the size so /upload/complete can revert if needed
+        size,
         expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
       },
     });
@@ -65,5 +66,41 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// POST: Allow admins and editors to upload assets
-export const POST = withPermissionCheck(handlePOST, [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]);
+/**
+ * POST /api/assets/upload
+ *
+ * Quota is PRE-CHARGED here (recordTiming: 'pre') — capacity is reserved when the
+ * signed URL is issued, before the client uploads the file to cloud storage.
+ *
+ * Revert behaviour:
+ *   - If THIS handler fails (e.g. storage provider error) → withQuotaCheck auto-reverts
+ *     the pre-charge with a negative record (fire-and-forget).
+ *   - If this handler succeeds but /upload/complete later fails → quota stays charged.
+ *     The file already exists in storage at that point, so the charge is correct.
+ *   - If the client never calls /upload/complete (abandoned / browser crash) → quota
+ *     leaks until the next billing period reset. Acceptable: URL expires in 1 hour and
+ *     the binary may still occupy storage.
+ *
+ * quantity: file size converted from bytes → KB (minimum 1 unit).
+ */
+export const POST = withPermissionCheck(
+  withPlanCheck(
+    withQuotaCheck(handlePOST, {
+      quotaSlug: PLAN_QUOTAS.MEDIA_STORAGE,
+      quantity: async req => {
+        try {
+          const body = await req.clone().json();
+          const sizeBytes: number = body.size ?? 0;
+          return Math.max(1, Math.ceil(sizeBytes / 1024)); // bytes → KB, min 1
+        } catch {
+          return 1; // fallback if body can't be parsed
+        }
+      },
+      source: "upload",
+      allowOverage: true,
+      recordTiming: "pre", // pre-charge: reserve quota before upload starts
+    }),
+    { feature: PLAN_FEATURES.MEDIA_LIBRARY }
+  ),
+  [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.EDITOR]
+);
