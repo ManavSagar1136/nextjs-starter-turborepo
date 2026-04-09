@@ -70,6 +70,9 @@ export {
   // Billing portal (opens Stripe portal — managed by SDK)
   useBillingPortal,
 
+  // Push Notifications
+  usePushNotifications,
+
   // Quota Usage — client-side (uses the signed-in user's session)
   // For server-side secure usage recording, use useServerRecordUsage / route-handlers instead
   QuotaUsageContextProvider,

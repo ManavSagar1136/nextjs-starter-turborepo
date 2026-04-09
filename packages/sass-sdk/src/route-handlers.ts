@@ -25,7 +25,7 @@
  *   GET  /api/saas/usage/all     — query: ?workspaceId=
  */
 import { getOrRefreshSessionFromRequest } from "./session";
-import { recordUsage, getQuotaStatus, getAllQuotas } from "./usage";
+import { recordUsage, getQuotaStatus, getAllQuotas, getUsageLogs } from "./usage";
 
 type RouteHandler = (request: Request) => Promise<Response>;
 
@@ -168,6 +168,59 @@ export function createAllQuotasHandler(options?: { baseUrl?: string }): RouteHan
       workspaceId,
       sessionId: session.sessionId,
       baseUrl: options?.baseUrl,
+    });
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
+
+    return new Response(JSON.stringify(result), {
+      status: result.success ? 200 : 502,
+      headers,
+    });
+  };
+}
+
+// ─── Usage Logs ───────────────────────────────────────────────────────────────
+
+/**
+ * GET handler for fetching paginated usage logs.
+ * Reads session from HttpOnly cookie, workspaceId and optional filters from query params.
+ *
+ * Expected query: ?workspaceId=...&quotaSlug=...&from=...&to=...&source=...&page=...&limit=...
+ * Returns: UsageLogsResponse
+ */
+export function createUsageLogsHandler(options?: { baseUrl?: string }): RouteHandler {
+  return async (request: Request): Promise<Response> => {
+    const { session, setCookieHeader } = await getOrRefreshSessionFromRequest(request, options?.baseUrl);
+
+    if (!session) {
+      return error("No active session. Ensure SAAS_API_TOKEN_SECRET is configured.", 401);
+    }
+
+    const url = new URL(request.url);
+    const workspaceId = url.searchParams.get("workspaceId") ?? "";
+
+    if (!workspaceId) {
+      return error("workspaceId query param is required");
+    }
+
+    const quotaSlug = url.searchParams.get("quotaSlug") ?? undefined;
+    const from = url.searchParams.get("from") ?? undefined;
+    const to = url.searchParams.get("to") ?? undefined;
+    const source = url.searchParams.get("source") ?? undefined;
+    const pageParam = url.searchParams.get("page");
+    const limitParam = url.searchParams.get("limit");
+
+    const result = await getUsageLogs({
+      workspaceId,
+      sessionId: session.sessionId,
+      baseUrl: options?.baseUrl,
+      quotaSlug,
+      from,
+      to,
+      source,
+      page: pageParam ? Number(pageParam) : undefined,
+      limit: limitParam ? Number(limitParam) : undefined,
     });
 
     const headers: Record<string, string> = { "Content-Type": "application/json" };

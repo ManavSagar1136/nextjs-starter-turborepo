@@ -30,7 +30,7 @@
  *   export const GET = createAllQuotasHandler();
  */
 import { useState, useEffect, useCallback } from "react";
-import type { RecordUsageResponse, QuotaStatus, QuotaMap } from "../usage";
+import type { RecordUsageResponse, QuotaStatus, QuotaMap, UsageLogEntry } from "../usage";
 
 const DEFAULT_BASE_PATH = "/api/saas/usage";
 
@@ -100,7 +100,7 @@ export function useServerRecordUsage(options?: { basePath?: string }): UseServer
         setIsLoading(false);
       }
     },
-    [basePath],
+    [basePath]
   );
 
   const reset = useCallback(() => {
@@ -149,7 +149,7 @@ export function useServerQuotaStatus(options: {
 
     const params = new URLSearchParams({ workspaceId, quotaSlug });
     fetch(`${basePath}/status?${params}`)
-      .then((res) => res.json())
+      .then(res => res.json())
       .then((result: { success: boolean; data?: QuotaStatus; message?: string }) => {
         if (cancelled) return;
         if (result.success && result.data) {
@@ -171,7 +171,7 @@ export function useServerQuotaStatus(options: {
     };
   }, [workspaceId, quotaSlug, basePath, tick]);
 
-  const refetch = useCallback(() => setTick((t) => t + 1), []);
+  const refetch = useCallback(() => setTick(t => t + 1), []);
 
   return { data, isLoading, error, refetch };
 }
@@ -210,7 +210,7 @@ export function useServerAllQuotas(options: { workspaceId: string; basePath?: st
 
     const params = new URLSearchParams({ workspaceId });
     fetch(`${basePath}/all?${params}`)
-      .then((res) => res.json())
+      .then(res => res.json())
       .then((result: { success: boolean; quotas?: QuotaMap; message?: string }) => {
         if (cancelled) return;
         if (result.success && result.quotas) {
@@ -232,7 +232,107 @@ export function useServerAllQuotas(options: { workspaceId: string; basePath?: st
     };
   }, [workspaceId, basePath, tick]);
 
-  const refetch = useCallback(() => setTick((t) => t + 1), []);
+  const refetch = useCallback(() => setTick(t => t + 1), []);
 
   return { quotas, isLoading, error, refetch };
+}
+
+// ─── useServerUsageLogs ───────────────────────────────────────────────────────
+
+export interface UseServerUsageLogsOptions {
+  workspaceId: string;
+  quotaSlug?: string;
+  from?: string;
+  to?: string;
+  source?: string;
+  page?: number;
+  limit?: number;
+  basePath?: string;
+}
+
+export interface UseServerUsageLogsReturn {
+  logs: UsageLogEntry[];
+  totalDocs: number;
+  totalPages: number;
+  page: number;
+  hasNextPage: boolean;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+/**
+ * Server-side proxy hook for fetching paginated usage logs.
+ * Calls your app's `/api/saas/usage/logs` route (GET).
+ *
+ * @example
+ * const { workspaces } = useSaaSWorkspaces();
+ * const { logs, totalPages } = useServerUsageLogs({ workspaceId: workspaces[0].id, quotaSlug: "emails" });
+ */
+export function useServerUsageLogs(options: UseServerUsageLogsOptions): UseServerUsageLogsReturn {
+  const { workspaceId, quotaSlug, from, to, source, page = 1, limit = 20, basePath = DEFAULT_BASE_PATH } = options;
+  const [logs, setLogs] = useState<UsageLogEntry[]>([]);
+  const [totalDocs, setTotalDocs] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(page);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+
+    const params = new URLSearchParams({ workspaceId });
+    if (quotaSlug) params.set("quotaSlug", quotaSlug);
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (source) params.set("source", source);
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+
+    fetch(`${basePath}/logs?${params}`)
+      .then(res => res.json())
+      .then(
+        (result: {
+          success: boolean;
+          logs?: UsageLogEntry[];
+          totalDocs?: number;
+          totalPages?: number;
+          page?: number;
+          hasNextPage?: boolean;
+          message?: string;
+        }) => {
+          if (cancelled) return;
+          if (result.success) {
+            setLogs(result.logs ?? []);
+            setTotalDocs(result.totalDocs ?? 0);
+            setTotalPages(result.totalPages ?? 0);
+            setCurrentPage(result.page ?? page);
+            setHasNextPage(result.hasNextPage ?? false);
+          } else {
+            setError(result.message ?? "Failed to fetch usage logs");
+          }
+        }
+      )
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to fetch usage logs");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId, quotaSlug, from, to, source, page, limit, basePath, tick]);
+
+  const refetch = useCallback(() => setTick(t => t + 1), []);
+
+  return { logs, totalDocs, totalPages, page: currentPage, hasNextPage, isLoading, error, refetch };
 }
