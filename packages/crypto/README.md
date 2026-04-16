@@ -316,18 +316,184 @@ new CryptoController({
 
 ## Generating a key
 
+### AES-256-GCM symmetric key (32 bytes / 64 hex chars)
+
+All three commands produce an identical format — pick whichever fits your workflow:
+
 ```bash
+# OpenSSL (recommended for CI/CD and server provisioning)
+openssl rand -hex 32
+
+# Node.js
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# In-code (runtime, e.g. migration scripts)
+import { generateEncryptionKey } from "@buildbase/crypto";
+const key = generateEncryptionKey();
 ```
 
-Or use the exported helper:
+Validate before storing:
 
 ```typescript
-import { generateEncryptionKey, isValidEncryptionKey } from "@buildbase/crypto";
+import { isValidEncryptionKey } from "@buildbase/crypto";
 
-const key = generateEncryptionKey(); // 64-char hex string
-isValidEncryptionKey(key); // true
+isValidEncryptionKey("a3f1...64chars"); // true
 isValidEncryptionKey("too-short"); // false
+```
+
+### Secure random strings (`generateSecureString`)
+
+```bash
+# N random bytes as hex  (equivalent to generateSecureString(N))
+openssl rand -hex 32        # 64-char hex  → good for tokens, salts
+openssl rand -hex 16        # 32-char hex  → good for session IDs
+
+# N random bytes as base64  (more compact, URL-safe variant)
+openssl rand -base64 32     # 44-char base64
+openssl rand -base64 -out token.txt 24   # write to file
+```
+
+```typescript
+import { generateSecureString } from "@buildbase/crypto";
+
+generateSecureString(32); // 64-char hex (32 bytes)
+generateSecureString(16); // 32-char hex (16 bytes)
+```
+
+### Keys for other AES variants
+
+```bash
+openssl rand -hex 24   # aes-192-gcm / aes-192-cbc  (48 hex chars)
+openssl rand -hex 16   # aes-128-gcm / aes-128-cbc  (32 hex chars)
+openssl rand -hex 32   # aes-256-gcm / aes-256-cbc  (64 hex chars — default)
+```
+
+---
+
+## Asymmetric key pairs (`generateKeyPair`)
+
+### RSA-2048
+
+```typescript
+const crypto = new CryptoController({ key });
+const { publicKey, privateKey } = crypto.generateKeyPair("rsa");
+// publicKey  → PEM SPKI
+// privateKey → PEM PKCS8
+```
+
+OpenSSL equivalent:
+
+```bash
+# Generate private key
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
+
+# Extract public key
+openssl pkey -in private.pem -pubout -out public.pem
+
+# Verify
+openssl pkey -in private.pem -text -noout
+```
+
+### RSA-4096 (higher security)
+
+```typescript
+const { publicKey, privateKey } = crypto.generateKeyPair("rsa", {
+  modulusLength: 4096,
+});
+```
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out private4096.pem
+openssl pkey -in private4096.pem -pubout -out public4096.pem
+```
+
+### EC (secp256k1 — default)
+
+```typescript
+const { publicKey, privateKey } = crypto.generateKeyPair("ec");
+```
+
+```bash
+openssl ecparam -name secp256k1 -genkey -noout -out ec-private.pem
+openssl ec -in ec-private.pem -pubout -out ec-public.pem
+```
+
+### Ed25519 (modern signing)
+
+```typescript
+const { publicKey, privateKey } = crypto.generateKeyPair("ed25519");
+```
+
+```bash
+openssl genpkey -algorithm ed25519 -out ed25519-private.pem
+openssl pkey -in ed25519-private.pem -pubout -out ed25519-public.pem
+```
+
+---
+
+## PBKDF2 key derivation (`deriveKey`)
+
+```typescript
+const crypto = new CryptoController({ key });
+const derived = crypto.deriveKey("my-password", "hex-salt", 10_000, 32);
+// derived → 32-byte Buffer
+```
+
+OpenSSL equivalent:
+
+```bash
+# PBKDF2-SHA256, 10000 iterations, 32-byte output (hex)
+openssl kdf -keylen 32 -kdfopt digest:SHA256 \
+  -kdfopt pass:my-password \
+  -kdfopt salt:my-salt \
+  -kdfopt iter:10000 \
+  PBKDF2
+
+# OpenSSL ≤ 3.0 fallback (outputs key + IV; take first 64 hex chars)
+openssl enc -aes-256-cbc -P -md sha256 -iter 10000 \
+  -pass pass:my-password -S $(echo -n "my-salt" | xxd -p)
+```
+
+---
+
+## HMAC signing (`hmac` / `createHmacSigner`)
+
+```typescript
+const sig = crypto.hmac("payload-string");
+```
+
+OpenSSL equivalent:
+
+```bash
+# HMAC-SHA256
+echo -n "payload-string" | openssl dgst -sha256 -hmac "your-secret-key"
+
+# HMAC-SHA512
+echo -n "payload-string" | openssl dgst -sha512 -hmac "your-secret-key"
+
+# With hex key (use -mac and -macopt for full control)
+echo -n "payload-string" | openssl mac -digest SHA256 \
+  -macopt hexkey:$(echo -n "your-key" | xxd -p -c 256) HMAC
+```
+
+---
+
+## SHA-256 hashing (`hashString` / `sha256`)
+
+```typescript
+import { hashString } from "@buildbase/crypto";
+hashString("my-data");
+```
+
+```bash
+# SHA-256
+echo -n "my-data" | openssl dgst -sha256
+
+# SHA-512
+echo -n "my-data" | openssl dgst -sha512
+
+# File hash
+openssl dgst -sha256 myfile.txt
 ```
 
 ---
