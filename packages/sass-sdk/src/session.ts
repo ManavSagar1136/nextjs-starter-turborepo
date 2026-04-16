@@ -203,8 +203,12 @@ export async function getOrRefreshSession(options: {
 }): Promise<{ session: SaaSSession | null; refreshed: boolean }> {
   const { cookieStore, baseUrl } = options;
   const existing = getSessionFromCookie(cookieStore);
+  const currentOrgId = env.NEXT_PUBLIC_SAAS_ORG_ID;
 
-  if (existing && !isSessionExpiringSoon(existing)) {
+  // Treat a session as stale if it belongs to a different org (e.g. env changed)
+  const orgMismatch = existing?.orgId && currentOrgId && existing.orgId !== currentOrgId;
+
+  if (existing && !isSessionExpiringSoon(existing) && !orgMismatch) {
     return { session: existing, refreshed: false };
   }
 
@@ -230,8 +234,12 @@ export async function getOrRefreshSessionFromRequest(
 ): Promise<{ session: SaaSSession | null; setCookieHeader: string | null }> {
   const cookieHeader = request.headers.get("cookie");
   const existing = parseSessionFromCookieHeader(cookieHeader);
+  const currentOrgId = env.NEXT_PUBLIC_SAAS_ORG_ID;
 
-  if (existing && !isSessionExpiringSoon(existing)) {
+  // Treat a session as stale if it belongs to a different org (e.g. env changed)
+  const orgMismatch = existing?.orgId && currentOrgId && existing.orgId !== currentOrgId;
+
+  if (existing && !isSessionExpiringSoon(existing) && !orgMismatch) {
     return { session: existing, setCookieHeader: null };
   }
 

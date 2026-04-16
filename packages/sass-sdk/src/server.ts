@@ -87,7 +87,6 @@
  *     fetch: customFetch,        // replace global fetch (testing, proxying)
  *   })
  *
- * NOTE: Available in @buildbase/sdk >= 0.0.36. Requires bumping the SDK version
- * and running yarn install before this module can be used.
  */
-export { default } from "@buildbase/sdk";
+export { default, BuildBase } from "@buildbase/sdk";
+export { bb } from "./bb";

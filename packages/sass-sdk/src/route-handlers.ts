@@ -25,7 +25,7 @@
  *   GET  /api/saas/usage/all     — query: ?workspaceId=
  */
 import { getOrRefreshSessionFromRequest } from "./session";
-import { recordUsage, getQuotaStatus, getAllQuotas, getUsageLogs, recordBatch } from "./usage";
+import { bb } from "./bb";
 
 type RouteHandler = (request: Request) => Promise<Response>;
 
@@ -40,6 +40,35 @@ function error(message: string, status = 400, extraHeaders?: Record<string, stri
   return json({ error: message }, status, extraHeaders);
 }
 
+function buildHeaders(setCookieHeader: string | null): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
+  return headers;
+}
+
+/**
+ * Extract a human-readable message from an SDK error and map it to an HTTP status.
+ *
+ * Known mappings:
+ *   "No active subscription found" → 402  (workspace has no paid plan / trial)
+ *   "Unauthorized" / "Forbidden"   → 401/403
+ *   anything else                  → 502  (upstream SDK / network failure)
+ */
+function sdkErrorResponse(err: unknown, fallbackMessage: string, setCookieHeader: string | null): Response {
+  const message = err instanceof Error ? err.message : String(err);
+
+  let status = 502;
+  if (/no active subscription/i.test(message)) status = 402;
+  else if (/unauthorized/i.test(message)) status = 401;
+  else if (/forbidden/i.test(message)) status = 403;
+  else if (/not found/i.test(message)) status = 404;
+
+  return new Response(JSON.stringify({ success: false, message: status === 502 ? fallbackMessage : message }), {
+    status,
+    headers: buildHeaders(setCookieHeader),
+  });
+}
+
 // ─── Record Usage ─────────────────────────────────────────────────────────────
 
 /**
@@ -47,7 +76,7 @@ function error(message: string, status = 400, extraHeaders?: Record<string, stri
  * Reads session from HttpOnly cookie, workspaceId/quotaSlug/quantity from request body.
  *
  * Expected body: { workspaceId: string, quotaSlug: string, quantity: number }
- * Returns: RecordUsageResponse
+ * Returns: IRecordUsageResponse
  */
 export function createRecordUsageHandler(options?: { baseUrl?: string }): RouteHandler {
   return async (request: Request): Promise<Response> => {
@@ -77,24 +106,22 @@ export function createRecordUsageHandler(options?: { baseUrl?: string }): RouteH
       return error("workspaceId, quotaSlug, and quantity (number) are required");
     }
 
-    const result = await recordUsage({
-      workspaceId,
-      quotaSlug,
-      quantity,
-      sessionId: session.sessionId,
-      baseUrl: options?.baseUrl,
-      source,
-      idempotencyKey,
-      metadata,
-    });
-
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
-
-    return new Response(JSON.stringify(result), {
-      status: result.success ? 200 : 502,
-      headers,
-    });
+    try {
+      const result = await bb.withSession(session.sessionId).usage.record(workspaceId, {
+        quotaSlug,
+        quantity,
+        source,
+        idempotencyKey,
+        metadata,
+      });
+      return new Response(JSON.stringify({ success: true, ...result }), {
+        status: 200,
+        headers: buildHeaders(setCookieHeader),
+      });
+    } catch (err) {
+      console.error("[createRecordUsageHandler] Error:", err);
+      return sdkErrorResponse(err, "Failed to record usage", setCookieHeader);
+    }
   };
 }
 
@@ -105,7 +132,7 @@ export function createRecordUsageHandler(options?: { baseUrl?: string }): RouteH
  * Reads session from HttpOnly cookie, workspaceId/quotaSlug from query params.
  *
  * Expected query: ?workspaceId=...&quotaSlug=...
- * Returns: QuotaStatusResponse
+ * Returns: IQuotaUsageStatusResponse
  */
 export function createQuotaStatusHandler(options?: { baseUrl?: string }): RouteHandler {
   return async (request: Request): Promise<Response> => {
@@ -123,20 +150,16 @@ export function createQuotaStatusHandler(options?: { baseUrl?: string }): RouteH
       return error("workspaceId and quotaSlug query params are required");
     }
 
-    const result = await getQuotaStatus({
-      workspaceId,
-      quotaSlug,
-      sessionId: session.sessionId,
-      baseUrl: options?.baseUrl,
-    });
-
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
-
-    return new Response(JSON.stringify(result), {
-      status: result.success ? 200 : 502,
-      headers,
-    });
+    try {
+      const status = await bb.withSession(session.sessionId).usage.getQuota(workspaceId, quotaSlug);
+      return new Response(JSON.stringify({ success: true, data: status }), {
+        status: 200,
+        headers: buildHeaders(setCookieHeader),
+      });
+    } catch (err) {
+      console.error("[createQuotaStatusHandler] Error:", err);
+      return sdkErrorResponse(err, "Failed to get quota status", setCookieHeader);
+    }
   };
 }
 
@@ -147,7 +170,7 @@ export function createQuotaStatusHandler(options?: { baseUrl?: string }): RouteH
  * Reads session from HttpOnly cookie, workspaceId from query params.
  *
  * Expected query: ?workspaceId=...
- * Returns: AllQuotasResponse
+ * Returns: IAllQuotaUsageResponse
  */
 export function createAllQuotasHandler(options?: { baseUrl?: string }): RouteHandler {
   return async (request: Request): Promise<Response> => {
@@ -164,19 +187,16 @@ export function createAllQuotasHandler(options?: { baseUrl?: string }): RouteHan
       return error("workspaceId query param is required");
     }
 
-    const result = await getAllQuotas({
-      workspaceId,
-      sessionId: session.sessionId,
-      baseUrl: options?.baseUrl,
-    });
-
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
-
-    return new Response(JSON.stringify(result), {
-      status: result.success ? 200 : 502,
-      headers,
-    });
+    try {
+      const result = await bb.withSession(session.sessionId).usage.getAll(workspaceId);
+      return new Response(JSON.stringify({ success: true, quotas: result.quotas }), {
+        status: 200,
+        headers: buildHeaders(setCookieHeader),
+      });
+    } catch (err) {
+      console.error("[createAllQuotasHandler] Error:", err);
+      return sdkErrorResponse(err, "Failed to get all quotas", setCookieHeader);
+    }
   };
 }
 
@@ -190,8 +210,8 @@ export function createAllQuotasHandler(options?: { baseUrl?: string }): RouteHan
  *   import { createBatchRecordUsageHandler } from "@buildbase/saas-sdk/route-handlers";
  *   export const POST = createBatchRecordUsageHandler();
  *
- * Expected body: { workspaceId: string, items: BatchRecordItem[] }
- * Returns: BatchRecordUsageResponse
+ * Expected body: { workspaceId: string, items: IRecordUsageRequest[] }
+ * Returns: UsageBatchResponse
  */
 export function createBatchRecordUsageHandler(options?: { baseUrl?: string }): RouteHandler {
   return async (request: Request): Promise<Response> => {
@@ -217,20 +237,19 @@ export function createBatchRecordUsageHandler(options?: { baseUrl?: string }): R
       return error("Maximum 100 items per batch request");
     }
 
-    const result = await recordBatch({
-      workspaceId,
-      items: items as any,
-      sessionId: session.sessionId,
-      baseUrl: options?.baseUrl,
-    });
-
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
-
-    return new Response(JSON.stringify(result), {
-      status: result.success ? 200 : 502,
-      headers,
-    });
+    try {
+      const result = await bb.withSession(session.sessionId).usage.recordBatch(workspaceId, {
+        items: items as any,
+      });
+      // UsageBatchResponse already contains success: boolean — do not duplicate the key
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: buildHeaders(setCookieHeader),
+      });
+    } catch (err) {
+      console.error("[createBatchRecordUsageHandler] Error:", err);
+      return sdkErrorResponse(err, "Failed to record batch usage", setCookieHeader);
+    }
   };
 }
 
@@ -241,7 +260,7 @@ export function createBatchRecordUsageHandler(options?: { baseUrl?: string }): R
  * Reads session from HttpOnly cookie, workspaceId and optional filters from query params.
  *
  * Expected query: ?workspaceId=...&quotaSlug=...&from=...&to=...&source=...&page=...&limit=...
- * Returns: UsageLogsResponse
+ * Returns: IUsageLogsResponse
  */
 export function createUsageLogsHandler(options?: { baseUrl?: string }): RouteHandler {
   return async (request: Request): Promise<Response> => {
@@ -265,24 +284,33 @@ export function createUsageLogsHandler(options?: { baseUrl?: string }): RouteHan
     const pageParam = url.searchParams.get("page");
     const limitParam = url.searchParams.get("limit");
 
-    const result = await getUsageLogs({
-      workspaceId,
-      sessionId: session.sessionId,
-      baseUrl: options?.baseUrl,
-      quotaSlug,
-      from,
-      to,
-      source,
-      page: pageParam ? Number(pageParam) : undefined,
-      limit: limitParam ? Number(limitParam) : undefined,
-    });
-
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
-
-    return new Response(JSON.stringify(result), {
-      status: result.success ? 200 : 502,
-      headers,
-    });
+    try {
+      const result = await bb.withSession(session.sessionId).usage.getLogs(workspaceId, {
+        quotaSlug,
+        from,
+        to,
+        source,
+        page: pageParam ? Number(pageParam) : undefined,
+        limit: limitParam ? Number(limitParam) : undefined,
+      });
+      // SDK IUsageLogsResponse uses `docs` — map to `logs` as expected by useServerUsageLogs
+      return new Response(
+        JSON.stringify({
+          success: true,
+          logs: result.docs,
+          totalDocs: result.totalDocs,
+          totalPages: result.totalPages,
+          page: result.page,
+          hasNextPage: result.hasNextPage,
+        }),
+        {
+          status: 200,
+          headers: buildHeaders(setCookieHeader),
+        }
+      );
+    } catch (err) {
+      console.error("[createUsageLogsHandler] Error:", err);
+      return sdkErrorResponse(err, "Failed to get usage logs", setCookieHeader);
+    }
   };
 }
