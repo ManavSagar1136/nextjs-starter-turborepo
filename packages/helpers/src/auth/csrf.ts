@@ -17,7 +17,7 @@
  * derived from APP_JWT_SECRET which is never exposed to the client.
  */
 
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmacSigner } from "@buildbase/crypto";
 import { NextResponse } from "next/server";
 import { env, isProduction, getEnvironment } from "@buildbase/env";
 
@@ -35,30 +35,15 @@ const CSRF_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
  */
 export function generateCsrfToken(userId: string, workspaceId: string): string {
   const secret = env.APP_JWT_SECRET;
-  if (!secret) {
-    // No secret configured — return a fixed placeholder (enforcement is skipped anyway)
-    return "no-secret";
-  }
-  return createHmac("sha256", secret).update(`${userId}:${workspaceId}`).digest("hex");
+  if (!secret) return "no-secret";
+  return createHmacSigner(secret).sign(`${userId}:${workspaceId}`);
 }
 
-/**
- * Verify a CSRF token using constant-time comparison.
- * Returns false if the token is invalid, empty, or the secret is not configured.
- */
 export function verifyCsrfToken(token: string | null | undefined, userId: string, workspaceId: string): boolean {
   if (!token) return false;
   const secret = env.APP_JWT_SECRET;
   if (!secret) return false;
-
-  const expected = generateCsrfToken(userId, workspaceId);
-  try {
-    // Constant-time compare to prevent timing attacks
-    return timingSafeEqual(Buffer.from(token, "hex"), Buffer.from(expected, "hex"));
-  } catch {
-    // Buffer lengths differ → definitely wrong
-    return false;
-  }
+  return createHmacSigner(secret).verify(`${userId}:${workspaceId}`, token);
 }
 
 /**

@@ -86,8 +86,8 @@ export const env = createEnv({
     ADMIN_EMAIL: z.string().email().optional(),
     ADMIN_URL: z.string().url().optional(),
 
-    // Email Encryption
-    EMAIL_ENCRYPTION_KEY: z.string().min(1).optional(),
+    // Email provider credential encryption key — 64-char hex (generate: openssl rand -hex 32)
+    EMAIL_ENCRYPTION_KEY: z.string().length(64).optional(),
 
     // General-purpose encryption key used by @buildbase/crypto
     // Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
