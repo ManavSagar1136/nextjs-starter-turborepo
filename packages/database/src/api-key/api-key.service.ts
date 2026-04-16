@@ -6,7 +6,7 @@
  * The raw key is only returned once at creation time — it is never stored.
  */
 
-import { randomBytes, createHash } from "crypto";
+import { generateSecureString, hashString } from "@buildbase/crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../index";
 
@@ -23,11 +23,11 @@ const KEY_PREFIX = "rk_live_";
 const KEY_LENGTH = 32; // 32 random bytes = 64 hex chars
 
 function generateRawKey(): string {
-  return KEY_PREFIX + randomBytes(KEY_LENGTH).toString("hex");
+  return KEY_PREFIX + generateSecureString(KEY_LENGTH);
 }
 
 function hashKey(rawKey: string): string {
-  return createHash("sha256").update(rawKey).digest("hex");
+  return hashString(rawKey);
 }
 
 function getPrefix(rawKey: string): string {

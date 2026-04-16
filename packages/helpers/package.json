@@ -23,6 +23,7 @@
     "./auth": "./dist/auth/index.js"
   },
   "dependencies": {
+    "@buildbase/crypto": "*",
     "@buildbase/utils": "*",
     "@buildbase/env": "*",
     "@buildbase/saas-sdk": "*",

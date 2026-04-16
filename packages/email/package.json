@@ -40,6 +40,7 @@
     }
   },
   "dependencies": {
+    "@buildbase/crypto": "*",
     "@buildbase/database": "*",
     "@buildbase/env": "*",
     "@buildbase/qstash": "*",
