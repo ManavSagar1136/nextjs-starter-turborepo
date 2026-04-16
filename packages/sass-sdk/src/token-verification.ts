@@ -74,7 +74,8 @@ export const verifySDKToken = async (config: SDKTokenVerificationConfig): Promis
     }
 
     const responseData = await fetchResponse.json();
-    const responseResult = responseData.data;
+    // Handle both { data: { sessionId, user, workspaces } } and flat { sessionId, user, workspaces }
+    const responseResult = responseData.data ?? responseData;
     const sessionId = responseResult.sessionId;
     const userData = responseResult.user;
     const workspaces = responseResult.workspaces || [];

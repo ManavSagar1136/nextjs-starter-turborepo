@@ -1,7 +1,6 @@
-// Re-export all functionalities from @buildbase/sdk
+// Re-export all React-facing functionalities from @buildbase/sdk/react
 export {
   // Core Provider and Config
-  ApiVersion,
   SaaSOSProvider,
   useSaaSOs,
   useSaaSSettings,
@@ -67,6 +66,13 @@ export {
   useTrialStatus,
   useSeatStatus,
 
+  // Seat pricing utilities (per-seat billing calculations)
+  calculateBillableSeats,
+  calculateSeatOverageCents,
+  calculateTotalSubscriptionCents,
+  getPerSeatPriceCents,
+  getSeatPricing,
+
   // Billing portal (opens Stripe portal — managed by SDK)
   useBillingPortal,
 
@@ -121,11 +127,18 @@ export {
   WorkspaceApi,
   SettingsApi,
 
-  // Event system
-  eventEmitter,
-} from "@buildbase/sdk";
+  // Push Notifications
+  usePushNotifications,
 
-// Re-export types from @buildbase/sdk
+  // i18n
+  useTranslation,
+  // ─────────────────────────────────────────────────────────────────────────
+} from "@buildbase/sdk/react";
+
+// Some runtime exports still live on the root SDK entrypoint in this version.
+export { ApiVersion, eventEmitter } from "@buildbase/sdk";
+
+// Re-export types from @buildbase/sdk/react
 export type {
   // Events
   EventData,
@@ -205,7 +218,16 @@ export type {
   TrialStatus,
   SeatStatus,
   CheckoutResult,
-} from "@buildbase/sdk";
+
+  // i18n
+  // TranslationKey,
+
+  // Notifications,
+  NotificationData,
+  NotificationResult,
+  NotificationEvent,
+  // ─────────────────────────────────────────────────────────────────────────
+} from "@buildbase/sdk/react";
 
 // ─── Custom wrappers & server-side utilities ──────────────────────────────────
 

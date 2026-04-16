@@ -25,7 +25,7 @@
  *   GET  /api/saas/usage/all     — query: ?workspaceId=
  */
 import { getOrRefreshSessionFromRequest } from "./session";
-import { recordUsage, getQuotaStatus, getAllQuotas, getUsageLogs } from "./usage";
+import { recordUsage, getQuotaStatus, getAllQuotas, getUsageLogs, recordBatch } from "./usage";
 
 type RouteHandler = (request: Request) => Promise<Response>;
 
@@ -166,6 +166,60 @@ export function createAllQuotasHandler(options?: { baseUrl?: string }): RouteHan
 
     const result = await getAllQuotas({
       workspaceId,
+      sessionId: session.sessionId,
+      baseUrl: options?.baseUrl,
+    });
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (setCookieHeader) headers["Set-Cookie"] = setCookieHeader;
+
+    return new Response(JSON.stringify(result), {
+      status: result.success ? 200 : 502,
+      headers,
+    });
+  };
+}
+
+// ─── Batch Record Usage ───────────────────────────────────────────────────────
+
+/**
+ * POST handler for recording quota usage in bulk (up to 100 items).
+ * Reads session from HttpOnly cookie, workspaceId and items[] from request body.
+ *
+ * Register at: app/api/saas/usage/batch/route.ts
+ *   import { createBatchRecordUsageHandler } from "@buildbase/saas-sdk/route-handlers";
+ *   export const POST = createBatchRecordUsageHandler();
+ *
+ * Expected body: { workspaceId: string, items: BatchRecordItem[] }
+ * Returns: BatchRecordUsageResponse
+ */
+export function createBatchRecordUsageHandler(options?: { baseUrl?: string }): RouteHandler {
+  return async (request: Request): Promise<Response> => {
+    const { session, setCookieHeader } = await getOrRefreshSessionFromRequest(request, options?.baseUrl);
+
+    if (!session) {
+      return error("No active session. Ensure SAAS_API_TOKEN_SECRET is configured.", 401);
+    }
+
+    let body: { workspaceId?: string; items?: unknown[] };
+    try {
+      body = await request.json();
+    } catch {
+      return error("Invalid JSON body");
+    }
+
+    const { workspaceId, items } = body;
+
+    if (!workspaceId || !Array.isArray(items) || items.length === 0) {
+      return error("workspaceId and items[] are required");
+    }
+    if (items.length > 100) {
+      return error("Maximum 100 items per batch request");
+    }
+
+    const result = await recordBatch({
+      workspaceId,
+      items: items as any,
       sessionId: session.sessionId,
       baseUrl: options?.baseUrl,
     });

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 
-import "@buildbase/sdk/dist/saas-os.css";
+import "@buildbase/sdk/css";
 import "./globals.css";
 
 import { AppProviders } from "@/components/providers/AppProviders";

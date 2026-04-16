@@ -1,6 +1,6 @@
 "use client";
 
-import { useSubscriptionContext, useQuotaUsageStatus, useSaaSWorkspaces } from "@buildbase/sdk";
+import { useSubscriptionContext, useQuotaUsageStatus, useSaaSWorkspaces } from "@buildbase/sdk/react";
 
 /**
  * Possible states for a feature gate.

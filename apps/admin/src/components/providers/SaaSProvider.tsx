@@ -19,6 +19,10 @@ export default function SaaSProvider({ children }: SaaSProviderProps) {
   return (
     <BaseSaaSProvider
       redirectUrl={redirectUrl}
+      getSession={async () => {
+        const session = await API.auth.getSession();
+        return (session as { sessionId?: string }).sessionId ?? null;
+      }}
       onSignOut={async () => {
         // Clear auth cookie by calling logout endpoint
         try {

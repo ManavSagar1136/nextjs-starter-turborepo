@@ -248,6 +248,108 @@ export const getAllQuotas = async (config: AllQuotasConfig): Promise<AllQuotasRe
   }
 };
 
+// ─── Batch Record Usage ───────────────────────────────────────────────────────
+
+export interface BatchRecordItem {
+  quotaSlug: string;
+  quantity: number;
+  /** Optional: identify where usage originated */
+  source?: string;
+  /** Optional: custom metadata to attach to the usage record */
+  metadata?: Record<string, unknown>;
+  /** Optional: unique key to prevent duplicate recordings */
+  idempotencyKey?: string;
+}
+
+export interface BatchRecordUsageConfig {
+  workspaceId: string;
+  sessionId: string;
+  /** Up to 100 items. Each is processed independently — one failure does not fail the batch. */
+  items: BatchRecordItem[];
+  baseUrl?: string;
+}
+
+export interface BatchRecordItemResult {
+  success: boolean;
+  error?: string;
+  used?: number;
+  consumed?: number;
+  included?: number;
+  available?: number;
+  overage?: number;
+}
+
+export interface BatchRecordUsageResponse {
+  success: boolean;
+  total?: number;
+  succeeded?: number;
+  failed?: number;
+  results?: BatchRecordItemResult[];
+  message?: string;
+}
+
+/**
+ * Record quota usage for multiple items in a single request.
+ * Max 100 items per call. Each item is processed independently —
+ * a single failure does not fail the whole batch.
+ *
+ * Use for bulk operations: batch exports, cron jobs, webhooks.
+ *
+ * @example
+ * const result = await recordBatch({
+ *   workspaceId: "ws123",
+ *   sessionId: "abc...",
+ *   items: [
+ *     { quotaSlug: "images", quantity: 500, source: "batch-export" },
+ *     { quotaSlug: "videos", quantity: 10 },
+ *   ],
+ * });
+ * console.log(`${result.succeeded}/${result.total} succeeded`);
+ */
+export const recordBatch = async (config: BatchRecordUsageConfig): Promise<BatchRecordUsageResponse> => {
+  const { workspaceId, sessionId, items, baseUrl } = config;
+
+  if (!workspaceId || !sessionId) {
+    return { success: false, message: "workspaceId and sessionId are required" };
+  }
+  if (!items?.length) {
+    return { success: false, message: "items array is required and must not be empty" };
+  }
+  if (items.length > 100) {
+    return { success: false, message: "Maximum 100 items per batch request" };
+  }
+
+  const base = getBaseUrl(baseUrl);
+  if (!base) {
+    return { success: false, message: "No baseUrl configured (set NEXT_PUBLIC_SAAS_SERVER_URL)" };
+  }
+
+  try {
+    const response = await fetch(`${base}/api/v1/public/workspaces/${workspaceId}/subscription/usage/batch`, {
+      method: "POST",
+      headers: usageHeaders(sessionId),
+      body: JSON.stringify({ items }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Unknown error");
+      return { success: false, message: `Batch record failed (${response.status}): ${errorText}` };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      total: data.total,
+      succeeded: data.succeeded,
+      failed: data.failed,
+      results: data.results,
+    };
+  } catch (error) {
+    console.error("[recordBatch] Error:", error);
+    return { success: false, message: "Failed to record batch usage" };
+  }
+};
+
 // ─── Usage Logs ───────────────────────────────────────────────────────────────
 
 export interface UsageLogsConfig {

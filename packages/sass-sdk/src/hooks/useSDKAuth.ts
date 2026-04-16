@@ -1,6 +1,6 @@
 "use client";
 
-import { useSaaSAuth } from "@buildbase/sdk";
+import { useSaaSAuth } from "@buildbase/sdk/react";
 
 /**
  * Return type for useSDKAuth hook
@@ -8,8 +8,14 @@ import { useSaaSAuth } from "@buildbase/sdk";
 export interface UseSDKAuthReturn {
   // Direct SDK properties
   user: ReturnType<typeof useSaaSAuth>["user"];
+  /** Full session object — { user, sessionId }. null when not authenticated. */
+  session: ReturnType<typeof useSaaSAuth>["session"];
   isAuthenticated: boolean;
   isLoading: boolean;
+  /** True when the SDK is in the process of redirecting for OAuth sign-in. */
+  isRedirecting: boolean;
+  /** Full AuthStatus enum value — use AuthStatus.Authenticated etc. for comparisons. */
+  status: ReturnType<typeof useSaaSAuth>["status"];
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
 
@@ -31,8 +37,8 @@ export interface UseSDKAuthReturn {
 }
 
 /**
- * Enhanced authentication hook that leverages the Buildbase SDK
- * This provides a clean interface without duplicating SDK functionality
+ * Enhanced authentication hook that wraps useSaaSAuth from @buildbase/sdk.
+ * Provides a clean interface with convenience properties.
  *
  * Note: For role-specific checks (isAdmin, isEditor, etc.), apps should
  * import role constants from @buildbase/database and perform their own checks
@@ -44,8 +50,11 @@ export function useSDKAuth(): UseSDKAuthReturn {
   return {
     // Direct SDK properties
     user: sdkAuth.user,
+    session: sdkAuth.session,
     isAuthenticated: sdkAuth.isAuthenticated,
     isLoading: sdkAuth.isLoading,
+    isRedirecting: sdkAuth.isRedirecting,
+    status: sdkAuth.status,
     signIn: sdkAuth.signIn,
     signOut: sdkAuth.signOut,
 

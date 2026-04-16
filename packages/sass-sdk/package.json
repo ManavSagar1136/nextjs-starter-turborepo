@@ -25,11 +25,12 @@
     "./usage": "./dist/usage.js",
     "./session": "./dist/session.js",
     "./route-handlers": "./dist/route-handlers.js",
+    "./server": "./dist/server.js",
     "./hooks/useSDKAuth": "./dist/hooks/useSDKAuth.js",
     "./hooks/useUsage": "./dist/hooks/useUsage.js"
   },
   "dependencies": {
-    "@buildbase/sdk": "0.0.26",
+    "@buildbase/sdk": "0.0.36",
     "@buildbase/env": "*"
   },
   "peerDependencies": {
