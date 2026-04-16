@@ -30,7 +30,7 @@
  *   export const GET = createAllQuotasHandler();
  */
 import { useState, useEffect, useCallback } from "react";
-import type { RecordUsageResponse, QuotaStatus, QuotaMap, UsageLogEntry } from "../usage";
+import type { RecordUsageResponse, QuotaStatus, QuotaMap, UsageLogEntry, BatchRecordUsageResponse } from "../usage";
 
 const DEFAULT_BASE_PATH = "/api/saas/usage";
 
@@ -64,9 +64,9 @@ export interface UseServerRecordUsageReturn {
  * Calls your app's `/api/saas/usage/record` route (POST).
  *
  * @example
- * const { workspaces } = useSaaSWorkspaces();
+ * const { currentWorkspace } = useSaaSWorkspaces();
  * const { record, isLoading } = useServerRecordUsage();
- * await record(workspaces[0].id, "emails", 10);
+ * await record({ workspaceId: currentWorkspace._id, quotaSlug: "emails", quantity: 10 });
  */
 export function useServerRecordUsage(options?: { basePath?: string }): UseServerRecordUsageReturn {
   const basePath = options?.basePath ?? DEFAULT_BASE_PATH;
@@ -335,4 +335,94 @@ export function useServerUsageLogs(options: UseServerUsageLogsOptions): UseServe
   const refetch = useCallback(() => setTick(t => t + 1), []);
 
   return { logs, totalDocs, totalPages, page: currentPage, hasNextPage, isLoading, error, refetch };
+}
+
+// ─── useServerBatchRecordUsage ────────────────────────────────────────────────
+
+export interface ServerBatchRecordItem {
+  quotaSlug: string;
+  quantity: number;
+  /** Optional: identify where usage originated (e.g. 'web-app', 'worker') */
+  source?: string;
+  /** Optional: unique key to prevent duplicate recordings */
+  idempotencyKey?: string;
+}
+
+export interface ServerBatchRecordUsageParams {
+  workspaceId: string;
+  /** Up to 100 items. Each is processed independently. */
+  items: ServerBatchRecordItem[];
+}
+
+export interface UseServerBatchRecordUsageReturn {
+  /**
+   * Record multiple quota usages in a single request via your app's secure backend route.
+   * Calls POST /api/saas/usage/batch.
+   */
+  recordBatch: (params: ServerBatchRecordUsageParams) => Promise<BatchRecordUsageResponse>;
+  isLoading: boolean;
+  error: string | null;
+  data: BatchRecordUsageResponse | null;
+  reset: () => void;
+}
+
+/**
+ * Server-side proxy hook for recording quota usage in bulk.
+ * Calls your app's `/api/saas/usage/batch` route (POST).
+ *
+ * Use for bulk operations where multiple quotas are consumed together.
+ * Requires createBatchRecordUsageHandler() registered at the route.
+ *
+ * @example
+ * const { currentWorkspace } = useSaaSWorkspaces();
+ * const { recordBatch, isLoading } = useServerBatchRecordUsage();
+ * await recordBatch({
+ *   workspaceId: currentWorkspace._id,
+ *   items: [
+ *     { quotaSlug: "images", quantity: 500, source: "bulk-export" },
+ *     { quotaSlug: "videos", quantity: 10 },
+ *   ],
+ * });
+ */
+export function useServerBatchRecordUsage(options?: { basePath?: string }): UseServerBatchRecordUsageReturn {
+  const basePath = options?.basePath ?? DEFAULT_BASE_PATH;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<BatchRecordUsageResponse | null>(null);
+
+  const recordBatch = useCallback(
+    async (params: ServerBatchRecordUsageParams): Promise<BatchRecordUsageResponse> => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`${basePath}/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+        });
+
+        const result: BatchRecordUsageResponse = await response.json();
+        setData(result);
+        if (!result.success) setError(result.message ?? "Batch record failed");
+        return result;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Batch record failed";
+        setError(message);
+        const result: BatchRecordUsageResponse = { success: false, message };
+        setData(result);
+        return result;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [basePath]
+  );
+
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+  }, []);
+
+  return { recordBatch, isLoading, error, data, reset };
 }

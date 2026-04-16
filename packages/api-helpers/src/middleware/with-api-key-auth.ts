@@ -35,7 +35,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyApiKey } from "@buildbase/database";
 import { defaultRateLimiter } from "@buildbase/cache/factory";
-import { getServerSession, recordUsage, getQuotaStatus, type SaaSSession } from "@buildbase/saas-sdk";
+import { getServerSession } from "@buildbase/saas-sdk";
+import { bb } from "@buildbase/saas-sdk/server";
 
 export interface ApiKeyContext {
   apiKeyId: string;
@@ -173,22 +174,21 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string,
       const session = await getServerSession().catch(() => null);
 
       if (session) {
-        const statusResult = await getQuotaStatus({
-          workspaceId: result.workspaceId,
-          quotaSlug,
-          sessionId: session.sessionId,
-        });
+        const status = await bb
+          .withSession(session.sessionId)
+          .usage.getQuota(result.workspaceId, quotaSlug)
+          .catch(() => null);
 
-        if (statusResult.success && statusResult.data) {
-          const { available, hasOverage } = statusResult.data;
+        if (status) {
+          const { available, hasOverage } = status;
           if (!allowOverage && available <= 0 && !hasOverage) {
             return NextResponse.json(
               {
                 error: "Quota Exhausted",
                 message: `You have used all included ${quotaSlug} for this billing period.`,
                 quotaSlug,
-                consumed: statusResult.data.consumed,
-                included: statusResult.data.included,
+                consumed: status.consumed,
+                included: status.included,
                 upgradeRequired: true,
               },
               { status: 402 }
@@ -205,15 +205,9 @@ export function withApiKeyAuth(handler: ApiRouteHandler, requiredScope?: string,
     if (quotaOptions && response.status >= 200 && response.status < 300) {
       const { quotaSlug, quantity = 1, source } = quotaOptions;
       getServerSession()
-        .then((session: SaaSSession | null) => {
+        .then(session => {
           if (!session) return;
-          return recordUsage({
-            workspaceId: result.workspaceId,
-            quotaSlug,
-            quantity,
-            sessionId: session.sessionId,
-            source,
-          });
+          return bb.withSession(session.sessionId).usage.record(result.workspaceId, { quotaSlug, quantity, source });
         })
         .catch((err: unknown) =>
           console.error(`[withApiKeyAuth] Failed to record quota "${quotaOptions.quotaSlug}":`, err)

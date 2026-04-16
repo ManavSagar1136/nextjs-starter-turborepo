@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { getOrRefreshSessionFromRequest } from "@buildbase/saas-sdk";
-import { getQuotaStatus, recordUsage } from "@buildbase/saas-sdk";
+import { bb } from "@buildbase/saas-sdk/server";
 
 /**
  * Options for withQuotaCheck middleware.
@@ -94,22 +94,20 @@ export function withQuotaCheck<T extends any[]>(
       return handler(request, ...args);
     }
 
-    const sessionId = session.sessionId;
+    const client = bb.withSession(session.sessionId);
 
     // ── Pre-check: is quota available? ──────────────────────────────────────
-    const statusResult = await getQuotaStatus({ workspaceId, quotaSlug, sessionId });
+    try {
+      const status = await client.usage.getQuota(workspaceId, quotaSlug);
 
-    if (statusResult.success && statusResult.data) {
-      const { available, hasOverage } = statusResult.data;
-
-      if (!allowOverage && available <= 0 && !hasOverage) {
+      if (!allowOverage && status.available <= 0 && !status.hasOverage) {
         const response = NextResponse.json(
           {
             error: "Quota Exhausted",
             message: `You have used all included ${quotaSlug} for this billing period.`,
             quotaSlug,
-            consumed: statusResult.data.consumed,
-            included: statusResult.data.included,
+            consumed: status.consumed,
+            included: status.included,
             upgradeRequired: true,
           },
           { status: 402 }
@@ -117,6 +115,10 @@ export function withQuotaCheck<T extends any[]>(
         if (setCookieHeader) response.headers.set("Set-Cookie", setCookieHeader);
         return response;
       }
+    } catch (err) {
+      // Quota API unreachable — fail-open: let the request through rather than
+      // blocking a legitimately entitled user due to a transient network issue.
+      console.warn(`[withQuotaCheck] Quota pre-check failed for "${quotaSlug}", allowing through:`, err);
     }
 
     // Resolve quantity once (may read from request body — clone before handler consumes it)
@@ -124,23 +126,23 @@ export function withQuotaCheck<T extends any[]>(
 
     // ── PRE timing: record before handler, revert on failure ─────────────────
     if (recordTiming === "pre") {
-      await recordUsage({ workspaceId, quotaSlug, quantity, sessionId, source }).catch((err: unknown) =>
-        console.error(`[withQuotaCheck] Failed to pre-record usage for "${quotaSlug}":`, err)
-      );
+      await client.usage
+        .record(workspaceId, { quotaSlug, quantity, source })
+        .catch((err: unknown) => console.error(`[withQuotaCheck] Failed to pre-record usage for "${quotaSlug}":`, err));
 
       const response = await handler(request, ...args);
 
       // Revert the pre-charged usage if the handler failed
       if (response.status < 200 || response.status >= 300) {
-        recordUsage({
-          workspaceId,
-          quotaSlug,
-          quantity: -quantity,
-          sessionId,
-          source: source ? `${source}-revert` : "revert",
-        }).catch((err: unknown) =>
-          console.error(`[withQuotaCheck] Failed to revert pre-charged usage for "${quotaSlug}":`, err)
-        );
+        client.usage
+          .record(workspaceId, {
+            quotaSlug,
+            quantity: -quantity,
+            source: source ? `${source}-revert` : "revert",
+          })
+          .catch((err: unknown) =>
+            console.error(`[withQuotaCheck] Failed to revert pre-charged usage for "${quotaSlug}":`, err)
+          );
       }
 
       if (setCookieHeader) response.headers.set("Set-Cookie", setCookieHeader);
@@ -151,9 +153,11 @@ export function withQuotaCheck<T extends any[]>(
     const response = await handler(request, ...args);
 
     if (response.status >= 200 && response.status < 300) {
-      recordUsage({ workspaceId, quotaSlug, quantity, sessionId, source }).catch((err: unknown) =>
-        console.error(`[withQuotaCheck] Failed to post-record usage for "${quotaSlug}":`, err)
-      );
+      client.usage
+        .record(workspaceId, { quotaSlug, quantity, source })
+        .catch((err: unknown) =>
+          console.error(`[withQuotaCheck] Failed to post-record usage for "${quotaSlug}":`, err)
+        );
     }
 
     if (setCookieHeader) response.headers.set("Set-Cookie", setCookieHeader);
