@@ -1,30 +1,28 @@
 import crypto from "crypto";
 
+import { DecryptionError, InvalidKeyError, TokenError } from "./errors.js";
 import type {
+  ApiKey,
   CacheEncryptionOptions,
+  CryptoAlgorithm,
   CryptoConfig,
   CryptoOptions,
   EncryptedCacheEntry,
   EncryptedData,
   HashResult,
+  HmacSigner,
   TokenPayload,
 } from "./types.js";
 
-function resolveKey(key: string | undefined): string {
-  if (key) return key;
-  const envKey = process.env.SECRET_ENCRYPTION_KEY;
-  if (envKey) return envKey;
-  throw new Error(
-    "[cms/crypto] No encryption key provided.\n" +
-      "  Pass a key to the constructor: new CryptoController({ key: '...' })\n" +
-      "  Or set the SECRET_ENCRYPTION_KEY environment variable.\n" +
-      "  Generate a key: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
-  );
-}
-
-function normalizeKey(key: string): Buffer {
-  return key.startsWith("0x") || key.length === 64 ? Buffer.from(key, "hex") : Buffer.from(key, "utf8");
-}
+// Key byte requirements per algorithm
+const KEY_LENGTHS: Partial<Record<CryptoAlgorithm, number>> = {
+  "aes-256-gcm": 32,
+  "aes-192-gcm": 24,
+  "aes-128-gcm": 16,
+  "aes-256-cbc": 32,
+  "aes-192-cbc": 24,
+  "aes-128-cbc": 16,
+};
 
 const SENSITIVE_PATTERNS = [
   /password/i,
@@ -42,16 +40,49 @@ const SENSITIVE_PATTERNS = [
   /bearer/i,
 ];
 
+function resolveKey(key: string | undefined): string {
+  if (key) return key;
+  const envKey = process.env.SECRET_ENCRYPTION_KEY;
+  if (envKey) return envKey;
+  throw new InvalidKeyError(
+    "[cms/crypto] No encryption key provided.\n" +
+      "  Option A: new CryptoController({ key: 'your-64-char-hex-key' })\n" +
+      "  Option B: set SECRET_ENCRYPTION_KEY env var\n" +
+      "  Generate a key: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+  );
+}
+
+function normalizeKey(raw: string): Buffer {
+  // 64-char hex string → 32-byte buffer; "0x"-prefixed hex; otherwise treat as UTF-8
+  return raw.startsWith("0x") || raw.length === 64
+    ? Buffer.from(raw.replace(/^0x/, ""), "hex")
+    : Buffer.from(raw, "utf8");
+}
+
+function validateKeyBuffer(buf: Buffer, algorithm: string): void {
+  const required = KEY_LENGTHS[algorithm as CryptoAlgorithm];
+  if (required && buf.length !== required) {
+    throw new InvalidKeyError(
+      `[cms/crypto] Invalid key length for ${algorithm}: need ${required} bytes, got ${buf.length}.\n` +
+        `  Provide a ${required * 2}-character hex string or a ${required}-byte UTF-8 string.`
+    );
+  }
+}
+
+function gcmAuthTag(cipher: crypto.Cipher): Buffer {
+  return (cipher as crypto.CipherGCM).getAuthTag();
+}
+
 export class CryptoController {
   private readonly algorithm: string;
   private readonly key: string;
-  private readonly keyBuffer: Buffer; // normalized 32-byte buffer for cipher ops
+  private readonly keyBuffer: Buffer;
   private readonly ivLength: number;
   private readonly saltRounds: number;
   private readonly hashAlgorithm: string;
   private readonly hmacAlgorithm: string;
 
-  private static readonly DEFAULT_ALGORITHM = "aes-256-gcm";
+  private static readonly DEFAULT_ALGORITHM: CryptoAlgorithm = "aes-256-gcm";
   private static readonly IV_LENGTH = 16;
   private static readonly SALT_ROUNDS = 10000;
   private static readonly DEFAULT_HASH_ALGORITHM = "sha256";
@@ -61,13 +92,14 @@ export class CryptoController {
     this.algorithm = config.algorithm ?? CryptoController.DEFAULT_ALGORITHM;
     this.key = resolveKey(config.key);
     this.keyBuffer = normalizeKey(this.key);
+    validateKeyBuffer(this.keyBuffer, this.algorithm);
     this.ivLength = config.ivLength ?? CryptoController.IV_LENGTH;
     this.saltRounds = config.saltRounds ?? CryptoController.SALT_ROUNDS;
     this.hashAlgorithm = config.hashAlgorithm ?? CryptoController.DEFAULT_HASH_ALGORITHM;
     this.hmacAlgorithm = config.hmacAlgorithm ?? CryptoController.DEFAULT_HMAC_ALGORITHM;
   }
 
-  // ==================== STATIC METHODS ====================
+  // ==================== STATIC FACTORIES ====================
 
   static encrypt(text: string, options: CryptoOptions = {}): string {
     return new CryptoController({ algorithm: options.algorithm, key: options.key }).encrypt(text);
@@ -77,24 +109,20 @@ export class CryptoController {
     return new CryptoController({ algorithm: options.algorithm, key: options.key }).decrypt(data);
   }
 
-  static async encryptForCache(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: any,
-    options: CryptoOptions = {}
-  ): Promise<EncryptedCacheEntry> {
+  static async encryptForCache(data: unknown, options: CryptoOptions = {}): Promise<EncryptedCacheEntry> {
     const algorithm = options.algorithm ?? CryptoController.DEFAULT_ALGORITHM;
     const key = resolveKey(options.key);
     const encoding = options.encoding ?? "hex";
-
     const keyBuffer = normalizeKey(key);
+    validateKeyBuffer(keyBuffer, algorithm);
+
     const iv = crypto.randomBytes(CryptoController.IV_LENGTH);
     const cipher = crypto.createCipheriv(algorithm, keyBuffer, iv);
-
     let encrypted = cipher.update(JSON.stringify(data), "utf8", encoding);
     encrypted += cipher.final(encoding);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const authTag: Buffer | null = (cipher as any).getAuthTag ? (cipher as any).getAuthTag() : null;
+    const isGcm = algorithm.endsWith("-gcm");
+    const authTag = isGcm ? (cipher as crypto.CipherGCM).getAuthTag() : null;
 
     return {
       encrypted: true,
@@ -105,42 +133,50 @@ export class CryptoController {
     };
   }
 
-  static async decryptFromCache(
-    entry: EncryptedCacheEntry,
-    options: CryptoOptions = {}
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any> {
+  static async decryptFromCache(entry: EncryptedCacheEntry, options: CryptoOptions = {}): Promise<unknown> {
     const algorithm = options.algorithm ?? entry.algorithm;
     const key = resolveKey(options.key);
     const encoding = options.encoding ?? "hex";
-
     const keyBuffer = normalizeKey(key);
+    validateKeyBuffer(keyBuffer, algorithm);
+
     const iv = Buffer.from(entry.iv, "hex");
     const decipher = crypto.createDecipheriv(algorithm, keyBuffer, iv);
 
     if (entry.authTag) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (decipher as any).setAuthTag(Buffer.from(entry.authTag, "hex"));
+      (decipher as crypto.DecipherGCM).setAuthTag(Buffer.from(entry.authTag, "hex"));
     }
 
     let decrypted = decipher.update(entry.data, encoding, "utf8");
     decrypted += decipher.final("utf8");
-
     return JSON.parse(decrypted) as unknown;
   }
 
-  static shouldEncrypt(
-    key: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: any,
-    options: CacheEncryptionOptions = {}
-  ): boolean {
+  // Produces a reusable signer/verifier bound to a fixed secret — ideal for webhooks
+  static createHmacSigner(secret: string, algorithm = "sha256"): HmacSigner {
+    const sign = (payload: string): string => crypto.createHmac(algorithm, secret).update(payload).digest("hex");
+
+    const verify = (payload: string, signature: string): boolean => {
+      try {
+        const expected = sign(payload);
+        const sigBuf = Buffer.from(signature, "hex");
+        const expBuf = Buffer.from(expected, "hex");
+        if (sigBuf.length !== expBuf.length) return false;
+        return crypto.timingSafeEqual(sigBuf, expBuf);
+      } catch {
+        return false;
+      }
+    };
+
+    return { sign, verify };
+  }
+
+  static shouldEncrypt(key: string, data: unknown, options: CacheEncryptionOptions = {}): boolean {
     if (options.encrypt === false) return false;
     if (options.encrypt === true) return true;
     if (SENSITIVE_PATTERNS.some(p => p.test(key))) return true;
-    if (options.encryptSensitive && typeof data === "object") {
-      const dataString = JSON.stringify(data);
-      if (SENSITIVE_PATTERNS.some(p => p.test(dataString))) return true;
+    if (options.encryptSensitive && typeof data === "object" && data !== null) {
+      if (SENSITIVE_PATTERNS.some(p => p.test(JSON.stringify(data)))) return true;
     }
     return false;
   }
@@ -177,52 +213,100 @@ export class CryptoController {
   encrypt(data: string | Buffer): string {
     const iv = crypto.randomBytes(this.ivLength);
     const cipher = crypto.createCipheriv(this.algorithm, this.keyBuffer, iv);
-
     const input = typeof data === "string" ? Buffer.from(data, "utf8") : data;
     const encrypted = Buffer.concat([cipher.update(input), cipher.final()]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tag = (cipher as any).getAuthTag() as Buffer;
+    const isGcm = this.algorithm.endsWith("-gcm");
 
     const result: EncryptedData = {
       iv: iv.toString("hex"),
-      tag: tag.toString("hex"),
+      tag: isGcm ? gcmAuthTag(cipher).toString("hex") : "",
       encrypted: encrypted.toString("hex"),
       algorithm: this.algorithm,
       timestamp: Date.now(),
     };
-
     return JSON.stringify(result);
   }
 
   decrypt(encryptedData: string): string {
-    const data = JSON.parse(encryptedData) as EncryptedData;
+    let parsed: EncryptedData;
+    try {
+      parsed = JSON.parse(encryptedData) as EncryptedData;
+    } catch (cause) {
+      throw new DecryptionError("Ciphertext is not valid JSON", cause);
+    }
 
-    const iv = Buffer.from(data.iv, "hex");
-    const tag = Buffer.from(data.tag, "hex");
-    const encrypted = Buffer.from(data.encrypted, "hex");
-
-    const decipher = crypto.createDecipheriv(data.algorithm || this.algorithm, this.keyBuffer, iv);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (decipher as any).setAuthTag(tag);
-
-    return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
+    try {
+      const iv = Buffer.from(parsed.iv, "hex");
+      const encrypted = Buffer.from(parsed.encrypted, "hex");
+      const decipher = crypto.createDecipheriv(parsed.algorithm || this.algorithm, this.keyBuffer, iv);
+      if (parsed.tag) {
+        (decipher as crypto.DecipherGCM).setAuthTag(Buffer.from(parsed.tag, "hex"));
+      }
+      return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
+    } catch (cause) {
+      throw new DecryptionError("Decryption failed — wrong key or corrupted ciphertext", cause);
+    }
   }
 
   isEncrypted(data: string): boolean {
     try {
-      const parsed = JSON.parse(data) as Record<string, unknown>;
+      const p = JSON.parse(data) as Record<string, unknown>;
       return (
-        typeof parsed === "object" &&
-        parsed !== null &&
-        typeof parsed.iv === "string" &&
-        typeof parsed.tag === "string" &&
-        typeof parsed.encrypted === "string" &&
-        typeof parsed.algorithm === "string" &&
-        typeof parsed.timestamp === "number"
+        typeof p === "object" &&
+        p !== null &&
+        typeof p.iv === "string" &&
+        typeof p.encrypted === "string" &&
+        typeof p.algorithm === "string" &&
+        typeof p.timestamp === "number"
       );
     } catch {
       return false;
     }
+  }
+
+  // ==================== OBJECT ENCRYPTION ====================
+
+  // Encrypts an entire object as a single ciphertext blob
+  encryptObject<T extends Record<string, unknown>>(obj: T): string {
+    return this.encrypt(JSON.stringify(obj));
+  }
+
+  // Decrypts a blob produced by encryptObject
+  decryptObject<T extends Record<string, unknown>>(ciphertext: string): T {
+    return JSON.parse(this.decrypt(ciphertext)) as T;
+  }
+
+  // Encrypts specific fields of an object in-place (shallow copy); non-string values are JSON-serialized
+  encryptFields<T extends Record<string, unknown>>(obj: T, fields: ReadonlyArray<keyof T>): T {
+    const result = { ...obj };
+    for (const field of fields) {
+      const value = result[field];
+      if (value === undefined || value === null) continue;
+      const serialized = typeof value === "string" ? value : JSON.stringify(value);
+      (result as Record<string, unknown>)[field as string] = this.encrypt(serialized);
+    }
+    return result;
+  }
+
+  // Decrypts fields previously encrypted by encryptFields; restores original type via JSON.parse where applicable
+  decryptFields<T extends Record<string, unknown>>(obj: T, fields: ReadonlyArray<keyof T>): T {
+    const result = { ...obj };
+    for (const field of fields) {
+      const value = result[field];
+      if (typeof value !== "string" || !this.isEncrypted(value)) continue;
+      const plain = this.decrypt(value);
+      try {
+        (result as Record<string, unknown>)[field as string] = JSON.parse(plain) as unknown;
+      } catch {
+        (result as Record<string, unknown>)[field as string] = plain;
+      }
+    }
+    return result;
+  }
+
+  // Re-encrypts a ciphertext under a new key — use for key rotation
+  reEncrypt(encryptedData: string, newController: CryptoController): string {
+    return newController.encrypt(this.decrypt(encryptedData));
   }
 
   // ==================== HASHING ====================
@@ -248,8 +332,16 @@ export class CryptoController {
   }
 
   verifyHmac(data: string, signature: string, secret = this.key, algorithm = this.hmacAlgorithm): boolean {
-    const expected = this.hmac(data, secret, algorithm);
-    return crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
+    try {
+      const expected = this.hmac(data, secret, algorithm);
+      const sigBuf = Buffer.from(signature, "hex");
+      const expBuf = Buffer.from(expected, "hex");
+      // Length must match before timingSafeEqual to avoid throwing
+      if (sigBuf.length !== expBuf.length) return false;
+      return crypto.timingSafeEqual(sigBuf, expBuf);
+    } catch {
+      return false;
+    }
   }
 
   // ==================== PASSWORD HASHING ====================
@@ -264,6 +356,91 @@ export class CryptoController {
     const { hash, salt, algorithm } = hashResult;
     const computed = crypto.pbkdf2Sync(password, salt, this.saltRounds, 64, algorithm).toString("hex");
     return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(computed, "hex"));
+  }
+
+  // ==================== API KEY MANAGEMENT ====================
+
+  // Generates an API key with a human-readable prefix, stores only the SHA-256 hash
+  generateApiKey(prefix = "sk"): ApiKey {
+    const raw = `${prefix}_${this.randomHex(32)}`;
+    return {
+      raw,
+      hash: this.sha256(raw),
+      prefix: raw.slice(0, prefix.length + 3), // e.g. "sk_ab" — safe to display
+    };
+  }
+
+  // Validates an incoming raw API key against a stored hash
+  verifyApiKey(raw: string, storedHash: string): boolean {
+    const computed = this.sha256(raw);
+    try {
+      return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(storedHash, "hex"));
+    } catch {
+      return false;
+    }
+  }
+
+  // ==================== TOKEN GENERATION ====================
+
+  generateToken<T = unknown>(data: T, expiresIn = 3600000): string {
+    const payload: TokenPayload<T> = {
+      data,
+      iat: Date.now(),
+      exp: Date.now() + expiresIn,
+      iss: "cms-crypto",
+    };
+    const json = JSON.stringify(payload);
+    const signature = this.hmac(json);
+    return Buffer.from(`${json}.${signature}`).toString("base64url");
+  }
+
+  verifyToken<T = unknown>(token: string): TokenPayload<T> | null {
+    try {
+      const decoded = Buffer.from(token, "base64url").toString("utf8");
+      const dotIndex = decoded.lastIndexOf(".");
+      if (dotIndex < 0) return null;
+
+      const json = decoded.slice(0, dotIndex);
+      const signature = decoded.slice(dotIndex + 1);
+
+      if (!this.verifyHmac(json, signature)) return null;
+
+      const payload = JSON.parse(json) as TokenPayload<T>;
+      if (payload.exp && Date.now() > payload.exp) return null;
+
+      return payload;
+    } catch (cause) {
+      throw new TokenError("Token verification failed", cause);
+    }
+  }
+
+  // ==================== KEY DERIVATION ====================
+
+  deriveKey(password: string, salt: string, iterations = this.saltRounds, keyLength = 32): Buffer {
+    return crypto.pbkdf2Sync(password, salt, iterations, keyLength, this.hashAlgorithm);
+  }
+
+  generateKeyPair(
+    type: "rsa" | "ec" | "ed25519" | "ed448" | "x25519" | "x448" | "dh" = "rsa",
+    options: Record<string, unknown> = {}
+  ): { publicKey: string; privateKey: string } {
+    const defaultOptions =
+      type === "rsa"
+        ? {
+            modulusLength: 2048,
+            publicKeyEncoding: { type: "spki", format: "pem" },
+            privateKeyEncoding: { type: "pkcs8", format: "pem" },
+          }
+        : {
+            namedCurve: "secp256k1",
+            publicKeyEncoding: { type: "spki", format: "pem" },
+            privateKeyEncoding: { type: "sec1", format: "pem" },
+          };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return crypto.generateKeyPairSync(type as any, { ...defaultOptions, ...options } as any) as {
+      publicKey: string;
+      privateKey: string;
+    };
   }
 
   // ==================== RANDOM GENERATION ====================
@@ -316,67 +493,6 @@ export class CryptoController {
     return `${phone.slice(0, 2)}***${phone.slice(-2)}`;
   }
 
-  // ==================== TOKEN GENERATION ====================
-
-  generateToken(payload: TokenPayload, expiresIn = 3600000): string {
-    const tokenData = {
-      ...payload,
-      iat: Date.now(),
-      exp: Date.now() + expiresIn,
-      iss: "crypto-controller",
-    };
-    const data = JSON.stringify(tokenData);
-    const signature = this.hmac(data);
-    return Buffer.from(`${data}.${signature}`).toString("base64url");
-  }
-
-  verifyToken(token: string): TokenPayload | null {
-    try {
-      const decoded = Buffer.from(token, "base64url").toString("utf8");
-      const dotIndex = decoded.lastIndexOf(".");
-      if (dotIndex < 0) return null;
-
-      const data = decoded.slice(0, dotIndex);
-      const signature = decoded.slice(dotIndex + 1);
-
-      if (!this.verifyHmac(data, signature)) return null;
-
-      const payload = JSON.parse(data) as TokenPayload;
-      if (payload.exp && Date.now() > payload.exp) return null;
-
-      return payload;
-    } catch {
-      return null;
-    }
-  }
-
-  // ==================== KEY DERIVATION ====================
-
-  deriveKey(password: string, salt: string, iterations = this.saltRounds, keyLength = 32): Buffer {
-    return crypto.pbkdf2Sync(password, salt, iterations, keyLength, this.hashAlgorithm);
-  }
-
-  generateKeyPair(
-    type: "rsa" | "ec" | "ed25519" | "ed448" | "x25519" | "x448" | "dh" = "rsa",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    options: any = {}
-  ): crypto.KeyPairSyncResult<string, string> {
-    const defaultOptions =
-      type === "rsa"
-        ? {
-            modulusLength: 2048,
-            publicKeyEncoding: { type: "spki", format: "pem" },
-            privateKeyEncoding: { type: "pkcs8", format: "pem" },
-          }
-        : {
-            namedCurve: "secp256k1",
-            publicKeyEncoding: { type: "spki", format: "pem" },
-            privateKeyEncoding: { type: "sec1", format: "pem" },
-          };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return crypto.generateKeyPairSync(type as any, { ...defaultOptions, ...options });
-  }
-
   // ==================== BASE64 UTILITIES ====================
 
   toBase64(data: string): string {
@@ -392,13 +508,14 @@ export class CryptoController {
     return Buffer.from(data, "base64url").toString("utf8");
   }
 
-  getInfo(): CryptoConfig {
+  getInfo(): CryptoConfig & { key: string } {
     return {
-      algorithm: this.algorithm,
+      algorithm: this.algorithm as CryptoAlgorithm,
       ivLength: this.ivLength,
       saltRounds: this.saltRounds,
-      hashAlgorithm: this.hashAlgorithm,
-      hmacAlgorithm: this.hmacAlgorithm,
+      hashAlgorithm: this.hashAlgorithm as NonNullable<CryptoConfig["hashAlgorithm"]>,
+      hmacAlgorithm: this.hmacAlgorithm as NonNullable<CryptoConfig["hmacAlgorithm"]>,
+      key: "[redacted]",
     };
   }
 }

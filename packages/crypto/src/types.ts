@@ -1,10 +1,20 @@
+export type CryptoAlgorithm =
+  | "aes-256-gcm"
+  | "aes-192-gcm"
+  | "aes-128-gcm"
+  | "aes-256-cbc"
+  | "aes-192-cbc"
+  | "aes-128-cbc";
+
+export type HashAlgorithm = "sha256" | "sha512" | "sha1" | "md5";
+
 export interface CryptoConfig {
-  algorithm?: string;
+  algorithm?: CryptoAlgorithm;
   key?: string;
   ivLength?: number;
   saltRounds?: number;
-  hashAlgorithm?: string;
-  hmacAlgorithm?: string;
+  hashAlgorithm?: HashAlgorithm;
+  hmacAlgorithm?: HashAlgorithm;
 }
 
 export interface EncryptedData {
@@ -29,16 +39,15 @@ export interface HashResult {
   algorithm: string;
 }
 
-export interface TokenPayload {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+export interface TokenPayload<T = unknown> {
+  data: T;
   exp?: number;
   iat?: number;
   iss?: string;
 }
 
 export interface CryptoOptions {
-  algorithm?: string;
+  algorithm?: CryptoAlgorithm;
   key?: string;
   encoding?: "hex" | "base64";
 }
@@ -48,4 +57,15 @@ export interface CacheEncryptionOptions extends CryptoOptions {
   encryptSensitive?: boolean;
   accessControl?: boolean;
   userContext?: string;
+}
+
+export interface HmacSigner {
+  sign: (payload: string) => string;
+  verify: (payload: string, signature: string) => boolean;
+}
+
+export interface ApiKey {
+  raw: string;
+  hash: string;
+  prefix: string;
 }
