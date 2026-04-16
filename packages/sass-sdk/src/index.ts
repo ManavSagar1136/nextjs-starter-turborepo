@@ -132,6 +132,14 @@ export {
 
   // i18n
   useTranslation,
+  SUPPORTED_LOCALES,
+
+  // Permissions
+  WhenPermission,
+  usePermissions,
+
+  // Settings screens constant
+  SETTINGS_SCREENS,
   // ─────────────────────────────────────────────────────────────────────────
 } from "@buildbase/sdk/react";
 

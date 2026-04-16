@@ -60,6 +60,21 @@ import {
   useUpdateSubscription,
   // Single invoice
   useInvoice,
+  // Public pricing
+  usePublicPlans,
+  PricingPage,
+  usePublicPlanGroupVersion,
+  // i18n
+  useTranslation,
+  SUPPORTED_LOCALES,
+  // Workspace UI
+  WorkspaceSwitcher,
+  SETTINGS_SCREENS,
+  // Permissions
+  WhenPermission,
+  usePermissions,
+  // Beta form
+  BetaForm,
 } from "@buildbase/saas-sdk";
 import { FeatureGate, FeatureButton } from "@/components/feature-gate";
 import { SubscriptionStatusBanner } from "@/components/subscription/SubscriptionStatusBanner";
@@ -500,6 +515,27 @@ export default function TestSubscriptionHocsPage() {
     loading: singleInvoiceLoading,
     error: singleInvoiceError,
   } = useInvoice(workspaceId, queriedInvoiceId);
+
+  // ── i18n ──────────────────────────────────────────────────────────────────
+  const { t, locale, dir, fmtNum, fmtCents } = useTranslation();
+
+  // ── Public plans ──────────────────────────────────────────────────────────
+  const [publicPlanSlug, setPublicPlanSlug] = useState("main-pricing");
+  const [queriedPublicSlug, setQueriedPublicSlug] = useState<string | null>(null);
+  const {
+    items: publicItems,
+    plans: publicPlans,
+    loading: publicPlansLoading,
+    error: publicPlansError,
+  } = usePublicPlans(queriedPublicSlug ?? "");
+  const {
+    planGroupVersion: publicGroupVersion,
+    loading: pgvLoading,
+    error: pgvError,
+  } = usePublicPlanGroupVersion(queriedPublicSlug);
+
+  // ── Permissions ────────────────────────────────────────────────────────────
+  const { can: canPermission, permissions: userPermissions, isOwner: permIsOwner, role: permRole } = usePermissions();
 
   async function handleSendNotification() {
     if (!workspaceId) return;
@@ -2281,6 +2317,261 @@ export default function TestSubscriptionHocsPage() {
               SDK release when the ESM bundle is updated.
             </p>
           </div>
+        </GroupCard>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            GROUP 9 · WORKSPACE UI & PERMISSIONS
+        ══════════════════════════════════════════════════════════════════ */}
+        <GroupCard
+          number={9}
+          title="Workspace UI & Permissions"
+          color="blue"
+          subtitle="WorkspaceSwitcher · WhenPermission · usePermissions · SETTINGS_SCREENS"
+        >
+          <SectionCard title="WorkspaceSwitcher" subtitle="Render prop component for workspace switching UI">
+            <div className="rounded-lg border border-blue-100 bg-white p-4 dark:border-blue-900 dark:bg-gray-800">
+              <p className="mb-3 text-xs text-gray-500">
+                Render prop receives{" "}
+                <code className="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-700">isLoading</code> and{" "}
+                <code className="rounded bg-gray-100 px-1 font-mono text-xs dark:bg-gray-700">currentWorkspace</code>:
+              </p>
+              <WorkspaceSwitcher
+                trigger={(isLoading, currentWs) => (
+                  <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm dark:border-blue-800 dark:bg-blue-900/30">
+                    {isLoading ? (
+                      <span className="text-xs text-blue-600">Loading…</span>
+                    ) : currentWs ? (
+                      <>
+                        <span className="flex h-6 w-6 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
+                          {currentWs.name?.[0]?.toUpperCase() ?? "W"}
+                        </span>
+                        <span className="font-medium text-blue-800 dark:text-blue-200">{currentWs.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-blue-600">Choose workspace…</span>
+                    )}
+                  </div>
+                )}
+              />
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="usePermissions"
+            subtitle="usePermissions() — resolves all permissions for the current user"
+          >
+            <div className="rounded-lg border border-blue-100 bg-white p-3 text-xs dark:border-blue-900 dark:bg-gray-800">
+              <p className="mb-2 font-semibold text-blue-700 dark:text-blue-400">Resolved permissions:</p>
+              <Row label="isOwner">
+                <StatusBadge value={permIsOwner} />
+              </Row>
+              <Row label="role">
+                <span className="font-mono">{permRole ?? "—"}</span>
+              </Row>
+              <Row label="permissions count">
+                <span className="font-mono">{userPermissions.size}</span>
+              </Row>
+              <Row label='can("read")'>
+                <StatusBadge value={canPermission("read")} />
+              </Row>
+              <Row label='can("write")'>
+                <StatusBadge value={canPermission("write")} />
+              </Row>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="WhenPermission"
+            subtitle="<WhenPermission permission='...'> — renders children only when user has the permission"
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <SubSection title="WhenPermission — 'read'" code="<WhenPermission permission='read'>">
+                <WhenPermission
+                  permission="read"
+                  fallback={<ResultBox ok={false}>No &apos;read&apos; permission</ResultBox>}
+                >
+                  <ResultBox ok={true}>&apos;read&apos; permission granted</ResultBox>
+                </WhenPermission>
+              </SubSection>
+              <SubSection title="WhenPermission — 'write'" code="<WhenPermission permission='write'>">
+                <WhenPermission
+                  permission="write"
+                  fallback={<ResultBox ok={false}>No &apos;write&apos; permission</ResultBox>}
+                >
+                  <ResultBox ok={true}>&apos;write&apos; permission granted</ResultBox>
+                </WhenPermission>
+              </SubSection>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="SETTINGS_SCREENS constant"
+            subtitle="Named settings screen identifiers (Set of valid section values)"
+          >
+            <div className="flex flex-wrap gap-2">
+              {Array.from(SETTINGS_SCREENS).map(val => (
+                <div
+                  key={val}
+                  className="rounded border border-blue-100 bg-white px-2 py-1 dark:border-blue-900 dark:bg-gray-800"
+                >
+                  <span className="font-mono text-xs text-blue-700 dark:text-blue-300">{String(val)}</span>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </GroupCard>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            GROUP 10 · INTERNATIONALIZATION (i18n)
+        ══════════════════════════════════════════════════════════════════ */}
+        <GroupCard
+          number={10}
+          title="Internationalization (i18n)"
+          color="teal"
+          subtitle="useTranslation · SUPPORTED_LOCALES — 8 locales, ICU MessageFormat, RTL support, native numerals."
+        >
+          <SectionCard title="useTranslation Hook" subtitle="Locale-aware translation, number, and currency formatting">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-teal-100 bg-white p-3 text-xs dark:border-teal-900 dark:bg-gray-800">
+                <p className="mb-2 font-bold text-teal-700 dark:text-teal-400">Current locale state</p>
+                <Row label="locale">
+                  <span className="font-mono">{locale ?? "—"}</span>
+                </Row>
+                <Row label="dir (text direction)">
+                  <span className="font-mono">{dir ?? "—"}</span>
+                </Row>
+                <Row label="fmtNum(1234)">
+                  <span className="font-mono">{fmtNum(1234)}</span>
+                </Row>
+                <Row label='fmtCents(1999, "usd")'>
+                  <span className="font-mono">{fmtCents(1999, "usd")}</span>
+                </Row>
+              </div>
+              <div className="rounded-lg border border-teal-100 bg-white p-3 text-xs dark:border-teal-900 dark:bg-gray-800">
+                <p className="mb-2 font-bold text-teal-700 dark:text-teal-400">Translation keys (t())</p>
+                <Row label='t("subscription.currentPlan")'>
+                  <span className="font-mono text-xs">{String(t("subscription.currentPlan" as any))}</span>
+                </Row>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="SUPPORTED_LOCALES" subtitle="All locale codes supported by the SDK">
+            <div className="flex flex-wrap gap-2">
+              {SUPPORTED_LOCALES.map(loc => (
+                <span
+                  key={String(loc)}
+                  className={`rounded border px-2 py-1 font-mono text-xs ${String(loc) === locale ? "border-teal-400 bg-teal-100 font-bold text-teal-800 dark:bg-teal-900 dark:text-teal-200" : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"}`}
+                >
+                  {String(loc)}
+                </span>
+              ))}
+            </div>
+          </SectionCard>
+        </GroupCard>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            GROUP 11 · PUBLIC PRICING & BETA FORM
+        ══════════════════════════════════════════════════════════════════ */}
+        <GroupCard
+          number={11}
+          title="Public Pricing & Beta Form"
+          color="purple"
+          subtitle="usePublicPlans · PricingPage · usePublicPlanGroupVersion · BetaForm — no login required."
+        >
+          <SectionCard
+            title="usePublicPlans + PricingPage"
+            subtitle="Fetch public plan groups by slug (for marketing/pricing pages)"
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <input
+                value={publicPlanSlug}
+                onChange={e => setPublicPlanSlug(e.target.value)}
+                className="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                placeholder="Plan group slug (e.g. main-pricing)"
+              />
+              <button
+                onClick={() => setQueriedPublicSlug(publicPlanSlug)}
+                className="rounded bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700"
+              >
+                Fetch Plans
+              </button>
+            </div>
+            {publicPlansError && <p className="mb-2 text-xs text-red-600">{String(publicPlansError)}</p>}
+            {publicPlansLoading && <p className="text-xs text-gray-400">Loading…</p>}
+            {queriedPublicSlug && !publicPlansLoading && (
+              <div className="rounded-lg border border-purple-100 bg-white p-3 text-xs dark:border-purple-900 dark:bg-gray-800">
+                <p className="mb-2 font-semibold text-purple-700 dark:text-purple-400">
+                  usePublicPlans(&quot;{queriedPublicSlug}&quot;)
+                </p>
+                <Row label="Plans count">
+                  <span className="font-mono">{publicPlans?.length ?? 0}</span>
+                </Row>
+                <Row label="Items count">
+                  <span className="font-mono">{publicItems?.length ?? 0}</span>
+                </Row>
+                {(publicPlans ?? []).map((p: any) => (
+                  <div key={p._id} className="mt-1 text-xs">
+                    <span className="font-semibold">{p.name ?? p.slug}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-3 rounded-lg border border-purple-100 bg-white p-3 dark:border-purple-900 dark:bg-gray-800">
+              <p className="mb-2 text-xs font-bold text-purple-700 dark:text-purple-400">
+                PricingPage render-prop component
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                <code className="rounded bg-gray-100 px-1 text-xs dark:bg-gray-700">{`<PricingPage slug="main-pricing">`}</code>{" "}
+                — renders children render prop with{" "}
+                <code className="rounded bg-gray-100 px-1 dark:bg-gray-700">{`{ loading, error, items, plans, refetch }`}</code>
+              </p>
+              {queriedPublicSlug && (
+                <PricingPage slug={queriedPublicSlug}>
+                  {({ loading: pgLoading, error: pgError, items: pgItems, plans: pgPlans }) => (
+                    <div className="mt-2">
+                      {pgLoading && <span className="text-xs text-gray-400">Loading…</span>}
+                      {pgError && <span className="text-xs text-red-600">{pgError}</span>}
+                      {!pgLoading && !pgError && (
+                        <ResultBox ok={true}>
+                          PricingPage OK — {pgPlans?.length ?? 0} plans, {pgItems?.length ?? 0} items
+                        </ResultBox>
+                      )}
+                    </div>
+                  )}
+                </PricingPage>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="usePublicPlanGroupVersion" subtitle="Fetch a specific plan group version by version ID">
+            {pgvLoading && <span className="text-xs text-gray-400">Loading…</span>}
+            {pgvError && <span className="text-xs text-red-600">{String(pgvError)}</span>}
+            {publicGroupVersion ? (
+              <div className="rounded-lg border border-purple-100 bg-white p-3 text-xs dark:border-purple-900 dark:bg-gray-800">
+                <Row label="Version ID">
+                  <span className="font-mono text-xs">{(publicGroupVersion as any)?._id ?? "—"}</span>
+                </Row>
+                <Row label="Slug">
+                  <span className="font-mono text-xs">{(publicGroupVersion as any)?.slug ?? "—"}</span>
+                </Row>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400">Fetch a plan group above to see version data.</p>
+            )}
+          </SectionCard>
+
+          <SectionCard title="BetaForm" subtitle="Pre-built signup/waitlist form component">
+            <div className="max-w-sm">
+              <BetaForm
+                onSuccess={() => alert("BetaForm: submitted successfully!")}
+                onError={err => alert("BetaForm error: " + err)}
+                showSuccessMessage={true}
+                hideLogo={false}
+                hideTitles={false}
+              />
+            </div>
+          </SectionCard>
         </GroupCard>
       </div>
     </div>
