@@ -26,6 +26,7 @@ import {
   useServerQuotaStatus,
   useServerAllQuotas,
   useServerUsageLogs,
+  usePushNotifications,
 } from "@buildbase/saas-sdk";
 import { FeatureGate, FeatureButton } from "@/components/feature-gate";
 import { SubscriptionStatusBanner } from "@/components/subscription/SubscriptionStatusBanner";
@@ -250,6 +251,62 @@ export default function TestSubscriptionHocsPage() {
     error: logsError,
     refetch: refetchLogs,
   } = useServerUsageLogs({ workspaceId: workspaceId ?? "", quotaSlug: QUOTA_VIDEOS, limit: 5 });
+
+  // ── Push notifications ─────────────────────────────────────────────────────
+  const {
+    permission,
+    isSubscribed,
+    isSupported,
+    loading: pushLoading,
+    error: pushError,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications();
+
+  // ── Send notification form ─────────────────────────────────────────────────
+  const [notifEventSlug, setNotifEventSlug] = useState("test-notification");
+  const [notifUserId, setNotifUserId] = useState("");
+  const [notifTitle, setNotifTitle] = useState("Hello from the test panel!");
+  const [notifMessage, setNotifMessage] = useState("This is a test notification sent from the SDK test page.");
+  const [notifUrl, setNotifUrl] = useState("");
+  const [sendLoading, setSendLoading] = useState(false);
+  const [sendResult, setSendResult] = useState<Record<string, unknown> | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  async function handleSendNotification() {
+    if (!workspaceId) return;
+    setSendLoading(true);
+    setSendResult(null);
+    setSendError(null);
+    try {
+      const body: Record<string, unknown> = {
+        workspaceId,
+        eventSlug: notifEventSlug,
+        data: {
+          ...(notifTitle ? { title: notifTitle } : {}),
+          ...(notifMessage ? { message: notifMessage } : {}),
+          ...(notifUrl ? { url: notifUrl } : {}),
+        },
+      };
+      if (notifUserId.trim()) body.userId = notifUserId.trim();
+
+      const res = await fetch("/api/saas/notification/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setSendError(json.error || `HTTP ${res.status}`);
+      } else {
+        setSendResult(json);
+      }
+    } catch (e) {
+      setSendError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSendLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900">
@@ -1117,6 +1174,171 @@ FEATURE_STATES.LOADING      → subscription data loading`}
               )}
               {!logsLoading && usageLogs.length === 0 && workspaceId && (
                 <p className="mt-3 text-xs text-gray-400">No usage logs recorded yet.</p>
+              )}
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── SECTION 6: Notifications ───────────────────────────────────── */}
+        <SectionCard
+          title="6. Notifications"
+          subtitle="Push notification subscription status (usePushNotifications) and server-side send via POST /api/saas/notification/send."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Push Subscription Panel */}
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/20">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-indigo-700 dark:text-indigo-400">
+                Push Subscription
+              </p>
+              <p className="mb-3 text-xs text-indigo-600 dark:text-indigo-300">usePushNotifications()</p>
+
+              <div className="mb-3 space-y-1 rounded bg-white p-3 text-xs dark:bg-gray-700">
+                <Row label="Supported">
+                  <StatusBadge value={isSupported} trueLabel="Yes" falseLabel="No" />
+                </Row>
+                <Row label="Permission">
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-semibold ${
+                      permission === "granted"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : permission === "denied"
+                          ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                          : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    {permission ?? "default"}
+                  </span>
+                </Row>
+                <Row label="Subscribed">
+                  <StatusBadge value={isSubscribed} trueLabel="Yes" falseLabel="No" />
+                </Row>
+                <Row label="Loading">
+                  <StatusBadge value={pushLoading} trueLabel="Yes" falseLabel="No" />
+                </Row>
+              </div>
+
+              {pushError && <p className="mb-2 text-xs text-red-600 dark:text-red-400">{String(pushError)}</p>}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => subscribe()}
+                  disabled={pushLoading || !isSupported || isSubscribed}
+                  className="flex-1 rounded bg-indigo-600 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  Subscribe
+                </button>
+                <button
+                  onClick={() => unsubscribe()}
+                  disabled={pushLoading || !isSubscribed}
+                  className="flex-1 rounded border border-indigo-300 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 dark:border-indigo-600 dark:text-indigo-300 dark:hover:bg-indigo-900/40"
+                >
+                  Unsubscribe
+                </button>
+              </div>
+
+              {!isSupported && (
+                <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                  Push notifications are not supported in this browser or environment.
+                </p>
+              )}
+            </div>
+
+            {/* Send Notification Panel */}
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 dark:border-rose-800 dark:bg-rose-900/20">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-rose-700 dark:text-rose-400">
+                Send Notification
+              </p>
+              <p className="mb-3 text-xs text-rose-600 dark:text-rose-300">POST /api/saas/notification/send</p>
+
+              <div className="mb-3 space-y-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-rose-800 dark:text-rose-300">
+                    Event slug <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={notifEventSlug}
+                    onChange={e => setNotifEventSlug(e.target.value)}
+                    placeholder="e.g. test-notification"
+                    className="w-full rounded border border-rose-300 bg-white px-2 py-1 text-sm dark:border-rose-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-rose-800 dark:text-rose-300">
+                    User ID <span className="text-gray-400">(optional — sends to all if omitted)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={notifUserId}
+                    onChange={e => setNotifUserId(e.target.value)}
+                    placeholder="Leave blank to send to all workspace users"
+                    className="w-full rounded border border-rose-300 bg-white px-2 py-1 text-sm dark:border-rose-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-rose-800 dark:text-rose-300">Title</label>
+                  <input
+                    type="text"
+                    value={notifTitle}
+                    onChange={e => setNotifTitle(e.target.value)}
+                    className="w-full rounded border border-rose-300 bg-white px-2 py-1 text-sm dark:border-rose-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-rose-800 dark:text-rose-300">Message</label>
+                  <input
+                    type="text"
+                    value={notifMessage}
+                    onChange={e => setNotifMessage(e.target.value)}
+                    className="w-full rounded border border-rose-300 bg-white px-2 py-1 text-sm dark:border-rose-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-rose-800 dark:text-rose-300">
+                    URL <span className="text-gray-400">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={notifUrl}
+                    onChange={e => setNotifUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full rounded border border-rose-300 bg-white px-2 py-1 text-sm dark:border-rose-600 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSendNotification}
+                  disabled={sendLoading || !workspaceId || !notifEventSlug}
+                  className="flex-1 rounded bg-rose-600 py-1.5 text-sm font-medium text-white hover:bg-rose-700 disabled:opacity-50"
+                >
+                  {sendLoading ? "Sending…" : "Send Notification"}
+                </button>
+                {(sendResult || sendError) && (
+                  <button
+                    onClick={() => {
+                      setSendResult(null);
+                      setSendError(null);
+                    }}
+                    className="rounded border border-rose-300 px-2 py-1.5 text-xs text-rose-700 hover:bg-rose-100 dark:text-rose-300"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {sendError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{sendError}</p>}
+              {sendResult && (
+                <pre
+                  className={`mt-2 overflow-auto rounded p-2 text-xs ${
+                    (sendResult as any).success
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                  }`}
+                >
+                  {JSON.stringify(sendResult, null, 2)}
+                </pre>
               )}
             </div>
           </div>
