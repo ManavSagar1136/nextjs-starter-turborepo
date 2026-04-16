@@ -89,6 +89,10 @@ export const env = createEnv({
     // Email Encryption
     EMAIL_ENCRYPTION_KEY: z.string().min(1).optional(),
 
+    // General-purpose encryption key used by @buildbase/crypto
+    // Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+    SECRET_ENCRYPTION_KEY: z.string().min(64).optional(),
+
     // Vercel Environment (for deployment detection)
     VERCEL_ENV: z.string().optional(),
   },
@@ -219,6 +223,7 @@ export const env = createEnv({
 
     // Email Encryption
     EMAIL_ENCRYPTION_KEY: process.env.EMAIL_ENCRYPTION_KEY,
+    SECRET_ENCRYPTION_KEY: process.env.SECRET_ENCRYPTION_KEY,
 
     // Vercel Environment
     VERCEL_ENV: process.env.VERCEL_ENV,
