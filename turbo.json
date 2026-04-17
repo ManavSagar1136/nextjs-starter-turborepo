@@ -86,6 +86,11 @@
     "@buildbase/eslint-config#build": {
       "cache": false
     },
+    "@buildbase/extension#build": {
+      "dependsOn": ["^build", "check-types", "lint"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
     "db:generate": {
       "cache": false,
       "outputs": ["node_modules/.prisma/**"]
