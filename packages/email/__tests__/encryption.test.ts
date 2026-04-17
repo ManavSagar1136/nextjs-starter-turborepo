@@ -22,8 +22,8 @@ import { encrypt, decrypt, encryptConfig, decryptConfig, generateEncryptionKey }
 import { ConfigurationError, EncryptionError } from "../src/core/errors.js";
 
 describe("Encryption", () => {
-  // Valid 32-byte key for testing (exactly 32 bytes)
-  const VALID_KEY = Buffer.from("12345678901234567890123456789012").toString("base64");
+  // Valid 64-char hex key for testing (32 bytes)
+  const VALID_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
   beforeEach(() => {
     vi.stubEnv("EMAIL_ENCRYPTION_KEY", VALID_KEY);
@@ -90,7 +90,7 @@ describe("Encryption", () => {
     });
 
     it("should throw ConfigurationError when key is wrong length", () => {
-      vi.stubEnv("EMAIL_ENCRYPTION_KEY", Buffer.from("short").toString("base64"));
+      vi.stubEnv("EMAIL_ENCRYPTION_KEY", "shortkey");
 
       expect(() => encrypt("test")).toThrow(ConfigurationError);
       expect(() => encrypt("test")).toThrow("32-byte");
@@ -100,10 +100,10 @@ describe("Encryption", () => {
       expect(() => decrypt("invalid-base64!!!")).toThrow(EncryptionError);
     });
 
-    it("should throw EncryptionError for too-short ciphertext", () => {
-      const tooShort = Buffer.from("short").toString("base64");
-      expect(() => decrypt(tooShort)).toThrow(EncryptionError);
-      expect(() => decrypt(tooShort)).toThrow("too short");
+    it("should throw EncryptionError for non-JSON ciphertext", () => {
+      const nonJson = Buffer.from("short").toString("base64");
+      expect(() => decrypt(nonJson)).toThrow(EncryptionError);
+      expect(() => decrypt(nonJson)).toThrow("not valid JSON");
     });
 
     it("should throw EncryptionError for tampered ciphertext", () => {
@@ -161,11 +161,10 @@ describe("Encryption", () => {
   });
 
   describe("generateEncryptionKey", () => {
-    it("should generate a valid base64 key", () => {
+    it("should generate a valid 64-char hex key", () => {
       const key = generateEncryptionKey();
-      const decoded = Buffer.from(key, "base64");
 
-      expect(decoded.length).toBe(32);
+      expect(key).toMatch(/^[0-9a-f]{64}$/);
     });
 
     it("should generate different keys each time", () => {

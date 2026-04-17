@@ -1,7 +1,7 @@
-import { CryptoController, generateEncryptionKey as genKey } from "@buildbase/crypto";
+import { CryptoController, DecryptionError, InvalidKeyError, generateEncryptionKey as genKey } from "@buildbase/crypto";
 import { env } from "@buildbase/env";
 
-import { ConfigurationError } from "./errors.js";
+import { ConfigurationError, EncryptionError } from "./errors.js";
 
 function getController(): CryptoController {
   const key = env.EMAIL_ENCRYPTION_KEY;
@@ -12,7 +12,14 @@ function getController(): CryptoController {
       "EMAIL_ENCRYPTION_KEY"
     );
   }
-  return new CryptoController({ key });
+  try {
+    return new CryptoController({ key });
+  } catch (err) {
+    if (err instanceof InvalidKeyError) {
+      throw new ConfigurationError(err.message, "EMAIL_ENCRYPTION_KEY");
+    }
+    throw err;
+  }
 }
 
 export function encrypt(plaintext: string): string {
@@ -20,7 +27,13 @@ export function encrypt(plaintext: string): string {
 }
 
 export function decrypt(ciphertext: string): string {
-  return getController().decrypt(ciphertext);
+  try {
+    return getController().decrypt(ciphertext);
+  } catch (err) {
+    if (err instanceof ConfigurationError) throw err;
+    if (err instanceof DecryptionError) throw new EncryptionError(err.message, err);
+    throw new EncryptionError("Decryption failed", err instanceof Error ? err : undefined);
+  }
 }
 
 export function encryptConfig(config: Record<string, unknown>): string {
@@ -28,7 +41,13 @@ export function encryptConfig(config: Record<string, unknown>): string {
 }
 
 export function decryptConfig<T extends Record<string, unknown>>(encrypted: string): T {
-  return getController().decryptObject<T>(encrypted);
+  try {
+    return getController().decryptObject<T>(encrypted);
+  } catch (err) {
+    if (err instanceof ConfigurationError) throw err;
+    if (err instanceof DecryptionError) throw new EncryptionError(err.message, err);
+    throw new EncryptionError("Decryption failed", err instanceof Error ? err : undefined);
+  }
 }
 
 // Returns a new 64-char hex key suitable for EMAIL_ENCRYPTION_KEY
