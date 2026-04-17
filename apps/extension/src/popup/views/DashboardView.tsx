@@ -1,5 +1,6 @@
 import { Avatar } from "../components/Avatar";
 import type { ExtSession } from "../../types/messages";
+import { WORKSPACE_ROLES } from "../../constants";
 
 const API_URL: string = import.meta.env.VITE_API_URL || "http://localhost:3101";
 const DASHBOARD_ROUTE: string = import.meta.env.VITE_DASHBOARD_ROUTE || "/dashboard";
@@ -12,9 +13,9 @@ interface DashboardViewProps {
 
 function roleBadge(role?: string) {
   const map: Record<string, string> = {
-    admin: "bg-indigo-100 text-indigo-700",
-    editor: "bg-emerald-100 text-emerald-700",
-    viewer: "bg-gray-100 text-gray-600",
+    [WORKSPACE_ROLES.ADMIN]: "bg-indigo-100 text-indigo-700",
+    [WORKSPACE_ROLES.EDITOR]: "bg-emerald-100 text-emerald-700",
+    [WORKSPACE_ROLES.VIEWER]: "bg-gray-100 text-gray-600",
   };
   const cls = map[role?.toLowerCase() ?? ""] ?? "bg-gray-100 text-gray-600";
   return <span className={`rounded px-1.5 py-0.5 text-xs font-medium capitalize ${cls}`}>{role ?? "member"}</span>;
