@@ -44,7 +44,9 @@ async function sendTokenToBackground(): Promise<void> {
 
 async function applyPendingLogout(): Promise<void> {
   try {
-    const res = await new Promise<any>(resolve => chrome.runtime.sendMessage({ type: "GET_PENDING_LOGOUT" }, resolve));
+    const res = await new Promise<{ pending?: boolean }>(resolve =>
+      chrome.runtime.sendMessage({ type: "GET_PENDING_LOGOUT" }, resolve)
+    );
     if (!res?.pending) return;
 
     chrome.runtime.sendMessage({ type: "CLEAR_PENDING_LOGOUT" });
@@ -57,7 +59,7 @@ async function applyPendingLogout(): Promise<void> {
 
 async function applyPendingWorkspaceSwitch(): Promise<void> {
   try {
-    const res = await new Promise<any>(resolve =>
+    const res = await new Promise<{ workspaceId?: string | null }>(resolve =>
       chrome.runtime.sendMessage({ type: "GET_PENDING_WORKSPACE" }, resolve)
     );
     const pendingId: string | null = res?.workspaceId ?? null;

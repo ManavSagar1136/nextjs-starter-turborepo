@@ -195,8 +195,8 @@ async function handleGetWorkspaces(): Promise<ExtResponse> {
   try {
     const res = await apiFetch("/api/auth/workspaces");
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return { type: "ERROR", error: (err as any).error ?? `HTTP ${res.status}` };
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      return { type: "ERROR", error: err.error ?? `HTTP ${res.status}` };
     }
     const data = (await res.json()) as { workspaces: ExtWorkspace[] };
     return { type: "WORKSPACES_RESULT", data: data.workspaces ?? [] };
@@ -213,11 +213,11 @@ async function handleChangeWorkspace(workspace: ExtWorkspace, user: Record<strin
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return { type: "ERROR", error: (err as any).error ?? `HTTP ${res.status}` };
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      return { type: "ERROR", error: err.error ?? `HTTP ${res.status}` };
     }
 
-    const data = await res.json().catch(() => ({}));
+    const data = (await res.json().catch(() => ({}))) as { token?: string };
     if (data.token) {
       await storeJwt(data.token);
     }
@@ -265,9 +265,11 @@ async function handleLogout(): Promise<ExtResponse> {
 // ── Message router ─────────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  const msg = message as { type?: string; token?: string };
+
   // Content script relay — JWT received from the user app page
-  if ((message as any).type === "CMS_JWT_RECEIVED") {
-    const token = (message as any).token as string | undefined;
+  if (msg.type === "CMS_JWT_RECEIVED") {
+    const token = msg.token;
     if (token) {
       storeJwt(token).then(() => {
         chrome.runtime.sendMessage({ type: "AUTH_DETECTED" }).catch(() => {});
@@ -278,7 +280,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   // Content script reports the web app session has gone (user logged out on web)
-  if ((message as any).type === "CMS_SESSION_GONE") {
+  if (msg.type === "CMS_SESSION_GONE") {
     clearStoredJwt().then(() => {
       chrome.runtime.sendMessage({ type: "AUTH_CANCELLED" }).catch(() => {});
     });
