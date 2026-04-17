@@ -39,7 +39,11 @@ export interface AuthMiddlewareResult {
   response?: NextResponse;
   error?: string;
   isInternalApiKey?: boolean;
+  isExtensionToken?: boolean;
 }
+
+/** Header name the browser extension uses to pass its stored JWT. */
+export const EXTENSION_TOKEN_HEADER = "x-extension-token";
 
 /**
  * Check if the request uses internal API key authentication
@@ -73,6 +77,30 @@ export const authenticateRequest = (request: NextRequest): AuthMiddlewareResult 
           isInternal: true,
         } as AuthenticatedUser,
       };
+    }
+
+    // Check for extension token header (browser extension passes its stored JWT here).
+    // Extension tokens bypass cookie restrictions (sameSite) and are not CSRF-vulnerable
+    // because chrome.storage is inaccessible to web pages.
+    const extToken = request.headers.get(EXTENSION_TOKEN_HEADER);
+    if (extToken) {
+      try {
+        const decoded = verifyAuthToken(extToken);
+        return { success: true, user: decoded, isExtensionToken: true };
+      } catch (extErr) {
+        if (extErr instanceof jwt.TokenExpiredError) {
+          return {
+            success: false,
+            response: NextResponse.json({ error: "Extension token has expired" }, { status: 401 }),
+            error: "Extension token has expired",
+          };
+        }
+        return {
+          success: false,
+          response: NextResponse.json({ error: "Invalid extension token" }, { status: 401 }),
+          error: "Invalid extension token",
+        };
+      }
     }
 
     // Get token from HTTP-only cookie only (we no longer use Authorization header for user tokens)

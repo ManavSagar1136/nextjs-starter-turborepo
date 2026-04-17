@@ -1,0 +1,13 @@
+{
+  "extends": "@buildbase/typescript-config/base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "target": "ES2022",
+    "types": ["chrome", "node"]
+  },
+  "include": ["src/**/*", "popup.html"],
+  "exclude": ["node_modules", "dist"]
+}

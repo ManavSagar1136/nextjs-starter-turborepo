@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AuthenticatedUser, withAuth, createResponseWithAuthToken } from "@buildbase/helpers/auth";
+import { AuthenticatedUser, withAuth, createResponseWithAuthToken, createAuthToken } from "@buildbase/helpers/auth";
 import {
   syncWorkspace,
   addUserToWorkspace,
@@ -127,11 +127,13 @@ async function postHandler(request: NextRequest) {
     };
 
     // 5. Generate new auth token with updated workspace context
+    const newToken = createAuthToken(updatedUserData);
     return createResponseWithAuthToken(
       {
         success: true,
         user: updatedUserData,
         workspace: syncedWorkspace,
+        token: newToken, // extension reads this to update chrome.storage.session
         message: "Workspace changed and token updated successfully",
       },
       updatedUserData
