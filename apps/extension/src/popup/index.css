@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Popup shell: fixed width, scroll only inside content */
+html,
+body,
+#root {
+  width: 380px;
+  min-height: 200px;
+  max-height: 600px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}

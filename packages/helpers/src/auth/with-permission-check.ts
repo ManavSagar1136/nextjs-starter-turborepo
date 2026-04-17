@@ -100,7 +100,9 @@ export function withPermissionCheck<T extends any[]>(
     // Skipped when APP_JWT_SECRET is not configured (local dev without env).
     // Token = HMAC-SHA256(userId:workspaceId, APP_JWT_SECRET) — recomputed from
     // the decoded JWT, so an attacker cannot forge it without knowing the secret.
-    if (CSRF_ENFORCED_METHODS.has(request.method) && env.APP_JWT_SECRET) {
+    // Extension tokens are stored in chrome.storage (inaccessible to web pages), so they
+    // are not vulnerable to CSRF attacks — skip the cookie-based CSRF check for them.
+    if (CSRF_ENFORCED_METHODS.has(request.method) && env.APP_JWT_SECRET && !authResult.isExtensionToken) {
       const csrfHeader = request.headers.get(CSRF_HEADER_NAME);
       const userId = user.userId ?? "";
       const workspaceId = user.workspaceId ?? "";
