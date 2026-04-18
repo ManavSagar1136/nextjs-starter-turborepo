@@ -1,6 +1,5 @@
 "use client";
 
-import { TbRocket } from "react-icons/tb";
 import { cn } from "@buildbase/ui/lib/utils";
 
 interface AppIconProps {
@@ -59,9 +58,15 @@ export const AppIcon = ({ size = "lg", className }: AppIconProps) => {
 
   return (
     <div className={className}>
-      {/* Main App Icon */}
-      <div className={cn("flex items-center justify-center rounded-xl", sizes.container)}>
-        <TbRocket size={sizes.icon} className="text-slate-500" />
+      <div className={cn("flex items-center justify-center overflow-hidden rounded-xl", sizes.container)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/favicon-192x192.png"
+          alt="App icon"
+          width={sizes.icon}
+          height={sizes.icon}
+          className="object-contain"
+        />
       </div>
     </div>
   );
