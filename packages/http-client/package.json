@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
+    "@buildbase/utils": "*",
     "axios": "^1.7.9",
     "crypto-js": "^4.2.0"
   },

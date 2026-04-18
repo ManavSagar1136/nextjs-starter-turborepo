@@ -27,7 +27,13 @@ export const env = createEnv({
 
     // API Configuration
     API_SECRET: z.string().min(32).optional(),
-    APP_JWT_SECRET: z.string().min(32, "APP_JWT_SECRET must be at least 32 characters").optional(),
+    APP_JWT_SECRET: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || process.env.NODE_ENV !== "production" || val.length >= 32,
+        "APP_JWT_SECRET must be at least 32 characters in production"
+      ),
 
     // SaaS SDK (Server-side only - secrets should never be exposed to client)
     SAAS_CLIENT_SECRET: z.string().optional(),
