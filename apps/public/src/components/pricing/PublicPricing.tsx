@@ -140,13 +140,10 @@ function getDescription(item: IPublicPlanItem): string | undefined {
   return (item as IPublicPlanItem & { description?: string }).description;
 }
 
-// ─── Grid col class ───────────────────────────────────────────────────────
-
-function getGridClass(count: number): string {
-  if (count === 1) return "grid-cols-1 mx-auto max-w-sm";
-  if (count === 2) return "grid-cols-1 sm:grid-cols-2 max-w-2xl";
-  if (count === 4) return "grid-cols-1 sm:grid-cols-2";
-  return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+function sortPlansByPrice(plans: IPublicPlanVersion[], cycle: BillingCycle): IPublicPlanVersion[] {
+  // spread into a new array (do NOT duplicate) then sort ascending by price
+  const copy = plans.slice();
+  return copy.sort((a, b) => (resolvePlanPrice(a, cycle)?.cents ?? 0) - (resolvePlanPrice(b, cycle)?.cents ?? 0));
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────
@@ -277,33 +274,37 @@ function PricingCards({
   const shouldReduce     = useReducedMotion();
   const containerVariant = getMotionVariant(shouldReduce, staggerContainer);
   const cardVariant      = getMotionVariant(shouldReduce, scaleIn);
-  const popularIndex     = Math.floor(plans.length / 2);
+
+  const sortedPlans  = sortPlansByPrice(plans, billingCycle);
+  const popularIndex = Math.floor(sortedPlans.length / 2);
 
   const featureItems = items.filter((i) => i.type === "feature");
   const limitItems   = items.filter((i) => i.type === "limit");
   const quotaItems   = items.filter((i) => i.type === "quota");
 
   return (
-    <motion.div
-      variants={containerVariant}
-      initial="hidden"
-      whileInView="visible"
-      viewport={VIEWPORT}
-      className={cn("mx-auto grid w-full gap-5", getGridClass(plans.length))}
-    >
-      {plans.map((plan, i) => (
-        <motion.div key={plan._id} variants={cardVariant} className="flex">
-          <PlanCard
-            plan={plan}
-            featureItems={featureItems}
-            limitItems={limitItems}
-            quotaItems={quotaItems}
-            billingCycle={billingCycle}
-            isPopular={i === popularIndex}
-          />
-        </motion.div>
-      ))}
-    </motion.div>
+    <div className="w-full overflow-x-auto pt-5">
+      <motion.div
+        variants={containerVariant}
+        initial="hidden"
+        whileInView="visible"
+        viewport={VIEWPORT}
+        className="flex w-max min-w-full justify-center gap-5 px-1"
+      >
+        {sortedPlans.map((plan, i) => (
+          <motion.div key={plan._id} variants={cardVariant} className="flex w-72 shrink-0">
+            <PlanCard
+              plan={plan}
+              featureItems={featureItems}
+              limitItems={limitItems}
+              quotaItems={quotaItems}
+              billingCycle={billingCycle}
+              isPopular={i === popularIndex}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    </div>
   );
 }
 
@@ -400,12 +401,12 @@ function PlanCard({
               : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
           )}
         >
-          Start 7-Day Free Trial
+          Get Started
           <ArrowRight className="size-4" />
         </a>
 
         <p className={cn("mt-1.5 text-center text-[11px]", mutedText)}>
-          7 days free · Cancel anytime · Powered by Stripe
+          Cancel anytime · Powered by Stripe
         </p>
 
         {/* ── Compact feature list ── */}
@@ -518,12 +519,12 @@ function CompareButton({
           {/* inline style forces flex, overriding DialogContent's base `grid` class */}
           <DialogContent
             style={{ display: "flex", flexDirection: "column" }}
-            className="max-h-[85vh] max-w-4xl overflow-hidden p-0"
+            className="max-h-[85vh] max-w-4xl overflow-hidden p-0 gap-0"
           >
-            <div className="shrink-0 border-b border-border px-6 py-4">
+            <div className="shrink-0 border-b border-border px-3 py-2">
               <DialogTitle className="text-base font-semibold">Feature Comparison</DialogTitle>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{content}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto">{content}</div>
           </DialogContent>
         </Dialog>
       </div>
@@ -536,7 +537,7 @@ function CompareButton({
             <div className="shrink-0 border-b border-border px-4 py-3">
               <DrawerTitle className="text-base font-semibold">Feature Comparison</DrawerTitle>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{content}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto pb-4">{content}</div>
           </DrawerContent>
         </Drawer>
       </div>
@@ -554,12 +555,13 @@ function ComparisonTable({
   items: IPublicPlanItem[];
   billingCycle: BillingCycle;
 }) {
-  const popularIndex   = Math.floor(plans.length / 2);
+  const sortedPlans    = sortPlansByPrice(plans, billingCycle);
+  const popularIndex   = Math.floor(sortedPlans.length / 2);
   const featureItems   = items.filter((i) => i.type === "feature");
   const limitItems     = items.filter((i) => i.type === "limit");
   const quotaItems     = items.filter((i) => i.type === "quota");
-  const hasSeatPricing = plans.some((p) => getSeatPricing(p)?.enabled);
-  const colSpan        = plans.length + 1;
+  const hasSeatPricing = sortedPlans.some((p) => getSeatPricing(p)?.enabled);
+  const planCount      = sortedPlans.length;
 
   return (
     <div className="overflow-x-auto">
@@ -568,18 +570,21 @@ function ComparisonTable({
         {/* ── Sticky plan header row ── */}
         <thead className="sticky top-0 z-10">
           <tr className="bg-background">
-            <th className="w-[40%] border-b border-border py-3 text-left font-normal" />
-            {plans.map((plan, i) => {
+            <th style={{ minWidth: 180 }} className="relative sticky left-0 z-20 w-[40%] border-b border-border bg-background py-3 text-left font-normal">
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-4 translate-x-full bg-gradient-to-r from-black/10 to-transparent dark:from-black/20" />
+            </th>
+            {sortedPlans.map((plan, i) => {
               const isPopular = i === popularIndex;
               const pi  = resolvePlanPrice(plan, billingCycle);
               const sym = getCurrencySymbol(plan.pricingVariants?.[0]?.currency);
               return (
                 <th
                   key={plan._id}
+                  style={{ minWidth: 140 }}
                   className={cn(
                     "border-b border-border py-3 pl-4 pr-3 text-left font-normal",
                     isPopular && "bg-indigo-500/5 dark:bg-indigo-500/10",
-                    i < plans.length - 1 && "border-r border-border"
+                    i < sortedPlans.length - 1 && "border-r border-border"
                   )}
                 >
                   <p className={cn("text-sm font-bold", isPopular && "text-indigo-500 dark:text-indigo-400")}>
@@ -600,16 +605,16 @@ function ComparisonTable({
           {/* ── Features ── */}
           {featureItems.length > 0 && (
             <>
-              <SectionRow label="Features" colSpan={colSpan} />
+              <SectionRow label="Features" planCount={planCount} />
               {featureItems.map((item) => (
                 <tr key={item._id}>
                   <LabelCell label={item.name} description={getDescription(item)} />
-                  {plans.map((plan, i) => (
+                  {sortedPlans.map((plan, i) => (
                     <BoolCell
                       key={plan._id}
                       included={plan.features?.[item.slug] === true}
                       isPopular={i === popularIndex}
-                      isLast={i === plans.length - 1}
+                      isLast={i === sortedPlans.length - 1}
                     />
                   ))}
                 </tr>
@@ -620,18 +625,18 @@ function ComparisonTable({
           {/* ── Limits ── */}
           {limitItems.length > 0 && (
             <>
-              <SectionRow label="Limits" colSpan={colSpan} />
+              <SectionRow label="Limits" planCount={planCount} />
               {limitItems.map((item) => (
                 <tr key={item._id}>
                   <LabelCell label={item.name} description={getDescription(item)} />
-                  {plans.map((plan, i) => {
+                  {sortedPlans.map((plan, i) => {
                     const val = plan.limits?.[item.slug];
                     return (
                       <ValueCell
                         key={plan._id}
                         value={typeof val === "number" ? val.toLocaleString() : null}
                         isPopular={i === popularIndex}
-                        isLast={i === plans.length - 1}
+                        isLast={i === sortedPlans.length - 1}
                       />
                     );
                   })}
@@ -643,11 +648,11 @@ function ComparisonTable({
           {/* ── Usage ── */}
           {quotaItems.length > 0 && (
             <>
-              <SectionRow label="Usage" colSpan={colSpan} />
+              <SectionRow label="Usage" planCount={planCount} />
               {quotaItems.map((item) => (
                 <tr key={item._id}>
                   <LabelCell label={item.name} description={getDescription(item)} />
-                  {plans.map((plan, i) => {
+                  {sortedPlans.map((plan, i) => {
                     const quota = resolveQuota(plan, item.slug, billingCycle);
                     const sym   = getCurrencySymbol(plan.pricingVariants?.[0]?.currency);
                     return (
@@ -656,7 +661,7 @@ function ComparisonTable({
                         quota={quota}
                         symbol={sym}
                         isPopular={i === popularIndex}
-                        isLast={i === plans.length - 1}
+                        isLast={i === sortedPlans.length - 1}
                       />
                     );
                   })}
@@ -668,18 +673,18 @@ function ComparisonTable({
           {/* ── Seats ── */}
           {hasSeatPricing && (
             <>
-              <SectionRow label="Seats" colSpan={colSpan} />
+              <SectionRow label="Seats" planCount={planCount} />
 
               <tr>
                 <LabelCell label="Included seats" description="Free with base price" />
-                {plans.map((plan, i) => {
+                {sortedPlans.map((plan, i) => {
                   const sp = getSeatPricing(plan);
                   return (
                     <ValueCell
                       key={plan._id}
                       value={typeof sp?.includedSeats === "number" ? sp.includedSeats.toString() : null}
                       isPopular={i === popularIndex}
-                      isLast={i === plans.length - 1}
+                      isLast={i === sortedPlans.length - 1}
                     />
                   );
                 })}
@@ -687,14 +692,14 @@ function ComparisonTable({
 
               <tr>
                 <LabelCell label="Max seats" />
-                {plans.map((plan, i) => {
+                {sortedPlans.map((plan, i) => {
                   const sp = getSeatPricing(plan);
                   return (
                     <ValueCell
                       key={plan._id}
                       value={typeof sp?.maxSeats === "number" ? sp.maxSeats.toString() : null}
                       isPopular={i === popularIndex}
-                      isLast={i === plans.length - 1}
+                      isLast={i === sortedPlans.length - 1}
                     />
                   );
                 })}
@@ -702,7 +707,7 @@ function ComparisonTable({
 
               <tr>
                 <LabelCell label="Per extra seat" />
-                {plans.map((plan, i) => {
+                {sortedPlans.map((plan, i) => {
                   const sp    = getSeatPricing(plan);
                   const sym   = getCurrencySymbol(plan.pricingVariants?.[0]?.currency);
                   const cents = sp?.enabled && sp.perSeat
@@ -713,7 +718,7 @@ function ComparisonTable({
                       key={plan._id}
                       value={cents > 0 ? `${sym}${(cents / 100).toFixed(2)}/${CYCLE_SUFFIX[billingCycle]}` : null}
                       isPopular={i === popularIndex}
-                      isLast={i === plans.length - 1}
+                      isLast={i === sortedPlans.length - 1}
                     />
                   );
                 })}
@@ -728,17 +733,21 @@ function ComparisonTable({
 
 // ─── Section header row ───────────────────────────────────────────────────
 
-function SectionRow({ label, colSpan }: { label: string; colSpan: number }) {
+function SectionRow({ label, planCount }: { label: string; planCount: number }) {
   return (
     <tr>
       <td
-        colSpan={colSpan}
-        className="border-t border-border bg-muted/50 px-2 py-2"
+        style={{ minWidth: 180 }}
+        className="relative sticky left-0 z-10 border-t border-border bg-muted/50 py-2 pl-3 pr-2"
       >
         <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           {label}
         </span>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-4 translate-x-full bg-gradient-to-r from-black/10 to-transparent dark:from-black/20" />
       </td>
+      {Array.from({ length: planCount }).map((_, i) => (
+        <td key={i} className="border-t border-border bg-muted/50" />
+      ))}
     </tr>
   );
 }
@@ -747,11 +756,12 @@ function SectionRow({ label, colSpan }: { label: string; colSpan: number }) {
 
 function LabelCell({ label, description }: { label: string; description?: string }) {
   return (
-    <td className="border-b border-border py-2.5 pr-4 align-middle">
+    <td style={{ minWidth: 180 }} className="relative sticky left-0 z-10 border-b border-border bg-background py-2.5 pl-3 pr-4 align-middle">
       <span className="text-sm text-foreground">{label}</span>
       {description && (
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       )}
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-4 translate-x-full bg-gradient-to-r from-black/10 to-transparent dark:from-black/20" />
     </td>
   );
 }
