@@ -4,6 +4,7 @@ import { ThemeProvider } from "@buildbase/ui/components/providers/ThemeProvider"
 import { ReduxProvider } from "@buildbase/redux/provider";
 import { TanStackQueryProvider } from "@buildbase/tanstack-query/provider";
 import { DialogProvider } from "@buildbase/dialog-manager/provider";
+import { Toaster } from "@buildbase/ui/components/ui/sonner";
 import { userReducer } from "@/store";
 import SaaSProvider from "./SaaSProvider";
 import { WorkspaceInitializer } from "@/components/WorkspaceInitializer";
@@ -27,6 +28,7 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <Toaster richColors />
       <ReduxProvider
         additionalReducers={{
           user: userReducer,
