@@ -28,14 +28,6 @@ async function postHandler(request: NextRequest) {
     const body = await request.json();
     const { workspace, user, role } = body;
 
-    console.log(`[workspace-change] Received workspace change request:`, {
-      workspaceId: workspace?.id || workspace?._id,
-      workspaceName: workspace?.name,
-      userId: user?.id || user?._id,
-      userEmail: user?.email,
-      role,
-    });
-
     // Validate required fields
     if (!workspace) {
       return NextResponse.json({ success: false, error: "Workspace is required" }, { status: 400 });
@@ -69,12 +61,6 @@ async function postHandler(request: NextRequest) {
       }
     }
 
-    console.log(`[workspace-change] Processing workspace change:`, {
-      workspaceId,
-      sdkUserId: userData.sdkUserId,
-      userRole,
-    });
-
     // 1. Sync workspace to database
     const workspaceSyncResult = await syncWorkspace({
       id: workspaceId,
@@ -88,7 +74,6 @@ async function postHandler(request: NextRequest) {
     });
 
     if (!workspaceSyncResult.success || !workspaceSyncResult.workspace) {
-      console.error(`[workspace-change] Failed to sync workspace:`, workspaceSyncResult.error);
       return NextResponse.json(
         {
           success: false,
@@ -99,21 +84,16 @@ async function postHandler(request: NextRequest) {
     }
 
     const syncedWorkspace = workspaceSyncResult.workspace;
-    console.log(`[workspace-change] Workspace synced successfully:`, syncedWorkspace.id);
 
     // 2. Ensure user is added to workspace with correct role
     const membershipResult = await addUserToWorkspace(userData.sdkUserId, workspaceId, userRole);
 
     if (!membershipResult.success) {
-      console.error(`[workspace-change] Failed to add user to workspace:`, membershipResult.error);
       // Continue anyway - workspace sync succeeded
-    } else {
-      console.log(`[workspace-change] User added to workspace with role:`, userRole);
     }
 
     // 3. Update user's current workspace preference
     await updateUserCurrentWorkspace(userData.sdkUserId, workspaceId, userRole);
-    console.log(`[workspace-change] User's current workspace updated`);
 
     // 4. Create updated user data with new workspace context
     // IMPORTANT: Keep the app role (user/admin) separate from workspace role (viewer/editor/admin)
@@ -139,7 +119,6 @@ async function postHandler(request: NextRequest) {
       updatedUserData
     );
   } catch (error) {
-    console.error("[workspace-change] Error processing workspace change:", error);
     return NextResponse.json(
       {
         success: false,

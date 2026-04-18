@@ -37,8 +37,6 @@ async function postHandler(request: NextRequest) {
 
     const userData = (request as any).authenticatedUser as AuthenticatedUser;
 
-    console.log(`[user-event] Handling ${eventType} for user ${userId}`);
-
     // Sync user profile — do NOT update role (role is set at login only)
     const syncResult = await syncUser(
       {
@@ -51,7 +49,6 @@ async function postHandler(request: NextRequest) {
     );
 
     if (!syncResult.success) {
-      console.error(`[user-event] Failed to sync user:`, syncResult.error);
       // Continue — JWT refresh can still proceed
     }
 
@@ -65,7 +62,6 @@ async function postHandler(request: NextRequest) {
         image: user.image ?? userData.image,
       };
 
-      console.log(`[user-event] Refreshing JWT for current user ${userId}`);
       return createResponseWithAuthToken(
         {
           success: true,
@@ -80,7 +76,6 @@ async function postHandler(request: NextRequest) {
       message: `User ${eventType === "user:created" ? "created" : "updated"} and synced`,
     });
   } catch (error) {
-    console.error("[user-event] Error handling user event:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

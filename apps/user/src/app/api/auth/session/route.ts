@@ -37,7 +37,6 @@ export async function GET() {
     if (!isValidRole) {
       // Token exists but has invalid/missing role - likely an old token
       // Clear it and force re-login to get a fresh token with correct structure
-      console.log("[Session Check] Invalid role in token:", userRole, "- clearing token");
       const response = NextResponse.json(
         {
           authenticated: false,
@@ -62,7 +61,6 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("[Session Check] Error:", error);
     return NextResponse.json(
       {
         authenticated: false,
