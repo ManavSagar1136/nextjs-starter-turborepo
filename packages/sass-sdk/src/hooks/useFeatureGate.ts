@@ -77,6 +77,7 @@ export interface UseFeatureGateReturn {
  */
 export function useFeatureGate(featureSlug: string, options: UseFeatureGateOptions = {}): UseFeatureGateReturn {
   const { hasPermission = true, quotaSlug } = options;
+  const checksDisabled = process.env.NEXT_PUBLIC_DISABLE_PLAN_CHECKS === "true";
 
   const { response, loading: subLoading } = useSubscriptionContext();
   const { currentWorkspace } = useSaaSWorkspaces();
@@ -87,6 +88,11 @@ export function useFeatureGate(featureSlug: string, options: UseFeatureGateOptio
 
   const quotaLoading = quotaSlug ? quotaResult.loading : false;
   const loading = subLoading || quotaLoading;
+
+  // Bypass all plan/quota checks when flag is set — still respect role permission
+  if (checksDisabled) {
+    return buildReturn(hasPermission ? FEATURE_STATES.OK : FEATURE_STATES.NOT_PERMITTED, false);
+  }
 
   // Permission check takes precedence — evaluated before plan data loads
   if (!hasPermission) {

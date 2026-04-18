@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { isProduction, env, getEnvironment } from "@buildbase/env";
+import { COOKIE_KEYS } from "@buildbase/utils/cookie-keys";
 import type { AuthenticatedUser } from "./auth-middleware";
 import { setCsrfCookie, clearCsrfCookie } from "./csrf";
 
-/**
- * Cookie name for authentication token
- * Shared across all apps (admin and user)
- */
-const getCookieName = (): string => {
-  const baseName = "cms-auth-token";
-  const nodeEnv = getEnvironment();
-
-  return `${nodeEnv}-${baseName}`;
-};
+const getCookieName = (): string => `${getEnvironment()}-${COOKIE_KEYS.AUTH_TOKEN}`;
 
 export const AUTH_TOKEN_COOKIE_NAME = getCookieName();
 

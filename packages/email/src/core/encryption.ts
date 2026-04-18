@@ -1,4 +1,4 @@
-import { CryptoController, DecryptionError, InvalidKeyError, generateEncryptionKey as genKey } from "@buildbase/crypto";
+import { CryptoController, DecryptionError, generateEncryptionKey as genKey } from "@buildbase/crypto";
 import { env } from "@buildbase/env";
 
 import { ConfigurationError, EncryptionError } from "./errors.js";
@@ -8,22 +8,27 @@ function getController(): CryptoController {
   if (!key) {
     throw new ConfigurationError(
       "EMAIL_ENCRYPTION_KEY is required for encrypting provider credentials.\n" +
-        "  Generate with: openssl rand -hex 32",
+        "  Generate with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
       "EMAIL_ENCRYPTION_KEY"
     );
   }
   try {
     return new CryptoController({ key });
   } catch (err) {
-    if (err instanceof InvalidKeyError) {
-      throw new ConfigurationError(err.message, "EMAIL_ENCRYPTION_KEY");
-    }
-    throw err;
+    throw new ConfigurationError(
+      err instanceof Error ? err.message : "Invalid EMAIL_ENCRYPTION_KEY",
+      "EMAIL_ENCRYPTION_KEY"
+    );
   }
 }
 
 export function encrypt(plaintext: string): string {
-  return getController().encrypt(plaintext);
+  try {
+    return getController().encrypt(plaintext);
+  } catch (err) {
+    if (err instanceof ConfigurationError) throw err;
+    throw new EncryptionError(err instanceof Error ? err.message : "Encryption failed");
+  }
 }
 
 export function decrypt(ciphertext: string): string {
@@ -37,7 +42,12 @@ export function decrypt(ciphertext: string): string {
 }
 
 export function encryptConfig(config: Record<string, unknown>): string {
-  return getController().encryptObject(config);
+  try {
+    return getController().encryptObject(config);
+  } catch (err) {
+    if (err instanceof ConfigurationError) throw err;
+    throw new EncryptionError(err instanceof Error ? err.message : "Encryption failed");
+  }
 }
 
 export function decryptConfig<T extends Record<string, unknown>>(encrypted: string): T {
