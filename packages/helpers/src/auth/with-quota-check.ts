@@ -51,6 +51,16 @@ export interface QuotaCheckOptions {
    *   Example: signed-URL generation — file is uploaded to storage before /complete is called.
    */
   recordTiming?: "pre" | "post";
+
+  /**
+   * Optional predicate evaluated after the handler runs (post timing only).
+   * Return true to record usage, false to skip.
+   * Defaults to `response.status >= 200 && response.status < 300`.
+   *
+   * Use this when only a subset of 2xx responses should count — e.g. 201 (created)
+   * but not 200 (cache hit / no-op).
+   */
+  recordCondition?: (response: NextResponse) => boolean;
 }
 
 /**
@@ -71,9 +81,11 @@ export function withQuotaCheck<T extends any[]>(
   handler: (request: NextRequest, ...args: T) => Promise<NextResponse>,
   options: QuotaCheckOptions
 ): (request: NextRequest, ...args: T) => Promise<NextResponse> {
-  const { quotaSlug, allowOverage = false, source, recordTiming = "post" } = options;
+  const { quotaSlug, allowOverage = false, source, recordTiming = "post", recordCondition } = options;
 
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
+    if (process.env.DISABLE_PLAN_CHECKS === "true") return handler(request, ...args);
+
     // workspaceId here is the SDK UUID from the JWT (not the Prisma ObjectId)
     const workspaceId = (request as any).authenticatedUser?.workspaceId as string | undefined;
 
@@ -152,7 +164,9 @@ export function withQuotaCheck<T extends any[]>(
     // ── POST timing (default): run handler, record on success ────────────────
     const response = await handler(request, ...args);
 
-    if (response.status >= 200 && response.status < 300) {
+    const shouldRecord = recordCondition ? recordCondition(response) : response.status >= 200 && response.status < 300;
+
+    if (shouldRecord) {
       client.usage
         .record(workspaceId, { quotaSlug, quantity, source })
         .catch((err: unknown) =>

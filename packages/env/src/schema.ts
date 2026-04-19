@@ -27,7 +27,13 @@ export const env = createEnv({
 
     // API Configuration
     API_SECRET: z.string().min(32).optional(),
-    APP_JWT_SECRET: z.string().min(2).optional(),
+    APP_JWT_SECRET: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || process.env.NODE_ENV !== "production" || val.length >= 32,
+        "APP_JWT_SECRET must be at least 32 characters in production"
+      ),
 
     // SaaS SDK (Server-side only - secrets should never be exposed to client)
     SAAS_CLIENT_SECRET: z.string().optional(),
@@ -91,7 +97,13 @@ export const env = createEnv({
 
     // General-purpose encryption key used by @buildbase/crypto
     // Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-    SECRET_ENCRYPTION_KEY: z.string().min(64).optional(),
+    SECRET_ENCRYPTION_KEY: z
+      .string()
+      .regex(
+        /^[0-9a-fA-F]{64}$/,
+        "SECRET_ENCRYPTION_KEY must be a 64-character hex string (generate: openssl rand -hex 32)"
+      )
+      .optional(),
 
     // Vercel Environment (for deployment detection)
     VERCEL_ENV: z.string().optional(),

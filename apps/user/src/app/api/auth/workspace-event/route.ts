@@ -19,22 +19,12 @@ async function postHandler(request: NextRequest) {
     const body = await request.json();
     let { eventType, workspace, previousWorkspace, userId, role, previousRole, newRole } = body;
 
-    console.log(`[workspace-event] Received event:`, {
-      eventType,
-      hasWorkspace: !!workspace,
-      workspaceKeys: workspace ? Object.keys(workspace) : [],
-      userId,
-      role,
-      bodyKeys: Object.keys(body),
-    });
-
     if (!eventType) {
       return NextResponse.json({ error: "eventType is required" }, { status: 400 });
     }
 
     // For workspace:deleted, the workspace might be nested inside workspace.workspace
     if (eventType === "workspace:deleted" && workspace && workspace.workspace) {
-      console.log(`[workspace-event] Detected nested workspace structure for deleted event`);
       workspace = workspace.workspace;
     }
 
@@ -71,30 +61,15 @@ async function postHandler(request: NextRequest) {
     // For workspace:deleted, if workspace is not provided, check if the body itself is the workspace
     if (!workspaceId && eventType === "workspace:deleted") {
       workspaceId = body.id || body._id || body.workspaceId;
-      if (workspaceId) {
-        console.log(`[workspace-event] Found workspace ID at root level for deleted event:`, workspaceId);
-      }
     }
 
-    console.log(`[workspace-event] Extracted workspace ID:`, workspaceId, {
-      workspaceId: workspace?.id,
-      workspace_id: workspace?._id,
-      workspaceWorkspaceId: workspace?.workspaceId,
-      bodyId: body.id,
-      body_id: body._id,
-      bodyWorkspaceId: body.workspaceId,
-    });
-
     if (!workspaceId) {
-      console.error(`[workspace-event] Failed to extract workspace ID. Body:`, JSON.stringify(body, null, 2));
       return NextResponse.json({ error: "Workspace ID is required" }, { status: 400 });
     }
 
     // ─── workspace:deleted ────────────────────────────────────────────────────
     if (eventType === "workspace:deleted") {
       try {
-        console.log(`[workspace-event] Handling workspace:deleted for workspace ID:`, workspaceId);
-
         // Only workspace admins call deleteWorkspace — non-admins just refresh their JWT.
         // Check role before calling deleteWorkspace; after deletion the membership is gone.
         const callerRoleResult = userData.sdkUserId
@@ -123,7 +98,6 @@ async function postHandler(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: "Workspace deleted and synced successfully" });
       } catch (error) {
-        console.error("Error deleting workspace:", error);
         return NextResponse.json({ error: "Failed to delete workspace" }, { status: 500 });
       }
     }
@@ -171,7 +145,6 @@ async function postHandler(request: NextRequest) {
           try {
             const sdkUserId = workspaceUser._id || workspaceUser.id;
             if (!sdkUserId) {
-              console.error("Invalid user data:", workspaceUser);
               continue;
             }
 
@@ -184,10 +157,6 @@ async function postHandler(request: NextRequest) {
 
             const membershipResult = await addUserToWorkspace(sdkUserId, workspaceId, userRole);
             if (!membershipResult.success) {
-              console.warn(
-                `[workspace-event] Failed to add user ${sdkUserId} to workspace ${workspaceId}:`,
-                membershipResult.error
-              );
               // Emergency: workspace may not exist yet — try one more sync
               const errorMsg = membershipResult.error?.toString() || "";
               if (errorMsg.includes("workspace not found") || errorMsg.includes("Workspace not found")) {
@@ -198,9 +167,7 @@ async function postHandler(request: NextRequest) {
                 }
               }
             }
-          } catch (error) {
-            console.error(`Error syncing workspace user ${workspaceUser._id || workspaceUser.id}:`, error);
-          }
+          } catch (error) {}
         }
       }
 
@@ -221,10 +188,6 @@ async function postHandler(request: NextRequest) {
     const isWorkspaceAdmin = callerRoleResult.role === WORKSPACE_ROLES.ADMIN;
 
     if (!isWorkspaceAdmin) {
-      console.log(
-        `[workspace-event] Non-admin caller (role: ${callerRoleResult.role ?? "none"}) for event ${eventType} — skipping DB sync, refreshing JWT only if needed`
-      );
-
       // workspace:updated — refresh JWT name if this is the caller's active workspace
       if (eventType === "workspace:updated" && userData.workspaceId === workspaceId) {
         const updatedUserData = {
@@ -282,57 +245,29 @@ async function postHandler(request: NextRequest) {
       ...(workspace.limits !== undefined && { limits: workspace.limits }),
     };
 
-    console.log(`[workspace-event] Syncing workspace ${workspaceId} for event ${eventType}`);
     let workspaceSyncResult = await syncWorkspace(workspacePayload);
-
-    console.log(`[workspace-event] Initial sync result:`, {
-      success: workspaceSyncResult.success,
-      hasWorkspace: !!workspaceSyncResult.workspace,
-      error: workspaceSyncResult.error,
-    });
 
     // Retry once if initial sync failed
     if (!workspaceSyncResult.success || !workspaceSyncResult.workspace) {
-      console.warn(`[workspace-event] Initial workspace sync failed, retrying... Error:`, workspaceSyncResult.error);
       workspaceSyncResult = await syncWorkspace(workspacePayload);
-      console.log(`[workspace-event] Retry sync result:`, {
-        success: workspaceSyncResult.success,
-        hasWorkspace: !!workspaceSyncResult.workspace,
-        error: workspaceSyncResult.error,
-      });
     }
 
     // If still not synced, fall back to a DB fetch
     let finalWorkspace = workspaceSyncResult.workspace;
     if (!finalWorkspace) {
       try {
-        console.log(`[workspace-event] Workspace not in sync result, checking database...`);
         const fetchResult = await getWorkspaceBySdkId(workspaceId);
         if (fetchResult.workspace) {
-          console.log(`[workspace-event] Found workspace in database`);
           finalWorkspace = fetchResult.workspace;
         } else {
           // Last resort: one more sync attempt
-          console.warn(`[workspace-event] Workspace not found in database, attempting final sync...`);
           const finalSyncResult = await syncWorkspace(workspacePayload);
-          console.log(`[workspace-event] Final sync result:`, {
-            success: finalSyncResult.success,
-            hasWorkspace: !!finalSyncResult.workspace,
-            error: finalSyncResult.error,
-          });
           if (finalSyncResult.success && finalSyncResult.workspace) {
             finalWorkspace = finalSyncResult.workspace;
           } else {
-            console.error(`[workspace-event] Failed to create workspace after multiple attempts.`);
-            console.warn(`[workspace-event] Continuing anyway - workspace may be created during user sync`);
           }
         }
-      } catch (error) {
-        console.error(`[workspace-event] Error fetching workspace:`, error);
-        console.warn(`[workspace-event] Continuing anyway - workspace may be created during user sync`);
-      }
-    } else {
-      console.log(`[workspace-event] Workspace successfully synced:`, finalWorkspace.id);
+      } catch (error) {}
     }
 
     // ─── workspace:updated ────────────────────────────────────────────────────
@@ -351,7 +286,6 @@ async function postHandler(request: NextRequest) {
       if (userData.sdkUserId) {
         const membershipResult = await addUserToWorkspace(userData.sdkUserId, workspaceId, currentUserRole);
         if (!membershipResult.success) {
-          console.error("Failed to update user workspace membership:", membershipResult.error);
         }
       }
 
@@ -383,19 +317,12 @@ async function postHandler(request: NextRequest) {
 
     // ─── workspace:user-added ─────────────────────────────────────────────────
     if (eventType === "workspace:user-added") {
-      console.log(
-        `[workspace-event] Handling workspace:user-added. userId: ${userId}, workspaceId: ${workspaceId}, role: ${role}`
-      );
-      console.log(`[workspace-event] Full body:`, JSON.stringify(body, null, 2));
-
       if (!userId) {
-        console.error(`[workspace-event] userId is missing. Body keys:`, Object.keys(body));
         return NextResponse.json({ error: "userId is required for workspace:user-added event" }, { status: 400 });
       }
 
       // Ensure workspace exists
       if (!finalWorkspace) {
-        console.warn(`[workspace-event] Workspace not found for user-added event, attempting to sync...`);
         const retrySync = await syncWorkspace(workspacePayload);
         if (retrySync.success && retrySync.workspace) {
           finalWorkspace = retrySync.workspace;
@@ -426,7 +353,6 @@ async function postHandler(request: NextRequest) {
       const membershipResult = await addUserToWorkspace(userId, workspaceId, userRole);
 
       if (!membershipResult.success) {
-        console.error(`[workspace-event] Failed to add user to workspace:`, membershipResult.error);
         return NextResponse.json(
           { error: membershipResult.error || "Failed to add user to workspace" },
           { status: 500 }
@@ -443,8 +369,6 @@ async function postHandler(request: NextRequest) {
 
     // ─── workspace:user-removed ───────────────────────────────────────────────
     if (eventType === "workspace:user-removed") {
-      console.log(`[workspace-event] Handling workspace:user-removed for user ${userId} from workspace ${workspaceId}`);
-
       if (!userId) {
         return NextResponse.json({ error: "userId is required for workspace:user-removed event" }, { status: 400 });
       }
@@ -482,17 +406,12 @@ async function postHandler(request: NextRequest) {
           message: result.message || "User removed from workspace successfully",
         });
       } catch (error) {
-        console.error(`[workspace-event] Error removing user from workspace:`, error);
         return NextResponse.json({ error: "Failed to remove user from workspace" }, { status: 500 });
       }
     }
 
     // ─── workspace:user-role-changed ──────────────────────────────────────────
     if (eventType === "workspace:user-role-changed") {
-      console.log(
-        `[workspace-event] Handling workspace:user-role-changed for user ${userId} in workspace ${workspaceId}. Previous role: ${previousRole}, New role: ${newRole}`
-      );
-
       if (!userId) {
         return NextResponse.json(
           { error: "userId is required for workspace:user-role-changed event" },
@@ -539,7 +458,6 @@ async function postHandler(request: NextRequest) {
           message: "User role updated in workspace successfully",
         });
       } catch (error) {
-        console.error(`[workspace-event] Error updating user role in workspace:`, error);
         return NextResponse.json({ error: "Failed to update user role in workspace" }, { status: 500 });
       }
     }
@@ -551,7 +469,6 @@ async function postHandler(request: NextRequest) {
       message: "Workspace event processed successfully",
     });
   } catch (error) {
-    console.error("Workspace event handler error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

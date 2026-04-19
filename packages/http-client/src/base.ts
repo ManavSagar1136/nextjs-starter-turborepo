@@ -3,6 +3,7 @@ import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
 
 import { IRequestHeader, HttpClientConfig } from "./types";
+import { COOKIE_KEYS } from "@buildbase/utils/cookie-keys";
 
 const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 
@@ -19,7 +20,7 @@ const CSRF_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  */
 function readCsrfCookie(): string | null {
   if (typeof document === "undefined") return null;
-  const prefix = `${process.env.NODE_ENV ?? "development"}-cms-csrf=`;
+  const prefix = `${process.env.NODE_ENV ?? "development"}-${COOKIE_KEYS.CSRF}=`;
   const cookie = document.cookie.split(";").find(c => c.trim().startsWith(prefix));
   return cookie ? decodeURIComponent(cookie.trim().slice(prefix.length)) : null;
 }

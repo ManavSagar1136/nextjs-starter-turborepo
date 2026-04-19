@@ -56,6 +56,8 @@ export function withPlanCheck<T extends any[]>(
   options: PlanCheckOptions
 ): (request: NextRequest, ...args: T) => Promise<NextResponse> {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
+    if (process.env.DISABLE_PLAN_CHECKS === "true") return handler(request, ...args);
+
     const dbWorkspaceId = (request as any).dbWorkspaceId as string | undefined;
 
     if (!dbWorkspaceId) {

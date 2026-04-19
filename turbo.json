@@ -41,6 +41,8 @@
     "CRON_SECRET",
 
     "NEXT_PUBLIC_PRODUCT_LAUNCHED",
+    "DISABLE_PLAN_CHECKS",
+    "NEXT_PUBLIC_DISABLE_PLAN_CHECKS",
 
     "NEW_RELIC_ENABLED",
     "NEW_RELIC_LICENSE_KEY",
@@ -160,6 +162,10 @@
       "dependsOn": ["^build"],
       "outputs": ["out/**"],
       "inputs": ["src/**", "remotion.config.*", "public/**"]
+    },
+    "@buildbase/video#build": {
+      "cache": false,
+      "outputs": []
     }
   }
 }

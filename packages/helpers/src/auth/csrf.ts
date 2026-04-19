@@ -20,8 +20,9 @@
 import { createHmacSigner } from "@buildbase/crypto";
 import { NextResponse } from "next/server";
 import { env, isProduction, getEnvironment } from "@buildbase/env";
+import { COOKIE_KEYS } from "@buildbase/utils/cookie-keys";
 
-const getCsrfCookieName = (): string => `${getEnvironment()}-cms-csrf`;
+const getCsrfCookieName = (): string => `${getEnvironment()}-${COOKIE_KEYS.CSRF}`;
 
 export const CSRF_COOKIE_NAME = getCsrfCookieName();
 export const CSRF_HEADER_NAME = "x-csrf-token";

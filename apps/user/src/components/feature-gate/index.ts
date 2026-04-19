@@ -10,5 +10,7 @@ export type { FeatureAccessDeniedDialogProps, FeatureDenialReason } from "./Feat
 export { FEATURE_GATE_DIALOG_KEYS } from "./constants";
 export type { FeatureGateDialogKey } from "./constants";
 
+export { UpgradeBanner } from "./UpgradeBanner";
+
 // WORKSPACE_ROLES and WorkspaceRole — import from "@buildbase/database/user" directly
 // WhenWorkspaceRoles — import from "@buildbase/saas-sdk" directly

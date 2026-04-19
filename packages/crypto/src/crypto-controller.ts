@@ -309,6 +309,26 @@ export class CryptoController {
     return newController.encrypt(this.decrypt(encryptedData));
   }
 
+  // ==================== WORKSPACE-SCOPED ENCRYPTION ====================
+  // Derives a workspace-specific 32-byte key via HMAC-SHA256 so that a
+  // compromise of one workspace's ciphertext cannot be used to attack others.
+
+  private deriveWorkspaceKey(workspaceId: string): Buffer {
+    return crypto.createHmac("sha256", this.keyBuffer).update(`workspace:${workspaceId}`).digest();
+  }
+
+  encryptForWorkspace(plaintext: string, workspaceId: string): string {
+    const derived = this.deriveWorkspaceKey(workspaceId);
+    const ctrl = new CryptoController({ key: derived.toString("hex") });
+    return ctrl.encrypt(plaintext);
+  }
+
+  decryptForWorkspace(ciphertext: string, workspaceId: string): string {
+    const derived = this.deriveWorkspaceKey(workspaceId);
+    const ctrl = new CryptoController({ key: derived.toString("hex") });
+    return ctrl.decrypt(ciphertext);
+  }
+
   // ==================== HASHING ====================
 
   hash(data: string, algorithm = this.hashAlgorithm): string {

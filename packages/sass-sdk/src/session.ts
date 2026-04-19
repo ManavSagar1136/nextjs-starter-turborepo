@@ -16,9 +16,10 @@
  *   const headers = session.refreshed ? { "Set-Cookie": buildSetCookieHeader(session.session!) } : {};
  */
 import { env } from "@buildbase/env";
+import { COOKIE_KEYS } from "@buildbase/utils/cookie-keys";
 import { exchangeToken } from "./token-exchange";
 
-export const SESSION_COOKIE_NAME = "saas_session";
+export const SESSION_COOKIE_NAME = COOKIE_KEYS.SAAS_SESSION;
 
 /** Refresh proactively when less than 5 minutes remain */
 const REFRESH_THRESHOLD_MS = 5 * 60 * 1000;

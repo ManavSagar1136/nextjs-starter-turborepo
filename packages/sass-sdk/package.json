@@ -31,7 +31,8 @@
   },
   "dependencies": {
     "@buildbase/sdk": "0.0.36",
-    "@buildbase/env": "*"
+    "@buildbase/env": "*",
+    "@buildbase/utils": "*"
   },
   "peerDependencies": {
     "react": "^19",

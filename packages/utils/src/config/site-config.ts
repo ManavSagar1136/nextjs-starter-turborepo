@@ -45,6 +45,9 @@ export interface ISiteConfig {
     url: string;
   };
 
+  // OG image — absolute URL, served from the public app
+  ogImageUrl: string;
+
   // Support and other links
   supportEmail: string;
   signInCallbackUrl: string;
@@ -105,6 +108,9 @@ export const SiteConfig: ISiteConfig = {
     name: "Saas Developer Template",
     url: "https://saas.developertemplates.com",
   },
+
+  // OG image — single source of truth, served from the public app
+  ogImageUrl: `${env.NEXT_PUBLIC_PUBLIC_APP_URL}/og.png`,
 
   // Support and other links
   supportEmail: "support@company.org",
