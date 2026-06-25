@@ -1,10 +1,24 @@
-# BuildBase NextJS Starter Turborepo
+# BuildBase Turborepo Starter
 
-A production-ready Turborepo monorepo for building CMS applications with 4 Next.js apps and a comprehensive suite of shared packages.
+![Node.js](https://img.shields.io/badge/node-20.9+-brightgreen) ![Next.js](https://img.shields.io/badge/Next.js-16-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+
+A production-ready [Turborepo](https://turbo.build/) monorepo for building multi-tenant SaaS applications powered by [BuildBase](https://www.buildbase.app). Ships with 4 Next.js apps, 19 shared packages, and everything wired up — auth, billing, database, caching, messaging, and more.
+
+> **Important:** This starter requires a [BuildBase](https://www.buildbase.app) account for authentication, workspace management, subscriptions, and billing. Without it the user app and admin panel will not function.
+
+---
+
+## Why use this?
+
+- **4 apps out of the box** — public site, user dashboard, admin panel, and docs — all sharing the same packages
+- **19 shared packages** — UI, database, caching, state, HTTP client, hooks, utilities, and more — zero duplication
+- **BuildBase-powered** — auth, multi-tenancy, subscriptions, feature flags, and billing pre-wired
+- **Production-hardened** — Redis caching, QStash messaging, Prisma ORM, type-safe env vars, ESLint, Prettier, Husky
+
+---
 
 ## Table of Contents
 
-- [Overview](#overview)
 - [Getting Started](#getting-started)
 - [Apps](#apps)
 - [Packages](#packages)
@@ -12,15 +26,10 @@ A production-ready Turborepo monorepo for building CMS applications with 4 Next.
 - [Scripts](#scripts)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Overview
-
-This monorepo provides a complete foundation for building multi-tenant CMS applications with:
-
-- **4 Next.js applications** for different user experiences
-- **19 shared packages** for maximum code reuse
-- **Type-safe** end-to-end with TypeScript
-- **Modern tooling** with Turborepo, ESLint, and Prettier
+---
 
 ## Getting Started
 
@@ -28,6 +37,8 @@ This monorepo provides a complete foundation for building multi-tenant CMS appli
 
 - Node.js >= 20.9.0
 - Yarn 1.22.22
+- MongoDB or PostgreSQL database
+- [BuildBase](https://www.buildbase.app) account
 
 ### Setup
 
@@ -42,7 +53,7 @@ This monorepo provides a complete foundation for building multi-tenant CMS appli
 2. **Set up environment variables:**
 
    ```bash
-   cp .env.example .env
+   cp .env.default .env
    # Edit .env with your values
    ```
 
@@ -55,6 +66,7 @@ This monorepo provides a complete foundation for building multi-tenant CMS appli
    ```
 
 4. **Start development servers:**
+
    ```bash
    yarn dev
    ```
@@ -65,54 +77,46 @@ All four apps will start on their respective ports (see [Apps](#apps) below).
 
 ## Apps
 
-### `apps/public` - Public Website
+### `apps/public` — Public Website
 
-**Port:** 3100 | **Package:** `public`
+**Port:** 3100
 
-The public-facing website for showcasing features, landing pages, and marketing content.
+The public-facing marketing site for landing pages, feature showcases, and SEO content.
 
-**Use cases:**
-
+**Includes:**
 - Landing pages and marketing content
 - Public documentation and feature showcases
-- SEO-optimized pages for discovery
+- SEO-optimized pages
 
-### `apps/user` - User Application
+### `apps/user` — User Application
 
-**Port:** 3101 | **Package:** `user`
+**Port:** 3101
 
-The main user-facing application where authenticated users interact with the CMS.
+The main user-facing dashboard where authenticated users manage workspaces and content.
 
-**Use cases:**
-
+**Includes:**
 - User dashboard and workspace management
 - Content creation and editing
-- User settings and preferences
+- User settings, billing, and preferences
+- BuildBase auth integration
 
-### `apps/admin` - Admin Panel
+### `apps/admin` — Admin Panel
 
-**Port:** 3102 | **Package:** `admin`
+**Port:** 3102
 
-Administrative interface for managing users, content, and system settings.
+Internal admin interface for managing users, content, and system configuration.
 
-**Use cases:**
-
+**Includes:**
 - User and workspace administration
 - Content moderation and management
 - System configuration and monitoring
 - Analytics and reporting
 
-### `apps/docs` - Documentation
+### `apps/docs` — Documentation
 
-**Port:** 3103 | **Package:** `docs`
+**Port:** 3103
 
-Documentation site with tutorials, API references, and guides.
-
-**Use cases:**
-
-- API documentation
-- User guides and tutorials
-- Developer documentation
+Documentation site for API references, user guides, and developer docs.
 
 ---
 
@@ -120,31 +124,29 @@ Documentation site with tutorials, API references, and guides.
 
 ### UI & Components
 
-#### `@buildbase/ui` - Base UI Components
+#### `@buildbase/ui` — Base UI Components
 
-shadcn/ui component library providing the foundational UI primitives.
+shadcn/ui component library providing foundational UI primitives.
 
 ```tsx
 import { Button } from "@buildbase/ui/button";
 import { Dialog, DialogContent, DialogHeader } from "@buildbase/ui/dialog";
 import { Input } from "@buildbase/ui/input";
 
-<Button variant="default" size="lg">
-  Click me
-</Button>;
+<Button variant="default" size="lg">Click me</Button>
 ```
 
-#### `@buildbase/magicui` - Animated Components
+#### `@buildbase/magicui` — Animated Components
 
 Magic UI animated components for enhanced visual experiences.
 
 ```tsx
 import { AnimatedComponent } from "@buildbase/magicui/animated-component";
 
-<AnimatedComponent animation="fadeIn">{/* content */}</AnimatedComponent>;
+<AnimatedComponent animation="fadeIn">{/* content */}</AnimatedComponent>
 ```
 
-#### `@buildbase/components` - Business Components
+#### `@buildbase/components` — Business Components
 
 Custom business components built on top of `@buildbase/ui` and `@buildbase/magicui`.
 
@@ -156,7 +158,7 @@ import { CustomComponent } from "@buildbase/components/components/custom-compone
 
 ### Data & State Management
 
-#### `@buildbase/database` - Prisma Database
+#### `@buildbase/database` — Prisma Database
 
 Shared Prisma schema and client with multi-file schema support (Prisma 6.7.0+).
 
@@ -169,72 +171,61 @@ const workspace = await prisma.workspace.create({
 });
 ```
 
-**Schema Structure:**
-
-- `prisma/schema/schema.prisma` - Generator and datasource config
-- `prisma/schema/user.prisma` - User model
-- `prisma/schema/workspace.prisma` - Workspace model
-- Additional models in separate files
+**Schema files:**
+- `prisma/schema/schema.prisma` — Generator and datasource config
+- `prisma/schema/user.prisma` — User model
+- `prisma/schema/workspace.prisma` — Workspace model
 
 **Commands:**
-
 ```bash
-yarn db:generate  # Generate Prisma client
-yarn db:push      # Push schema to database
-yarn db:migrate   # Run migrations
+yarn db:generate   # Generate Prisma client
+yarn db:push       # Push schema to database
+yarn db:migrate    # Run migrations
+yarn db:studio     # Open Prisma Studio
 ```
 
-#### `@buildbase/tanstack-query` - Data Fetching
+#### `@buildbase/tanstack-query` — Data Fetching
 
-TanStack Query (React Query) setup with pre-configured client and typed hooks. **All TanStack Query hooks are re-exported from this package.**
+TanStack Query (React Query) setup with pre-configured client and typed hooks.
 
 ```tsx
-// Setup in layout
 import { TanStackQueryProvider } from "@buildbase/tanstack-query/provider";
-
-<TanStackQueryProvider>{children}</TanStackQueryProvider>;
-
-// Usage in components
 import { useQuery, useMutation, useQueryClient } from "@buildbase/tanstack-query";
 
+// Setup in layout
+<TanStackQueryProvider>{children}</TanStackQueryProvider>
+
+// Usage in components
 const { data, isLoading } = useQuery({
   queryKey: ["users"],
   queryFn: fetchUsers,
 });
-
-const mutation = useMutation({
-  mutationFn: createUser,
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
-});
 ```
 
-#### `@buildbase/redux` - State Management
+#### `@buildbase/redux` — State Management
 
 Redux Toolkit setup with persistence and typed hooks.
 
 ```tsx
-// Setup in layout
 import { ReduxProvider } from "@buildbase/redux/provider";
+import { useAppDispatch, useAppSelector } from "@buildbase/redux/hooks";
+import { increment } from "@buildbase/redux/slices/counter";
 
 <ReduxProvider
   additionalReducers={{ user: userReducer }}
   persistConfig={{ key: "app", whitelist: ["counter", "user"] }}
 >
   {children}
-</ReduxProvider>;
-
-// Usage in components
-import { useAppDispatch, useAppSelector } from "@buildbase/redux/hooks";
-import { increment } from "@buildbase/redux/slices/counter";
+</ReduxProvider>
 
 const count = useAppSelector(state => state.counter.value);
 const dispatch = useAppDispatch();
 dispatch(increment());
 ```
 
-#### `@buildbase/cache` - Redis Caching
+#### `@buildbase/cache` — Redis Caching
 
-Upstash Redis caching with rate limiting, fallback cache, and multiple strategies.
+Upstash Redis caching with rate limiting, fallback cache, and multiple TTL strategies.
 
 ```ts
 import { defaultCacheService } from "@buildbase/cache/factory";
@@ -245,7 +236,7 @@ await defaultCacheService.set(generateCacheKey.user("123", "profile"), data, {
   strategy: "user", // 30 min TTL
 });
 
-// Get with cache wrapper
+// Cache wrapper
 const data = await defaultCacheService.withCache(
   "expensive-operation",
   async () => fetchExpensiveData(),
@@ -255,54 +246,49 @@ const data = await defaultCacheService.withCache(
 // Rate limiting
 import { defaultRateLimiter, RATE_LIMIT_CONFIGS } from "@buildbase/cache/factory";
 
-const result = await defaultRateLimiter.checkRateLimit(
-  "user:123",
-  RATE_LIMIT_CONFIGS.API
-);
+const result = await defaultRateLimiter.checkRateLimit("user:123", RATE_LIMIT_CONFIGS.API);
 ```
 
-**Cache Strategies:**
+**Cache strategies:**
 
-- `static` - Long TTL (1 hour) for app config
-- `dynamic` - Medium TTL (5 min) for changing content
-- `user` - Medium TTL (30 min) for user-specific data
-- `api` - Short TTL (10 min) for API responses
+| Strategy  | TTL     | Use case                     |
+|-----------|---------|------------------------------|
+| `static`  | 1 hour  | App config, rarely-changed data |
+| `dynamic` | 5 min   | Frequently-changing content  |
+| `user`    | 30 min  | User-specific data           |
+| `api`     | 10 min  | API responses                |
 
 ---
 
 ### API & Networking
 
-#### `@buildbase/api-helpers` - Database Utilities
+#### `@buildbase/api-helpers` — API Utilities
 
 Database operation utilities and API middleware.
 
 ```ts
 import { getUserById, createUser } from "@buildbase/api-helpers/users";
-import { prisma } from "@buildbase/api-helpers/prisma";
 
 const user = await getUserById("user-id");
 ```
 
-**Cron Protection Middleware:**
+**Cron protection middleware:**
 
 ```ts
 import { withCronCheck } from "@buildbase/api-helpers/middleware/with-cron-check";
 
-const handler = async req => {
+export const GET = withCronCheck(async req => {
   await runDailyTask();
   return NextResponse.json({ success: true });
-};
-
-export const GET = withCronCheck(handler);
+});
 ```
 
-#### `@buildbase/http-client` - HTTP Client
+#### `@buildbase/http-client` — HTTP Client
 
 HTTP client with encryption support, pagination, and error handling.
 
 ```ts
 import { ApiController } from "@buildbase/http-client/controller";
-import { ApiPaginationController } from "@buildbase/http-client/pagination";
 
 class UsersController extends ApiController {
   protected urlPath = "/users";
@@ -317,9 +303,9 @@ class UsersController extends ApiController {
 }
 ```
 
-#### `@buildbase/qstash` - Serverless Messaging
+#### `@buildbase/qstash` — Serverless Messaging
 
-Upstash QStash for message queuing, scheduling, and webhooks.
+Upstash QStash for message queuing, scheduling, and webhook verification.
 
 ```ts
 import { defaultQStashClient } from "@buildbase/qstash/factory";
@@ -352,7 +338,7 @@ export const POST = withQStashWebhook(async req => {
 
 ### Hooks & Utilities
 
-#### `@buildbase/hooks-manager` - Common Hooks
+#### `@buildbase/hooks-manager` — Common Hooks
 
 Centralized React hooks for common operations.
 
@@ -367,7 +353,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 const { width, height } = useWindowSize();
 ```
 
-#### `@buildbase/helpers` - React Helpers
+#### `@buildbase/helpers` — React Helpers
 
 React hooks and context providers for app-specific logic.
 
@@ -379,7 +365,7 @@ const [value, setValue] = useLocalStorage("key", "default");
 const debouncedValue = useDebounce(value, 500);
 ```
 
-#### `@buildbase/utils` - Pure Utilities
+#### `@buildbase/utils` — Pure Utilities
 
 Pure utility functions with no React dependencies.
 
@@ -387,33 +373,60 @@ Pure utility functions with no React dependencies.
 import { formatDate, formatCurrency } from "@buildbase/utils/format";
 import { isValidEmail } from "@buildbase/utils/validation";
 
-formatDate(new Date()); // "Jan 27, 2026"
-formatCurrency(99.99); // "$99.99"
+formatDate(new Date());           // "Jan 27, 2026"
+formatCurrency(99.99);            // "$99.99"
 isValidEmail("user@example.com"); // true
+```
+
+#### `@buildbase/crypto` — Cryptography Utilities
+
+Encryption and hashing utilities for secure data handling.
+
+#### `@buildbase/logger` — Structured Logging
+
+Structured logger with log levels and environment-aware output.
+
+#### `@buildbase/storage` — File Storage
+
+Pluggable file storage with support for GCS, S3, and local storage.
+
+```ts
+// Configured via STORAGE_PROVIDER env var: "gcs" | "s3" | "local"
+import { storage } from "@buildbase/storage";
+
+await storage.upload(file, "path/to/file.jpg");
+const url = await storage.getUrl("path/to/file.jpg");
+```
+
+#### `@buildbase/voice` — Voice Generation
+
+ElevenLabs voice generation for the video app.
+
+```ts
+import { generateVoiceover } from "@buildbase/voice";
+
+await generateVoiceover({ text: "Hello world", outputPath: "./audio/clip.mp3" });
 ```
 
 ---
 
 ### UI Management
 
-#### `@buildbase/dialog-manager` - Dialog System
+#### `@buildbase/dialog-manager` — Dialog System
 
 Centralized, type-safe dialog management with registry pattern.
 
 ```tsx
-// Setup
 import { initializeCommonDialogs } from "@buildbase/dialog-manager";
 import { DialogProvider } from "@buildbase/dialog-manager/provider";
-
-initializeCommonDialogs();
-
-<DialogProvider>{children}</DialogProvider>;
-
-// Usage
 import { useDialogManager, COMMON_DIALOG_KEYS } from "@buildbase/dialog-manager";
 
-const { openDialog } = useDialogManager();
+// Setup
+initializeCommonDialogs();
+<DialogProvider>{children}</DialogProvider>
 
+// Open a confirmation dialog
+const { openDialog } = useDialogManager();
 openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
   variant: "delete",
   title: "Delete Item?",
@@ -425,11 +438,8 @@ openDialog(COMMON_DIALOG_KEYS.CONFIRMATION, {
     },
   },
 });
-```
 
-**Register Custom Dialogs:**
-
-```tsx
+// Register custom dialogs
 import { setupAppDialogs } from "@buildbase/dialog-manager/app-setup";
 
 setupAppDialogs({
@@ -443,76 +453,11 @@ setupAppDialogs({
 
 ---
 
-### Configuration
-
-#### `@buildbase/env` - Environment Variables
-
-Type-safe, validated environment variables using `@t3-oss/env-nextjs`.
-
-```ts
-import { env, isDevelopment, isProduction } from "@buildbase/env";
-
-// Server-side (API routes, Server Components)
-const dbUrl = env.DATABASE_URL;
-const apiSecret = env.API_SECRET;
-
-// Client-side (must be NEXT_PUBLIC_*)
-const appUrl = env.NEXT_PUBLIC_PUBLIC_APP_URL;
-
-if (isDevelopment()) {
-  // Development-only code
-}
-```
-
-**Adding New Variables:**
-
-1. Add to `packages/env/src/schema.ts`
-2. Update `.env.example`
-3. Add to your `.env` file
-
-#### `@buildbase/tailwind-config` - Tailwind Configuration
-
-Shared Tailwind CSS configuration for consistent styling.
-
-```js
-// tailwind.config.js
-import sharedConfig from "@buildbase/tailwind-config";
-
-export default {
-  ...sharedConfig,
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
-};
-```
-
-#### `@buildbase/eslint-config` - ESLint Configuration
-
-Shared ESLint configurations for consistent code quality.
-
-```js
-// .eslintrc.js
-module.exports = {
-  extends: ["@buildbase/eslint-config/next"],
-};
-```
-
-#### `@buildbase/typescript-config` - TypeScript Configuration
-
-Shared TypeScript configurations.
-
-```json
-// tsconfig.json
-{
-  "extends": "@buildbase/typescript-config/nextjs.json"
-}
-```
-
----
-
 ### Authentication & SaaS
 
-#### `@buildbase/saas-sdk` - SaaS SDK Provider
+#### `@buildbase/saas-sdk` — BuildBase SaaS Provider
 
-Reusable SaaS SDK provider for authentication and workspace management.
+Reusable wrapper around the BuildBase SDK for authentication and workspace management.
 
 ```tsx
 import { SaaSProvider } from "@buildbase/saas-sdk";
@@ -532,10 +477,10 @@ import { SaaSProvider } from "@buildbase/saas-sdk";
   }}
 >
   {children}
-</SaaSProvider>;
+</SaaSProvider>
 ```
 
-**Token Verification:**
+**Token verification:**
 
 ```ts
 import { verifySDKToken } from "@buildbase/saas-sdk/token-verification";
@@ -548,87 +493,144 @@ if (result.success) {
 
 ---
 
+### Configuration
+
+#### `@buildbase/env` — Environment Variables
+
+Type-safe, validated environment variables using `@t3-oss/env-nextjs` + Zod.
+
+```ts
+import { env, isDevelopment, isProduction } from "@buildbase/env";
+
+// Server-side (API routes, Server Components)
+const dbUrl = env.DATABASE_URL;
+
+// Client-side (NEXT_PUBLIC_* only)
+const appUrl = env.NEXT_PUBLIC_PUBLIC_APP_URL;
+```
+
+**Adding new variables:**
+1. Add to `packages/env/src/schema.ts`
+2. Update `.env.default`
+3. Add to your `.env` file
+
+#### `@buildbase/tailwind-config` — Tailwind Configuration
+
+Shared Tailwind CSS config for consistent styling across all apps.
+
+```js
+import sharedConfig from "@buildbase/tailwind-config";
+
+export default {
+  ...sharedConfig,
+  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+};
+```
+
+#### `@buildbase/eslint-config` — ESLint Configuration
+
+```js
+module.exports = { extends: ["@buildbase/eslint-config/next"] };
+```
+
+#### `@buildbase/typescript-config` — TypeScript Configuration
+
+```json
+{ "extends": "@buildbase/typescript-config/nextjs.json" }
+```
+
+#### `@buildbase/testing` — Testing Utilities
+
+Shared testing setup and utilities for Vitest and Playwright across all apps.
+
+---
+
 ## Environment Variables
 
-Environment variables are managed centrally in the root `.env` file and shared across all apps.
+All environment variables are managed centrally in the root `.env` file and shared across all apps via `@buildbase/env`.
 
 ### Setup
 
-1. Copy `.env.example` to `.env`
-2. Fill in your values
-3. All apps will automatically use these variables
-
-### Required Variables
-
 ```bash
-# Database
-DATABASE_URL="postgresql://..."
-
-# Redis (for caching)
-UPSTASH_REDIS_REST_URL="https://..."
-UPSTASH_REDIS_REST_TOKEN="..."
-
-# QStash (for messaging)
-QSTASH_TOKEN="..."
-QSTASH_CURRENT_SIGNING_KEY="..."
-
-# App URLs
-NEXT_PUBLIC_PUBLIC_APP_URL="http://localhost:3100"
-NEXT_PUBLIC_USER_APP_URL="http://localhost:3101"
-NEXT_PUBLIC_ADMIN_APP_URL="http://localhost:3102"
-NEXT_PUBLIC_DOCS_APP_URL="http://localhost:3103"
+cp .env.default .env
+# Fill in your values
 ```
 
-### Validation
+### Key Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Yes | MongoDB or PostgreSQL connection string |
+| `API_SECRET` | Yes | API signing secret (min 32 chars) |
+| `APP_JWT_SECRET` | Yes | JWT signing key |
+| `NEXT_PUBLIC_PUBLIC_APP_URL` | Yes | Public site URL (default: `http://localhost:3100`) |
+| `NEXT_PUBLIC_USER_APP_URL` | Yes | User app URL (default: `http://localhost:3101`) |
+| `NEXT_PUBLIC_ADMIN_APP_URL` | Yes | Admin panel URL (default: `http://localhost:3102`) |
+| `NEXT_PUBLIC_DOCS_APP_URL` | Yes | Docs site URL (default: `http://localhost:3103`) |
+| `NEXT_PUBLIC_SAAS_SERVER_URL` | Yes | BuildBase API URL |
+| `NEXT_PUBLIC_SAAS_ORG_ID` | Yes | BuildBase organisation ID |
+| `NEXT_PUBLIC_SAAS_CLIENT_ID` | Yes | BuildBase OAuth client ID |
+| `SAAS_CLIENT_SECRET` | Yes | BuildBase OAuth client secret (server-side) |
+| `NEXT_PUBLIC_PLAN_GROUP_SLUG` | Yes | Plan group slug from BuildBase dashboard |
+| `UPSTASH_REDIS_REST_URL` | No | Redis URL (for caching) |
+| `UPSTASH_REDIS_REST_TOKEN` | No | Redis token |
+| `QSTASH_TOKEN` | No | QStash token (for messaging) |
+| `QSTASH_CURRENT_SIGNING_KEY` | No | QStash signing key |
+| `STORAGE_PROVIDER` | No | `local` / `gcs` / `s3` (default: `local`) |
+| `ELEVENLABS_API_KEY` | No | ElevenLabs key (video app only) |
+| `LOG_LEVEL` | No | `trace` / `debug` / `info` / `warn` / `error` |
+| `NEW_RELIC_ENABLED` | No | Enable New Relic APM |
+
+### Validate
 
 ```bash
 yarn workspace @buildbase/env validate
 ```
 
-See `packages/env/README.md` and `ENV_MANAGEMENT.md` for more details.
+See [ENV_MANAGEMENT.md](ENV_MANAGEMENT.md) for full documentation.
 
 ---
 
 ## Scripts
 
-| Command            | Description                            |
-| ------------------ | -------------------------------------- |
-| `yarn dev`         | Start all apps in development mode     |
-| `yarn build`       | Build all packages and apps            |
-| `yarn lint`        | Lint all packages and apps             |
-| `yarn check-types` | Type check all packages and apps       |
-| `yarn format`      | Format code with Prettier              |
-| `yarn db:generate` | Generate Prisma client                 |
-| `yarn db:push`     | Push schema to database                |
-| `yarn db:migrate`  | Run database migrations                |
-| `yarn db:studio`   | Open Prisma Studio                     |
-| `yarn ralph`       | Run Ralph autonomous agent (see below) |
+| Command | Description |
+|---|---|
+| `yarn dev` | Start all apps in development mode |
+| `yarn build` | Build all packages and apps |
+| `yarn lint` | Lint all packages and apps |
+| `yarn lint:fix` | Auto-fix lint errors |
+| `yarn check-types` | Type check all packages and apps |
+| `yarn format` | Format code with Prettier |
+| `yarn format:check` | Check formatting without writing |
+| `yarn db:generate` | Generate Prisma client |
+| `yarn db:push` | Push schema to database |
+| `yarn db:migrate` | Run database migrations |
+| `yarn db:studio` | Open Prisma Studio |
+| `yarn test` | Run tests across all packages |
+| `yarn ralph` | Run Ralph autonomous coding agent |
 
 ---
 
-## Ralph - Autonomous AI Agent
+## Ralph — Autonomous Coding Agent
 
-Ralph is an autonomous AI coding agent that implements PRD items one by one until all tasks are complete.
+Ralph is a built-in autonomous AI coding agent that works through PRD items one by one until all tasks are complete.
 
-### Quick Start
+### Usage
 
-1. **Edit your PRD:**
-
-   ```bash
-   # Modify scripts/ralph/prd.json with your user stories
-   ```
+1. **Edit your PRD** — add user stories to `scripts/ralph/prd.json`
 
 2. **Run Ralph:**
 
    ```bash
-   yarn ralph              # Default: Claude Code, 10 iterations
+   yarn ralph              # Claude Code, 10 iterations (default)
    yarn ralph 20           # 20 iterations
+   yarn ralph:claude       # Explicit Claude Code
    yarn ralph:amp          # Use Amp instead
    ```
 
 3. **Check progress:**
-   - `scripts/ralph/prd.json` - Story completion status
-   - `scripts/ralph/progress.txt` - Learnings and patterns
+   - `scripts/ralph/prd.json` — story completion status
+   - `scripts/ralph/progress.txt` — learnings and patterns
 
 See [scripts/ralph/README.md](scripts/ralph/README.md) for full documentation.
 
@@ -636,19 +638,21 @@ See [scripts/ralph/README.md](scripts/ralph/README.md) for full documentation.
 
 ## Tech Stack
 
-| Category            | Technology          |
-| ------------------- | ------------------- |
-| **Framework**       | Next.js 16          |
-| **Language**        | TypeScript          |
-| **Styling**         | Tailwind CSS        |
-| **UI Components**   | shadcn/ui, Magic UI |
-| **Database**        | Prisma              |
-| **Data Fetching**   | TanStack Query      |
-| **State**           | Redux Toolkit       |
-| **Caching**         | Upstash Redis       |
-| **Messaging**       | Upstash QStash      |
-| **Monorepo**        | Turborepo           |
-| **Package Manager** | Yarn Workspaces     |
+| Category | Technology |
+|---|---|
+| **Framework** | Next.js 16 with App Router |
+| **Language** | TypeScript 5 (strict mode) |
+| **Styling** | Tailwind CSS + shadcn/ui + Magic UI |
+| **Auth & SaaS** | BuildBase SDK |
+| **Database** | Prisma ORM (MongoDB / PostgreSQL) |
+| **Data Fetching** | TanStack Query |
+| **State** | Redux Toolkit |
+| **Caching** | Upstash Redis |
+| **Messaging** | Upstash QStash |
+| **Storage** | GCS / S3 / Local |
+| **Voice** | ElevenLabs |
+| **Monorepo** | Turborepo |
+| **Package Manager** | Yarn Workspaces |
 
 ---
 
@@ -657,47 +661,55 @@ See [scripts/ralph/README.md](scripts/ralph/README.md) for full documentation.
 ```
 nextjs-starter-turborepo/
 ├── apps/
-│   ├── public/          # Public website (port 3100)
-│   ├── user/            # User application (port 3101)
-│   ├── admin/           # Admin panel (port 3102)
-│   └── docs/            # Documentation (port 3103)
+│   ├── public/           # Public marketing site (port 3100)
+│   ├── user/             # User dashboard (port 3101)
+│   ├── admin/            # Admin panel (port 3102)
+│   ├── docs/             # Documentation site (port 3103)
+│   ├── extension/        # Browser extension
+│   └── video/            # Video editor app
 ├── packages/
-│   ├── ui/              # Base UI components (shadcn/ui)
-│   ├── magicui/         # Animated components
-│   ├── components/      # Business components
-│   ├── database/        # Prisma schema and client
-│   ├── api-helpers/     # Database utilities
-│   ├── tanstack-query/  # TanStack Query setup
-│   ├── redux/           # Redux Toolkit setup
-│   ├── cache/           # Redis caching
-│   ├── qstash/          # Serverless messaging
-│   ├── http-client/     # HTTP client
-│   ├── hooks-manager/   # Common React hooks
-│   ├── helpers/         # React helpers
-│   ├── utils/           # Pure utilities
-│   ├── dialog-manager/  # Dialog system
-│   ├── env/             # Environment variables
-│   ├── tailwind-config/ # Tailwind configuration
-│   ├── eslint-config/   # ESLint configuration
-│   ├── typescript-config/# TypeScript configuration
-│   └── sass-sdk/        # SaaS SDK provider
-├── .env.example         # Environment template
-├── turbo.json           # Turborepo configuration
-└── package.json         # Root package.json
+│   ├── ui/               # Base UI components (shadcn/ui)
+│   ├── magicui/          # Animated components
+│   ├── components/       # Business components
+│   ├── database/         # Prisma schema and client
+│   ├── api-helpers/      # API utilities and middleware
+│   ├── tanstack-query/   # TanStack Query setup
+│   ├── redux/            # Redux Toolkit setup
+│   ├── cache/            # Upstash Redis caching
+│   ├── qstash/           # Upstash QStash messaging
+│   ├── http-client/      # HTTP client
+│   ├── hooks-manager/    # Common React hooks
+│   ├── helpers/          # React helpers and context
+│   ├── utils/            # Pure utility functions
+│   ├── crypto/           # Cryptography utilities
+│   ├── logger/           # Structured logging
+│   ├── storage/          # File storage (GCS/S3/local)
+│   ├── voice/            # ElevenLabs voice generation
+│   ├── dialog-manager/   # Centralized dialog system
+│   ├── sass-sdk/         # BuildBase SaaS provider wrapper
+│   ├── env/              # Type-safe environment variables
+│   ├── tailwind-config/  # Shared Tailwind config
+│   ├── eslint-config/    # Shared ESLint config
+│   ├── typescript-config/# Shared TypeScript config
+│   └── testing/          # Shared testing utilities
+├── scripts/
+│   └── ralph/            # Autonomous coding agent
+├── .env.default          # Environment variable template
+├── ENV_MANAGEMENT.md     # Environment variable guide
+├── turbo.json            # Turborepo configuration
+└── package.json          # Root package.json
 ```
 
 ---
 
 ## Contributing
 
-1. Create a feature branch: `git checkout -b feature/my-feature`
-2. Make your changes
-3. Run `yarn lint && yarn check-types` to ensure quality
-4. Commit your changes
-5. Push and create a pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, branch guidelines, commit style, and how to report bugs.
 
 ---
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE) for details.
+
+Made with ❤️ by [buildbase.app](https://www.buildbase.app)
