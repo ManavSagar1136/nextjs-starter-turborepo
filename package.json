@@ -1,6 +1,17 @@
 {
   "name": "nextjs-starter-turborepo",
   "private": true,
+  "description": "Production-ready Turborepo monorepo for building multi-tenant SaaS apps with Next.js and BuildBase",
+  "author": "buildbase <support@buildbase.app> (https://www.buildbase.app)",
+  "license": "MIT",
+  "homepage": "https://www.buildbase.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buildbase-app/nextjs-starter-turborepo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/buildbase-app/nextjs-starter-turborepo/issues"
+  },
   "scripts": {
     "build": "turbo run build --filter=!@buildbase/video",
     "dev": "turbo run dev --concurrency=40 --filter=!@buildbase/video",
