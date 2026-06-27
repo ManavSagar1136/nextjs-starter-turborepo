@@ -107,3 +107,10 @@ TESTING_PLAN.md
 
 # Ralph runtime files (inside scripts/ralph/)
 scripts/ralph/.last-branch
+
+# AI IDE rule files (internal dev context — not for public repo)
+CLAUDE.md
+.cursorrules
+.windsurfrules
+.github/copilot-instructions.md
+scripts/ralph/CLAUDE.md

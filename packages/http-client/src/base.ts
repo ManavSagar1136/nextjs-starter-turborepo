@@ -8,7 +8,7 @@ import { COOKIE_KEYS } from "@buildbase/utils/cookie-keys";
 const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 
 const DEFAULT_SERVER_URL = "http://localhost:3000";
-const DEFAULT_SECRET_KEY = "your-client-secret-here";
+const DEFAULT_SECRET_KEY = process.env.SAAS_CLIENT_SECRET ?? "";
 
 /** Methods that require a CSRF token header. */
 const CSRF_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);

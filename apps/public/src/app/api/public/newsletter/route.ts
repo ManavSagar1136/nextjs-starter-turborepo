@@ -45,12 +45,6 @@ export async function POST(request: NextRequest) {
       utmCampaign,
     });
 
-    console.log("[Newsletter API] Subscriber created/found:", {
-      email: subscriber.email,
-      isNew,
-      id: subscriber.id,
-    });
-
     // Initialize email service
     await initEmail();
 
@@ -64,7 +58,6 @@ export async function POST(request: NextRequest) {
           siteUrl: env.NEXT_PUBLIC_PUBLIC_APP_URL || "#",
         },
       });
-      console.log("[Newsletter API] Welcome email sent to:", subscriber.email);
     } catch (emailError) {
       // Log but don't fail the subscription
       console.error("[Newsletter API] Failed to send welcome email:", emailError);
@@ -83,7 +76,6 @@ export async function POST(request: NextRequest) {
             adminUrl: env.ADMIN_URL || "#",
           },
         });
-        console.log("[Newsletter API] Admin notification sent");
       } catch (adminEmailError) {
         console.error("[Newsletter API] Failed to send admin notification:", adminEmailError);
       }
