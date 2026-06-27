@@ -76,7 +76,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://editor.unlayer.com https://unlayer.com https://cdn.unlayer.com https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data: https://editor.unlayer.com https://unlayer.com https://cdn.unlayer.com https://fonts.gstatic.com",
-              "connect-src 'self' https://editor.unlayer.com https://unlayer.com https://cdn.unlayer.com https://storage.googleapis.com https://api.buildbase.app wss://editor.unlayer.com",
+              "connect-src 'self' https://editor.unlayer.com https://unlayer.com https://cdn.unlayer.com https://storage.googleapis.com https://api.console.buildbase.app wss://editor.unlayer.com",
               "frame-src 'self' https://editor.unlayer.com https://unlayer.com",
             ].join("; "),
           },
