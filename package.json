@@ -1,4 +1,4 @@
-{
+{"overrides": {"esbuild": "0.25.0"}, 
   "name": "nextjs-starter-turborepo",
   "private": true,
   "description": "Production-ready Turborepo monorepo for building multi-tenant SaaS apps with Next.js and BuildBase",
