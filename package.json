@@ -37,7 +37,7 @@
     "tailwindcss": "^3.4.4",
     "turbo": "^2.7.3"
   },
-  "resolutions": {
+  "resolutions": {"fast-uri": "3.1.8", 
     "jiti": "^2.6.1"
   },
   "engines": {
