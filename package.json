@@ -37,7 +37,7 @@
     "tailwindcss": "^3.4.4",
     "turbo": "^2.7.3"
   },
-  "resolutions": {
+  "resolutions": {"source-map-js": "1.2.2", 
     "jiti": "^2.6.1"
   },
   "engines": {
